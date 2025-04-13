@@ -48,7 +48,7 @@ def parse_evrp_data(data):
         if line:
             parts = line.split()
             if len(parts) >= 2:
-                demand = {"node_id": int(parts[0]), "demand": float(parts[1])}
+                demand = {"nodeId": int(parts[0]), "demand": float(parts[1])}
                 result["demand"].append(demand)
         i += 1
 

@@ -194,123 +194,123 @@
   ],
   "demand": [
     {
-      "node_id": 1,
+      "nodeId": 1,
       "demand": 0.0
     },
     {
-      "node_id": 2,
+      "nodeId": 2,
       "demand": 300.0
     },
     {
-      "node_id": 3,
+      "nodeId": 3,
       "demand": 3100.0
     },
     {
-      "node_id": 4,
+      "nodeId": 4,
       "demand": 125.0
     },
     {
-      "node_id": 5,
+      "nodeId": 5,
       "demand": 100.0
     },
     {
-      "node_id": 6,
+      "nodeId": 6,
       "demand": 200.0
     },
     {
-      "node_id": 7,
+      "nodeId": 7,
       "demand": 150.0
     },
     {
-      "node_id": 8,
+      "nodeId": 8,
       "demand": 150.0
     },
     {
-      "node_id": 9,
+      "nodeId": 9,
       "demand": 450.0
     },
     {
-      "node_id": 10,
+      "nodeId": 10,
       "demand": 300.0
     },
     {
-      "node_id": 11,
+      "nodeId": 11,
       "demand": 100.0
     },
     {
-      "node_id": 12,
+      "nodeId": 12,
       "demand": 950.0
     },
     {
-      "node_id": 13,
+      "nodeId": 13,
       "demand": 125.0
     },
     {
-      "node_id": 14,
+      "nodeId": 14,
       "demand": 150.0
     },
     {
-      "node_id": 15,
+      "nodeId": 15,
       "demand": 150.0
     },
     {
-      "node_id": 16,
+      "nodeId": 16,
       "demand": 550.0
     },
     {
-      "node_id": 17,
+      "nodeId": 17,
       "demand": 150.0
     },
     {
-      "node_id": 18,
+      "nodeId": 18,
       "demand": 100.0
     },
     {
-      "node_id": 19,
+      "nodeId": 19,
       "demand": 150.0
     },
     {
-      "node_id": 20,
+      "nodeId": 20,
       "demand": 400.0
     },
     {
-      "node_id": 21,
+      "nodeId": 21,
       "demand": 300.0
     },
     {
-      "node_id": 22,
+      "nodeId": 22,
       "demand": 1500.0
     },
     {
-      "node_id": 23,
+      "nodeId": 23,
       "demand": 100.0
     },
     {
-      "node_id": 24,
+      "nodeId": 24,
       "demand": 300.0
     },
     {
-      "node_id": 25,
+      "nodeId": 25,
       "demand": 500.0
     },
     {
-      "node_id": 26,
+      "nodeId": 26,
       "demand": 800.0
     },
     {
-      "node_id": 27,
+      "nodeId": 27,
       "demand": 300.0
     },
     {
-      "node_id": 28,
+      "nodeId": 28,
       "demand": 100.0
     },
     {
-      "node_id": 29,
+      "nodeId": 29,
       "demand": 150.0
     },
     {
-      "node_id": 30,
+      "nodeId": 30,
       "demand": 1000.0
     }
   ],
