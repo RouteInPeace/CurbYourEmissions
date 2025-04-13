@@ -1,4 +1,7 @@
 #include <iostream>
-#include "cym.hpp"
+#include "cye.hpp"
 
-auto main() -> int { hello(); }
+auto main() -> int {
+  auto instance = cye::Instance("dataset/json/E-n22-k4.json");
+  std::cout << "Hello\n";
+}

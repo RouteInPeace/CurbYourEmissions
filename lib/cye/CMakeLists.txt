@@ -1,9 +1,12 @@
 set(PROJECT_HEADERS 
-    src/lib.hpp
+    src/instance.hpp
+    src/nodes.hpp
+    src/utils.hpp
 )
 
 set(PROJECT_SOURCES 
-    src/lib.cpp
+    src/instance.cpp
+    src/utils.cpp
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")

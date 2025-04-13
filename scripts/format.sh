@@ -7,7 +7,7 @@ if ! command -v clang-format &> /dev/null; then
 fi
 
 DIRECTORIES=(
-    "lib/cym"
+    "lib/cye"
     "src"
 )
 

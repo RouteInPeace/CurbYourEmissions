@@ -6,795 +6,596 @@
   "vehicles": 7,
   "dimension": 76,
   "stations": 9,
-  "capacity": 220,
-  "energyCapacity": 98,
+  "capacity": 220.0,
+  "energyCapacity": 98.0,
   "energyConsumption": 1.2,
   "edgeWeightFormat": "EUC_2D",
-  "nodeCoordinates": [
+  "nodes": [
     {
-      "id": 1,
       "x": 40.0,
-      "y": 40.0
+      "y": 40.0,
+      "demand": 0.0,
+      "type": "depot",
+      "id": "1"
     },
     {
-      "id": 2,
       "x": 22.0,
-      "y": 22.0
+      "y": 22.0,
+      "demand": 18.0,
+      "type": "customer",
+      "id": "2"
     },
     {
-      "id": 3,
       "x": 36.0,
-      "y": 26.0
+      "y": 26.0,
+      "demand": 26.0,
+      "type": "customer",
+      "id": "3"
     },
     {
-      "id": 4,
       "x": 21.0,
-      "y": 45.0
+      "y": 45.0,
+      "demand": 11.0,
+      "type": "customer",
+      "id": "4"
     },
     {
-      "id": 5,
       "x": 45.0,
-      "y": 35.0
+      "y": 35.0,
+      "demand": 30.0,
+      "type": "customer",
+      "id": "5"
     },
     {
-      "id": 6,
       "x": 55.0,
-      "y": 20.0
+      "y": 20.0,
+      "demand": 21.0,
+      "type": "customer",
+      "id": "6"
     },
     {
-      "id": 7,
       "x": 33.0,
-      "y": 34.0
+      "y": 34.0,
+      "demand": 19.0,
+      "type": "customer",
+      "id": "7"
     },
     {
-      "id": 8,
       "x": 50.0,
-      "y": 50.0
+      "y": 50.0,
+      "demand": 15.0,
+      "type": "customer",
+      "id": "8"
     },
     {
-      "id": 9,
       "x": 55.0,
-      "y": 45.0
+      "y": 45.0,
+      "demand": 16.0,
+      "type": "customer",
+      "id": "9"
     },
     {
-      "id": 10,
       "x": 26.0,
-      "y": 59.0
+      "y": 59.0,
+      "demand": 29.0,
+      "type": "customer",
+      "id": "10"
     },
     {
-      "id": 11,
       "x": 40.0,
-      "y": 66.0
+      "y": 66.0,
+      "demand": 26.0,
+      "type": "customer",
+      "id": "11"
     },
     {
-      "id": 12,
       "x": 55.0,
-      "y": 65.0
+      "y": 65.0,
+      "demand": 37.0,
+      "type": "customer",
+      "id": "12"
     },
     {
-      "id": 13,
       "x": 35.0,
-      "y": 51.0
+      "y": 51.0,
+      "demand": 16.0,
+      "type": "customer",
+      "id": "13"
     },
     {
-      "id": 14,
       "x": 62.0,
-      "y": 35.0
+      "y": 35.0,
+      "demand": 12.0,
+      "type": "customer",
+      "id": "14"
     },
     {
-      "id": 15,
       "x": 62.0,
-      "y": 57.0
+      "y": 57.0,
+      "demand": 31.0,
+      "type": "customer",
+      "id": "15"
     },
     {
-      "id": 16,
       "x": 62.0,
-      "y": 24.0
+      "y": 24.0,
+      "demand": 8.0,
+      "type": "customer",
+      "id": "16"
     },
     {
-      "id": 17,
       "x": 21.0,
-      "y": 36.0
+      "y": 36.0,
+      "demand": 19.0,
+      "type": "customer",
+      "id": "17"
     },
     {
-      "id": 18,
       "x": 33.0,
-      "y": 44.0
+      "y": 44.0,
+      "demand": 20.0,
+      "type": "customer",
+      "id": "18"
     },
     {
-      "id": 19,
       "x": 9.0,
-      "y": 56.0
+      "y": 56.0,
+      "demand": 13.0,
+      "type": "customer",
+      "id": "19"
     },
     {
-      "id": 20,
       "x": 62.0,
-      "y": 48.0
+      "y": 48.0,
+      "demand": 15.0,
+      "type": "customer",
+      "id": "20"
     },
     {
-      "id": 21,
       "x": 66.0,
-      "y": 14.0
+      "y": 14.0,
+      "demand": 22.0,
+      "type": "customer",
+      "id": "21"
     },
     {
-      "id": 22,
       "x": 44.0,
-      "y": 13.0
+      "y": 13.0,
+      "demand": 28.0,
+      "type": "customer",
+      "id": "22"
     },
     {
-      "id": 23,
       "x": 26.0,
-      "y": 13.0
+      "y": 13.0,
+      "demand": 12.0,
+      "type": "customer",
+      "id": "23"
     },
     {
-      "id": 24,
       "x": 11.0,
-      "y": 28.0
+      "y": 28.0,
+      "demand": 6.0,
+      "type": "customer",
+      "id": "24"
     },
     {
-      "id": 25,
       "x": 7.0,
-      "y": 43.0
+      "y": 43.0,
+      "demand": 27.0,
+      "type": "customer",
+      "id": "25"
     },
     {
-      "id": 26,
       "x": 17.0,
-      "y": 64.0
+      "y": 64.0,
+      "demand": 14.0,
+      "type": "customer",
+      "id": "26"
     },
     {
-      "id": 27,
       "x": 41.0,
-      "y": 46.0
+      "y": 46.0,
+      "demand": 18.0,
+      "type": "customer",
+      "id": "27"
     },
     {
-      "id": 28,
       "x": 55.0,
-      "y": 34.0
+      "y": 34.0,
+      "demand": 17.0,
+      "type": "customer",
+      "id": "28"
     },
     {
-      "id": 29,
       "x": 35.0,
-      "y": 16.0
+      "y": 16.0,
+      "demand": 29.0,
+      "type": "customer",
+      "id": "29"
     },
     {
-      "id": 30,
       "x": 52.0,
-      "y": 26.0
+      "y": 26.0,
+      "demand": 13.0,
+      "type": "customer",
+      "id": "30"
     },
     {
-      "id": 31,
       "x": 43.0,
-      "y": 26.0
+      "y": 26.0,
+      "demand": 22.0,
+      "type": "customer",
+      "id": "31"
     },
     {
-      "id": 32,
       "x": 31.0,
-      "y": 76.0
+      "y": 76.0,
+      "demand": 25.0,
+      "type": "customer",
+      "id": "32"
     },
     {
-      "id": 33,
       "x": 22.0,
-      "y": 53.0
+      "y": 53.0,
+      "demand": 28.0,
+      "type": "customer",
+      "id": "33"
     },
     {
-      "id": 34,
       "x": 26.0,
-      "y": 29.0
+      "y": 29.0,
+      "demand": 27.0,
+      "type": "customer",
+      "id": "34"
     },
     {
-      "id": 35,
       "x": 50.0,
-      "y": 40.0
+      "y": 40.0,
+      "demand": 19.0,
+      "type": "customer",
+      "id": "35"
     },
     {
-      "id": 36,
       "x": 55.0,
-      "y": 50.0
+      "y": 50.0,
+      "demand": 10.0,
+      "type": "customer",
+      "id": "36"
     },
     {
-      "id": 37,
       "x": 54.0,
-      "y": 10.0
+      "y": 10.0,
+      "demand": 12.0,
+      "type": "customer",
+      "id": "37"
     },
     {
-      "id": 38,
       "x": 60.0,
-      "y": 15.0
+      "y": 15.0,
+      "demand": 14.0,
+      "type": "customer",
+      "id": "38"
     },
     {
-      "id": 39,
       "x": 47.0,
-      "y": 66.0
+      "y": 66.0,
+      "demand": 24.0,
+      "type": "customer",
+      "id": "39"
     },
     {
-      "id": 40,
       "x": 30.0,
-      "y": 60.0
+      "y": 60.0,
+      "demand": 16.0,
+      "type": "customer",
+      "id": "40"
     },
     {
-      "id": 41,
       "x": 30.0,
-      "y": 50.0
+      "y": 50.0,
+      "demand": 33.0,
+      "type": "customer",
+      "id": "41"
     },
     {
-      "id": 42,
       "x": 12.0,
-      "y": 17.0
+      "y": 17.0,
+      "demand": 15.0,
+      "type": "customer",
+      "id": "42"
     },
     {
-      "id": 43,
       "x": 15.0,
-      "y": 14.0
+      "y": 14.0,
+      "demand": 11.0,
+      "type": "customer",
+      "id": "43"
     },
     {
-      "id": 44,
       "x": 16.0,
-      "y": 19.0
+      "y": 19.0,
+      "demand": 18.0,
+      "type": "customer",
+      "id": "44"
     },
     {
-      "id": 45,
       "x": 21.0,
-      "y": 48.0
+      "y": 48.0,
+      "demand": 17.0,
+      "type": "customer",
+      "id": "45"
     },
     {
-      "id": 46,
       "x": 50.0,
-      "y": 30.0
+      "y": 30.0,
+      "demand": 21.0,
+      "type": "customer",
+      "id": "46"
     },
     {
-      "id": 47,
       "x": 51.0,
-      "y": 42.0
+      "y": 42.0,
+      "demand": 27.0,
+      "type": "customer",
+      "id": "47"
     },
     {
-      "id": 48,
       "x": 50.0,
-      "y": 15.0
+      "y": 15.0,
+      "demand": 19.0,
+      "type": "customer",
+      "id": "48"
     },
     {
-      "id": 49,
       "x": 48.0,
-      "y": 21.0
+      "y": 21.0,
+      "demand": 20.0,
+      "type": "customer",
+      "id": "49"
     },
     {
-      "id": 50,
       "x": 12.0,
-      "y": 38.0
+      "y": 38.0,
+      "demand": 5.0,
+      "type": "customer",
+      "id": "50"
     },
     {
-      "id": 51,
       "x": 15.0,
-      "y": 56.0
+      "y": 56.0,
+      "demand": 22.0,
+      "type": "customer",
+      "id": "51"
     },
     {
-      "id": 52,
       "x": 29.0,
-      "y": 39.0
+      "y": 39.0,
+      "demand": 12.0,
+      "type": "customer",
+      "id": "52"
     },
     {
-      "id": 53,
       "x": 54.0,
-      "y": 38.0
+      "y": 38.0,
+      "demand": 19.0,
+      "type": "customer",
+      "id": "53"
     },
     {
-      "id": 54,
       "x": 55.0,
-      "y": 57.0
+      "y": 57.0,
+      "demand": 22.0,
+      "type": "customer",
+      "id": "54"
     },
     {
-      "id": 55,
       "x": 67.0,
-      "y": 41.0
+      "y": 41.0,
+      "demand": 16.0,
+      "type": "customer",
+      "id": "55"
     },
     {
-      "id": 56,
       "x": 10.0,
-      "y": 70.0
+      "y": 70.0,
+      "demand": 7.0,
+      "type": "customer",
+      "id": "56"
     },
     {
-      "id": 57,
       "x": 6.0,
-      "y": 25.0
+      "y": 25.0,
+      "demand": 26.0,
+      "type": "customer",
+      "id": "57"
     },
     {
-      "id": 58,
       "x": 65.0,
-      "y": 27.0
+      "y": 27.0,
+      "demand": 14.0,
+      "type": "customer",
+      "id": "58"
     },
     {
-      "id": 59,
       "x": 40.0,
-      "y": 60.0
+      "y": 60.0,
+      "demand": 21.0,
+      "type": "customer",
+      "id": "59"
     },
     {
-      "id": 60,
       "x": 70.0,
-      "y": 64.0
+      "y": 64.0,
+      "demand": 24.0,
+      "type": "customer",
+      "id": "60"
     },
     {
-      "id": 61,
       "x": 64.0,
-      "y": 4.0
+      "y": 4.0,
+      "demand": 13.0,
+      "type": "customer",
+      "id": "61"
     },
     {
-      "id": 62,
       "x": 36.0,
-      "y": 6.0
+      "y": 6.0,
+      "demand": 15.0,
+      "type": "customer",
+      "id": "62"
     },
     {
-      "id": 63,
       "x": 30.0,
-      "y": 20.0
+      "y": 20.0,
+      "demand": 18.0,
+      "type": "customer",
+      "id": "63"
     },
     {
-      "id": 64,
       "x": 20.0,
-      "y": 30.0
+      "y": 30.0,
+      "demand": 11.0,
+      "type": "customer",
+      "id": "64"
     },
     {
-      "id": 65,
       "x": 15.0,
-      "y": 5.0
+      "y": 5.0,
+      "demand": 28.0,
+      "type": "customer",
+      "id": "65"
     },
     {
-      "id": 66,
       "x": 50.0,
-      "y": 70.0
+      "y": 70.0,
+      "demand": 9.0,
+      "type": "customer",
+      "id": "66"
     },
     {
-      "id": 67,
       "x": 57.0,
-      "y": 72.0
+      "y": 72.0,
+      "demand": 37.0,
+      "type": "customer",
+      "id": "67"
     },
     {
-      "id": 68,
       "x": 45.0,
-      "y": 42.0
+      "y": 42.0,
+      "demand": 30.0,
+      "type": "customer",
+      "id": "68"
     },
     {
-      "id": 69,
       "x": 38.0,
-      "y": 33.0
+      "y": 33.0,
+      "demand": 10.0,
+      "type": "customer",
+      "id": "69"
     },
     {
-      "id": 70,
       "x": 50.0,
-      "y": 4.0
+      "y": 4.0,
+      "demand": 8.0,
+      "type": "customer",
+      "id": "70"
     },
     {
-      "id": 71,
       "x": 66.0,
-      "y": 8.0
+      "y": 8.0,
+      "demand": 11.0,
+      "type": "customer",
+      "id": "71"
     },
     {
-      "id": 72,
       "x": 59.0,
-      "y": 5.0
+      "y": 5.0,
+      "demand": 3.0,
+      "type": "customer",
+      "id": "72"
     },
     {
-      "id": 73,
       "x": 35.0,
-      "y": 60.0
+      "y": 60.0,
+      "demand": 1.0,
+      "type": "customer",
+      "id": "73"
     },
     {
-      "id": 74,
       "x": 27.0,
-      "y": 24.0
+      "y": 24.0,
+      "demand": 6.0,
+      "type": "customer",
+      "id": "74"
     },
     {
-      "id": 75,
       "x": 40.0,
-      "y": 20.0
+      "y": 20.0,
+      "demand": 10.0,
+      "type": "customer",
+      "id": "75"
     },
     {
-      "id": 76,
       "x": 40.0,
-      "y": 37.0
+      "y": 37.0,
+      "demand": 20.0,
+      "type": "customer",
+      "id": "76"
     },
     {
-      "id": 77,
       "x": 17.0,
-      "y": 16.0
+      "y": 16.0,
+      "type": "chargingStation",
+      "id": "77"
     },
     {
-      "id": 78,
       "x": 17.0,
-      "y": 40.0
+      "y": 40.0,
+      "type": "chargingStation",
+      "id": "78"
     },
     {
-      "id": 79,
       "x": 17.0,
-      "y": 64.0
+      "y": 64.0,
+      "type": "chargingStation",
+      "id": "79"
     },
     {
-      "id": 80,
       "x": 38.0,
-      "y": 16.0
+      "y": 16.0,
+      "type": "chargingStation",
+      "id": "80"
     },
     {
-      "id": 81,
       "x": 38.0,
-      "y": 40.0
+      "y": 40.0,
+      "type": "chargingStation",
+      "id": "81"
     },
     {
-      "id": 82,
       "x": 38.0,
-      "y": 64.0
+      "y": 64.0,
+      "type": "chargingStation",
+      "id": "82"
     },
     {
-      "id": 83,
       "x": 60.0,
-      "y": 16.0
+      "y": 16.0,
+      "type": "chargingStation",
+      "id": "83"
     },
     {
-      "id": 84,
       "x": 60.0,
-      "y": 40.0
+      "y": 40.0,
+      "type": "chargingStation",
+      "id": "84"
     },
     {
-      "id": 85,
       "x": 60.0,
-      "y": 64.0
-    }
-  ],
-  "demand": [
-    {
-      "nodeId": 1,
-      "demand": 0.0
-    },
-    {
-      "nodeId": 2,
-      "demand": 18.0
-    },
-    {
-      "nodeId": 3,
-      "demand": 26.0
-    },
-    {
-      "nodeId": 4,
-      "demand": 11.0
-    },
-    {
-      "nodeId": 5,
-      "demand": 30.0
-    },
-    {
-      "nodeId": 6,
-      "demand": 21.0
-    },
-    {
-      "nodeId": 7,
-      "demand": 19.0
-    },
-    {
-      "nodeId": 8,
-      "demand": 15.0
-    },
-    {
-      "nodeId": 9,
-      "demand": 16.0
-    },
-    {
-      "nodeId": 10,
-      "demand": 29.0
-    },
-    {
-      "nodeId": 11,
-      "demand": 26.0
-    },
-    {
-      "nodeId": 12,
-      "demand": 37.0
-    },
-    {
-      "nodeId": 13,
-      "demand": 16.0
-    },
-    {
-      "nodeId": 14,
-      "demand": 12.0
-    },
-    {
-      "nodeId": 15,
-      "demand": 31.0
-    },
-    {
-      "nodeId": 16,
-      "demand": 8.0
-    },
-    {
-      "nodeId": 17,
-      "demand": 19.0
-    },
-    {
-      "nodeId": 18,
-      "demand": 20.0
-    },
-    {
-      "nodeId": 19,
-      "demand": 13.0
-    },
-    {
-      "nodeId": 20,
-      "demand": 15.0
-    },
-    {
-      "nodeId": 21,
-      "demand": 22.0
-    },
-    {
-      "nodeId": 22,
-      "demand": 28.0
-    },
-    {
-      "nodeId": 23,
-      "demand": 12.0
-    },
-    {
-      "nodeId": 24,
-      "demand": 6.0
-    },
-    {
-      "nodeId": 25,
-      "demand": 27.0
-    },
-    {
-      "nodeId": 26,
-      "demand": 14.0
-    },
-    {
-      "nodeId": 27,
-      "demand": 18.0
-    },
-    {
-      "nodeId": 28,
-      "demand": 17.0
-    },
-    {
-      "nodeId": 29,
-      "demand": 29.0
-    },
-    {
-      "nodeId": 30,
-      "demand": 13.0
-    },
-    {
-      "nodeId": 31,
-      "demand": 22.0
-    },
-    {
-      "nodeId": 32,
-      "demand": 25.0
-    },
-    {
-      "nodeId": 33,
-      "demand": 28.0
-    },
-    {
-      "nodeId": 34,
-      "demand": 27.0
-    },
-    {
-      "nodeId": 35,
-      "demand": 19.0
-    },
-    {
-      "nodeId": 36,
-      "demand": 10.0
-    },
-    {
-      "nodeId": 37,
-      "demand": 12.0
-    },
-    {
-      "nodeId": 38,
-      "demand": 14.0
-    },
-    {
-      "nodeId": 39,
-      "demand": 24.0
-    },
-    {
-      "nodeId": 40,
-      "demand": 16.0
-    },
-    {
-      "nodeId": 41,
-      "demand": 33.0
-    },
-    {
-      "nodeId": 42,
-      "demand": 15.0
-    },
-    {
-      "nodeId": 43,
-      "demand": 11.0
-    },
-    {
-      "nodeId": 44,
-      "demand": 18.0
-    },
-    {
-      "nodeId": 45,
-      "demand": 17.0
-    },
-    {
-      "nodeId": 46,
-      "demand": 21.0
-    },
-    {
-      "nodeId": 47,
-      "demand": 27.0
-    },
-    {
-      "nodeId": 48,
-      "demand": 19.0
-    },
-    {
-      "nodeId": 49,
-      "demand": 20.0
-    },
-    {
-      "nodeId": 50,
-      "demand": 5.0
-    },
-    {
-      "nodeId": 51,
-      "demand": 22.0
-    },
-    {
-      "nodeId": 52,
-      "demand": 12.0
-    },
-    {
-      "nodeId": 53,
-      "demand": 19.0
-    },
-    {
-      "nodeId": 54,
-      "demand": 22.0
-    },
-    {
-      "nodeId": 55,
-      "demand": 16.0
-    },
-    {
-      "nodeId": 56,
-      "demand": 7.0
-    },
-    {
-      "nodeId": 57,
-      "demand": 26.0
-    },
-    {
-      "nodeId": 58,
-      "demand": 14.0
-    },
-    {
-      "nodeId": 59,
-      "demand": 21.0
-    },
-    {
-      "nodeId": 60,
-      "demand": 24.0
-    },
-    {
-      "nodeId": 61,
-      "demand": 13.0
-    },
-    {
-      "nodeId": 62,
-      "demand": 15.0
-    },
-    {
-      "nodeId": 63,
-      "demand": 18.0
-    },
-    {
-      "nodeId": 64,
-      "demand": 11.0
-    },
-    {
-      "nodeId": 65,
-      "demand": 28.0
-    },
-    {
-      "nodeId": 66,
-      "demand": 9.0
-    },
-    {
-      "nodeId": 67,
-      "demand": 37.0
-    },
-    {
-      "nodeId": 68,
-      "demand": 30.0
-    },
-    {
-      "nodeId": 69,
-      "demand": 10.0
-    },
-    {
-      "nodeId": 70,
-      "demand": 8.0
-    },
-    {
-      "nodeId": 71,
-      "demand": 11.0
-    },
-    {
-      "nodeId": 72,
-      "demand": 3.0
-    },
-    {
-      "nodeId": 73,
-      "demand": 1.0
-    },
-    {
-      "nodeId": 74,
-      "demand": 6.0
-    },
-    {
-      "nodeId": 75,
-      "demand": 10.0
-    },
-    {
-      "nodeId": 76,
-      "demand": 20.0
-    }
-  ],
-  "chargingStationCoordinates": [
-    {
-      "id": 77,
-      "x": 17.0,
-      "y": 16.0
-    },
-    {
-      "id": 78,
-      "x": 17.0,
-      "y": 40.0
-    },
-    {
-      "id": 79,
-      "x": 17.0,
-      "y": 64.0
-    },
-    {
-      "id": 80,
-      "x": 38.0,
-      "y": 16.0
-    },
-    {
-      "id": 81,
-      "x": 38.0,
-      "y": 40.0
-    },
-    {
-      "id": 82,
-      "x": 38.0,
-      "y": 64.0
-    },
-    {
-      "id": 83,
-      "x": 60.0,
-      "y": 16.0
-    },
-    {
-      "id": 84,
-      "x": 60.0,
-      "y": 40.0
-    },
-    {
-      "id": 85,
-      "x": 60.0,
-      "y": 64.0
-    }
-  ],
-  "depot": [
-    {
-      "id": 1,
-      "x": 40.0,
-      "y": 40.0
+      "y": 64.0,
+      "type": "chargingStation",
+      "id": "85"
     }
   ]
 }
