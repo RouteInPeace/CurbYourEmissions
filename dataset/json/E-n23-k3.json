@@ -1,16 +1,16 @@
 {
-  "Name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "COMMENT": "Modificatification of E-n23-k3 instance. Modified by Mavrovouniotis Menelaou.",
-  "TYPE": "EVRP",
-  "OPTIMAL_VALUE": "573.130948",
-  "VEHICLES": "3",
-  "DIMENSION": "23",
-  "STATIONS": "9",
-  "CAPACITY": "4500",
-  "ENERGY_CAPACITY": "190",
-  "ENERGY_CONSUMPTION": "1.20",
-  "EDGE_WEIGHT_FORMAT": "EUC_2D",
-  "NODE_COORD_SECTION": [
+  "name": "Mavrovouniotis Menelaou Instances Test: 1",
+  "comment": "Modificatification of E-n23-k3 instance. Modified by Mavrovouniotis Menelaou.",
+  "type": "EVRP",
+  "optimalValue": 573.130948,
+  "vehicles": 3,
+  "dimension": 23,
+  "stations": 9,
+  "capacity": 4500,
+  "energyCapacity": 190,
+  "energyConsumption": 1.2,
+  "edgeWeightFormat": "EUC_2D",
+  "nodeCoordinates": [
     {
       "id": 1,
       "x": 266.0,
@@ -172,7 +172,7 @@
       "y": 262.0
     }
   ],
-  "DEMAND_SECTION": [
+  "demand": [
     {
       "node_id": 1,
       "demand": 0.0
@@ -266,7 +266,7 @@
       "demand": 75.0
     }
   ],
-  "STATIONS_COORD_SECTION": [
+  "chargingStationCoordinates": [
     {
       "id": 24,
       "x": 229.0,
@@ -313,7 +313,7 @@
       "y": 262.0
     }
   ],
-  "DEPOT_SECTION": [
+  "depot": [
     {
       "id": 1,
       "x": 266.0,

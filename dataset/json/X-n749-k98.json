@@ -1,16 +1,16 @@
 {
-  "Name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "COMMENT": "Modificatification of X-n749-k98\t instance. Modified by Mavrovouniotis Menelaou.",
-  "TYPE": "EVRP",
-  "OPTIMAL_VALUE": "0",
-  "VEHICLES": "98",
-  "DIMENSION": "749",
-  "STATIONS": "30",
-  "CAPACITY": "396",
-  "ENERGY_CAPACITY": "790",
-  "ENERGY_CONSUMPTION": "1.00",
-  "EDGE_WEIGHT_FORMAT": "EUC_2D",
-  "NODE_COORD_SECTION": [
+  "name": "Mavrovouniotis Menelaou Instances Test: 1",
+  "comment": "Modificatification of X-n749-k98\t instance. Modified by Mavrovouniotis Menelaou.",
+  "type": "EVRP",
+  "optimalValue": 0,
+  "vehicles": 98,
+  "dimension": 749,
+  "stations": 30,
+  "capacity": 396,
+  "energyCapacity": 790,
+  "energyConsumption": 1.0,
+  "edgeWeightFormat": "EUC_2D",
+  "nodeCoordinates": [
     {
       "id": 1,
       "x": 643.0,
@@ -3907,7 +3907,7 @@
       "y": 912.0
     }
   ],
-  "DEMAND_SECTION": [
+  "demand": [
     {
       "node_id": 1,
       "demand": 0.0
@@ -6905,7 +6905,7 @@
       "demand": 99.0
     }
   ],
-  "STATIONS_COORD_SECTION": [
+  "chargingStationCoordinates": [
     {
       "id": 750,
       "x": 100.0,
@@ -7057,7 +7057,7 @@
       "y": 912.0
     }
   ],
-  "DEPOT_SECTION": [
+  "depot": [
     {
       "id": 1,
       "x": 643.0,

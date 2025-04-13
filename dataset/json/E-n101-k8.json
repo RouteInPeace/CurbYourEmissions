@@ -1,16 +1,16 @@
 {
-  "Name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "COMMENT": "Modificatification of E-n101-k8 instance. Modified by Mavrovouniotis Menelaou.",
-  "TYPE": "EVRP",
-  "OPTIMAL_VALUE": "899.885589",
-  "VEHICLES": "8",
-  "DIMENSION": "101",
-  "STATIONS": "9",
-  "CAPACITY": "200",
-  "ENERGY_CAPACITY": "103",
-  "ENERGY_CONSUMPTION": "1.20",
-  "EDGE_WEIGHT_FORMAT": "EUC_2D",
-  "NODE_COORD_SECTION": [
+  "name": "Mavrovouniotis Menelaou Instances Test: 1",
+  "comment": "Modificatification of E-n101-k8 instance. Modified by Mavrovouniotis Menelaou.",
+  "type": "EVRP",
+  "optimalValue": 899.885589,
+  "vehicles": 8,
+  "dimension": 101,
+  "stations": 9,
+  "capacity": 200,
+  "energyCapacity": 103,
+  "energyConsumption": 1.2,
+  "edgeWeightFormat": "EUC_2D",
+  "nodeCoordinates": [
     {
       "id": 1,
       "x": 35.0,
@@ -562,7 +562,7 @@
       "y": 65.0
     }
   ],
-  "DEMAND_SECTION": [
+  "demand": [
     {
       "node_id": 1,
       "demand": 0.0
@@ -968,7 +968,7 @@
       "demand": 17.0
     }
   ],
-  "STATIONS_COORD_SECTION": [
+  "chargingStationCoordinates": [
     {
       "id": 102,
       "x": 13.0,
@@ -1015,7 +1015,7 @@
       "y": 65.0
     }
   ],
-  "DEPOT_SECTION": [
+  "depot": [
     {
       "id": 1,
       "x": 35.0,
