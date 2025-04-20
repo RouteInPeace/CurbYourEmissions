@@ -6,378 +6,277 @@
   "vehicles": 4,
   "dimension": 33,
   "stations": 6,
-  "capacity": 8000,
-  "energyCapacity": 209,
+  "capacity": 8000.0,
+  "energyCapacity": 209.0,
   "energyConsumption": 1.2,
   "edgeWeightFormat": "EUC_2D",
-  "nodeCoordinates": [
+  "nodes": [
     {
-      "id": 1,
       "x": 292.0,
-      "y": 495.0
+      "y": 495.0,
+      "demand": 0.0,
+      "type": "depot",
+      "id": "1"
     },
     {
-      "id": 2,
       "x": 298.0,
-      "y": 427.0
+      "y": 427.0,
+      "demand": 700.0,
+      "type": "customer",
+      "id": "2"
     },
     {
-      "id": 3,
       "x": 309.0,
-      "y": 445.0
+      "y": 445.0,
+      "demand": 400.0,
+      "type": "customer",
+      "id": "3"
     },
     {
-      "id": 4,
       "x": 307.0,
-      "y": 464.0
+      "y": 464.0,
+      "demand": 400.0,
+      "type": "customer",
+      "id": "4"
     },
     {
-      "id": 5,
       "x": 336.0,
-      "y": 475.0
+      "y": 475.0,
+      "demand": 1200.0,
+      "type": "customer",
+      "id": "5"
     },
     {
-      "id": 6,
       "x": 320.0,
-      "y": 439.0
+      "y": 439.0,
+      "demand": 40.0,
+      "type": "customer",
+      "id": "6"
     },
     {
-      "id": 7,
       "x": 321.0,
-      "y": 437.0
+      "y": 437.0,
+      "demand": 80.0,
+      "type": "customer",
+      "id": "7"
     },
     {
-      "id": 8,
       "x": 322.0,
-      "y": 437.0
+      "y": 437.0,
+      "demand": 2000.0,
+      "type": "customer",
+      "id": "8"
     },
     {
-      "id": 9,
       "x": 323.0,
-      "y": 433.0
+      "y": 433.0,
+      "demand": 900.0,
+      "type": "customer",
+      "id": "9"
     },
     {
-      "id": 10,
       "x": 324.0,
-      "y": 433.0
+      "y": 433.0,
+      "demand": 600.0,
+      "type": "customer",
+      "id": "10"
     },
     {
-      "id": 11,
       "x": 323.0,
-      "y": 429.0
+      "y": 429.0,
+      "demand": 750.0,
+      "type": "customer",
+      "id": "11"
     },
     {
-      "id": 12,
       "x": 314.0,
-      "y": 435.0
+      "y": 435.0,
+      "demand": 1500.0,
+      "type": "customer",
+      "id": "12"
     },
     {
-      "id": 13,
       "x": 311.0,
-      "y": 442.0
+      "y": 442.0,
+      "demand": 150.0,
+      "type": "customer",
+      "id": "13"
     },
     {
-      "id": 14,
       "x": 304.0,
-      "y": 427.0
+      "y": 427.0,
+      "demand": 250.0,
+      "type": "customer",
+      "id": "14"
     },
     {
-      "id": 15,
       "x": 293.0,
-      "y": 421.0
+      "y": 421.0,
+      "demand": 1600.0,
+      "type": "customer",
+      "id": "15"
     },
     {
-      "id": 16,
       "x": 296.0,
-      "y": 418.0
+      "y": 418.0,
+      "demand": 450.0,
+      "type": "customer",
+      "id": "16"
     },
     {
-      "id": 17,
       "x": 261.0,
-      "y": 384.0
+      "y": 384.0,
+      "demand": 700.0,
+      "type": "customer",
+      "id": "17"
     },
     {
-      "id": 18,
       "x": 297.0,
-      "y": 410.0
+      "y": 410.0,
+      "demand": 550.0,
+      "type": "customer",
+      "id": "18"
     },
     {
-      "id": 19,
       "x": 315.0,
-      "y": 407.0
+      "y": 407.0,
+      "demand": 650.0,
+      "type": "customer",
+      "id": "19"
     },
     {
-      "id": 20,
       "x": 314.0,
-      "y": 406.0
+      "y": 406.0,
+      "demand": 200.0,
+      "type": "customer",
+      "id": "20"
     },
     {
-      "id": 21,
       "x": 321.0,
-      "y": 391.0
+      "y": 391.0,
+      "demand": 400.0,
+      "type": "customer",
+      "id": "21"
     },
     {
-      "id": 22,
       "x": 321.0,
-      "y": 398.0
+      "y": 398.0,
+      "demand": 300.0,
+      "type": "customer",
+      "id": "22"
     },
     {
-      "id": 23,
       "x": 314.0,
-      "y": 394.0
+      "y": 394.0,
+      "demand": 1300.0,
+      "type": "customer",
+      "id": "23"
     },
     {
-      "id": 24,
       "x": 313.0,
-      "y": 378.0
+      "y": 378.0,
+      "demand": 700.0,
+      "type": "customer",
+      "id": "24"
     },
     {
-      "id": 25,
       "x": 304.0,
-      "y": 382.0
+      "y": 382.0,
+      "demand": 750.0,
+      "type": "customer",
+      "id": "25"
     },
     {
-      "id": 26,
       "x": 295.0,
-      "y": 402.0
+      "y": 402.0,
+      "demand": 1400.0,
+      "type": "customer",
+      "id": "26"
     },
     {
-      "id": 27,
       "x": 283.0,
-      "y": 406.0
+      "y": 406.0,
+      "demand": 4000.0,
+      "type": "customer",
+      "id": "27"
     },
     {
-      "id": 28,
       "x": 279.0,
-      "y": 399.0
+      "y": 399.0,
+      "demand": 600.0,
+      "type": "customer",
+      "id": "28"
     },
     {
-      "id": 29,
       "x": 271.0,
-      "y": 401.0
+      "y": 401.0,
+      "demand": 1000.0,
+      "type": "customer",
+      "id": "29"
     },
     {
-      "id": 30,
       "x": 264.0,
-      "y": 414.0
+      "y": 414.0,
+      "demand": 500.0,
+      "type": "customer",
+      "id": "30"
     },
     {
-      "id": 31,
       "x": 277.0,
-      "y": 439.0
+      "y": 439.0,
+      "demand": 2500.0,
+      "type": "customer",
+      "id": "31"
     },
     {
-      "id": 32,
       "x": 290.0,
-      "y": 434.0
+      "y": 434.0,
+      "demand": 1700.0,
+      "type": "customer",
+      "id": "32"
     },
     {
-      "id": 33,
       "x": 319.0,
-      "y": 433.0
+      "y": 433.0,
+      "demand": 1100.0,
+      "type": "customer",
+      "id": "33"
     },
     {
-      "id": 34,
       "x": 280.0,
-      "y": 398.0
+      "y": 398.0,
+      "type": "chargingStation",
+      "id": "34"
     },
     {
-      "id": 35,
       "x": 280.0,
-      "y": 437.0
+      "y": 437.0,
+      "type": "chargingStation",
+      "id": "35"
     },
     {
-      "id": 36,
       "x": 280.0,
-      "y": 476.0
+      "y": 476.0,
+      "type": "chargingStation",
+      "id": "36"
     },
     {
-      "id": 37,
       "x": 318.0,
-      "y": 398.0
+      "y": 398.0,
+      "type": "chargingStation",
+      "id": "37"
     },
     {
-      "id": 38,
       "x": 318.0,
-      "y": 437.0
+      "y": 437.0,
+      "type": "chargingStation",
+      "id": "38"
     },
     {
-      "id": 39,
       "x": 318.0,
-      "y": 476.0
-    }
-  ],
-  "demand": [
-    {
-      "node_id": 1,
-      "demand": 0.0
-    },
-    {
-      "node_id": 2,
-      "demand": 700.0
-    },
-    {
-      "node_id": 3,
-      "demand": 400.0
-    },
-    {
-      "node_id": 4,
-      "demand": 400.0
-    },
-    {
-      "node_id": 5,
-      "demand": 1200.0
-    },
-    {
-      "node_id": 6,
-      "demand": 40.0
-    },
-    {
-      "node_id": 7,
-      "demand": 80.0
-    },
-    {
-      "node_id": 8,
-      "demand": 2000.0
-    },
-    {
-      "node_id": 9,
-      "demand": 900.0
-    },
-    {
-      "node_id": 10,
-      "demand": 600.0
-    },
-    {
-      "node_id": 11,
-      "demand": 750.0
-    },
-    {
-      "node_id": 12,
-      "demand": 1500.0
-    },
-    {
-      "node_id": 13,
-      "demand": 150.0
-    },
-    {
-      "node_id": 14,
-      "demand": 250.0
-    },
-    {
-      "node_id": 15,
-      "demand": 1600.0
-    },
-    {
-      "node_id": 16,
-      "demand": 450.0
-    },
-    {
-      "node_id": 17,
-      "demand": 700.0
-    },
-    {
-      "node_id": 18,
-      "demand": 550.0
-    },
-    {
-      "node_id": 19,
-      "demand": 650.0
-    },
-    {
-      "node_id": 20,
-      "demand": 200.0
-    },
-    {
-      "node_id": 21,
-      "demand": 400.0
-    },
-    {
-      "node_id": 22,
-      "demand": 300.0
-    },
-    {
-      "node_id": 23,
-      "demand": 1300.0
-    },
-    {
-      "node_id": 24,
-      "demand": 700.0
-    },
-    {
-      "node_id": 25,
-      "demand": 750.0
-    },
-    {
-      "node_id": 26,
-      "demand": 1400.0
-    },
-    {
-      "node_id": 27,
-      "demand": 4000.0
-    },
-    {
-      "node_id": 28,
-      "demand": 600.0
-    },
-    {
-      "node_id": 29,
-      "demand": 1000.0
-    },
-    {
-      "node_id": 30,
-      "demand": 500.0
-    },
-    {
-      "node_id": 31,
-      "demand": 2500.0
-    },
-    {
-      "node_id": 32,
-      "demand": 1700.0
-    },
-    {
-      "node_id": 33,
-      "demand": 1100.0
-    }
-  ],
-  "chargingStationCoordinates": [
-    {
-      "id": 34,
-      "x": 280.0,
-      "y": 398.0
-    },
-    {
-      "id": 35,
-      "x": 280.0,
-      "y": 437.0
-    },
-    {
-      "id": 36,
-      "x": 280.0,
-      "y": 476.0
-    },
-    {
-      "id": 37,
-      "x": 318.0,
-      "y": 398.0
-    },
-    {
-      "id": 38,
-      "x": 318.0,
-      "y": 437.0
-    },
-    {
-      "id": 39,
-      "x": 318.0,
-      "y": 476.0
-    }
-  ],
-  "depot": [
-    {
-      "id": 1,
-      "x": 292.0,
-      "y": 495.0
+      "y": 476.0,
+      "type": "chargingStation",
+      "id": "39"
     }
   ]
 }

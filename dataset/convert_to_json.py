@@ -18,65 +18,65 @@ def parse_evrp_data(data):
         if line:
             if ": " in line:
                 key, value = line.split(": ", 1)
-                try:
-                    value = int(value)
-                except:
+                if key == "CAPACITY" or key == "ENERGY_CAPACITY":
+                    value = float(value)
+                else:
                     try:
-                        value = float(value)
+                        value = int(value)
                     except:
-                        pass
+                        try:
+                            value = float(value)
+                        except:
+                            pass
 
                 result[camel_case(key)] = value
         i += 1
 
-    result["nodeCoordinates"] = []
+    nodes = {}
+
     i += 1
     while i < len(lines) and lines[i].strip() != "DEMAND_SECTION":
         line = lines[i].strip()
         if line:
             parts = line.split()
             if len(parts) >= 3:
-                node = {"id": int(parts[0]), "x": float(
-                    parts[1]), "y": float(parts[2])}
-                result["nodeCoordinates"].append(node)
+                id = parts[0]
+                x = float(parts[1])
+                y = float(parts[2])
+
+                nodes[id] = {"x": x, "y": y}
         i += 1
 
-    result["demand"] = []
     i += 1
     while i < len(lines) and lines[i].strip() != "STATIONS_COORD_SECTION":
         line = lines[i].strip()
         if line:
             parts = line.split()
             if len(parts) >= 2:
-                demand = {"node_id": int(parts[0]), "demand": float(parts[1])}
-                result["demand"].append(demand)
+                id = parts[0]
+                demand = float(parts[1])
+                nodes[id]["demand"] = demand
+                nodes[id]["type"] = "customer"
         i += 1
 
-    result["chargingStationCoordinates"] = []
     i += 1
     while i < len(lines) and lines[i].strip() != "DEPOT_SECTION":
-        line = lines[i].strip()
-        if line:
-            parts = line.split()
-            if parts:
-                station_id = int(parts[0])
-                for node in result["nodeCoordinates"]:
-                    if node["id"] == station_id:
-                        result["chargingStationCoordinates"].append(node)
-                        break
+        id = lines[i].strip()
+        if id:
+            nodes[id]["type"] = "chargingStation"
         i += 1
 
-    result["depot"] = []
     i += 1
     while i < len(lines) and lines[i].strip() != "EOF":
-        line = lines[i].strip()
-        if line and line != "-1":
-            depot_id = int(line)
-            for node in result["nodeCoordinates"]:
-                if node["id"] == depot_id:
-                    result["depot"].append(node)
-                    break
+        id = lines[i].strip()
+        if id and id != "-1":
+            nodes[id]["type"] = "depot"
         i += 1
+
+    result["nodes"] = []
+    for key, value in nodes.items():
+        value["id"] = key
+        result["nodes"].append(value)
 
     return result
 
