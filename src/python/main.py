@@ -21,11 +21,18 @@ def calculate_distance_matrix(nodes):
             dist[i][j] = euclidean_distance(nodes[i], nodes[j])
     return dist
 
+def route_distance(route, distance_matrix):
+    dist = 0
+    for i in range(len(route) - 1):
+        dist += distance_matrix[route[i]][route[i + 1]]
+    return dist
+
 
 class EVRPSolution:
     def __init__(self, routes, total_distance):
         self.routes = routes
         self.total_distance = total_distance
+
 
     def copy(self):
         return EVRPSolution(deepcopy(self.routes), self.total_distance)
@@ -141,15 +148,6 @@ def repair_greedy(solution, data, **kwargs):
     
     return new_solution
 
-def route_distance(route, distance_matrix):
-    if len(route) < 2:
-        return 0
-    dist = 0
-    for i in range(len(route) - 1):
-        dist += distance_matrix[route[i]][route[i + 1]]
-    return dist
-
-
 def check_route_feasibility(route, data):
     battery = data.energy_capacity
     energy_consumption = data.energy_consumption
@@ -201,43 +199,71 @@ def add_charging_stations(route, data):
     return new_route
 
 
-def initial_solution(data):
+def find_nearest_charging_station(node, data, battery_left):
+    best_station = None
+    min_distance = float("inf")
+
+    if battery_left - data.distance_matrix[node][data.depot] * data.energy_consumption >= 0:
+        min_distance = data.distance_matrix[node][data.depot]
+        best_station = data.depot
+
+    for station in data.charging_stations:
+        distance = data.distance_matrix[node][station]
+        if distance < min_distance and battery_left - distance * data.energy_consumption >= 0:
+            min_distance = distance
+            best_station = station
+
+    return best_station, min_distance
+
+
+def initial_solution(data: EVRPData):
     customers = data.customers.copy()
     random.shuffle(customers)
 
-    routes = [[] for _ in range(data.vehicles)]
-    capacities = [0] * data.vehicles
-    max_cap = data.capacity
+    routes = [data.depot]
+    capacity = data.capacity
+    battery_left = data.energy_capacity
 
-    for customer in customers:
-        demand = data.nodes[customer]["demand"]
-        inserted = False
-        
-        # Try to insert in existing routes
-        for i in range(len(routes)):
-            if capacities[i] + demand <= max_cap:
-                routes[i].append(customer)
-                capacities[i] += demand
-                inserted = True
-                break
-                
-        # If couldn't insert, create new route (if vehicles available)
-        if not inserted and len(routes) < data.vehicles:
-            routes.append([customer])
-            capacities.append(demand)
+    while len(customers) > 0:
+        best_customer = -1
+        best_distance = float("inf")
+        for customer in customers:
+            demand = data.nodes[customer]["demand"]
+            travel_distance = data.distance_matrix[routes[-1]][customer]
+            energy_needed = travel_distance * data.energy_consumption
 
-    # Add depot at start and end
-    routes = [[data.depot] + route + [data.depot] for route in routes if route]
+            if battery_left - energy_needed >= 0 and demand <= capacity and best_distance > travel_distance:
+                best_distance = travel_distance
+                best_customer = customer
 
-    # Add charging stations if needed
-    final_routes = []
-    for route in routes:
-        repaired = add_charging_stations(route, data)
-        final_routes.append(repaired)
+        if best_customer != -1:
+            routes.append(best_customer)
+            customers.remove(best_customer)
+            capacity -= data.nodes[best_customer]["demand"]
+            battery_left -= best_distance * data.energy_consumption
+            continue
 
-    total_dist = sum(route_distance(route, data.distance_matrix) for route in final_routes)
+        charging_station = find_nearest_charging_station(routes[-1], data, battery_left)
+        while charging_station is None:
+            previous = routes.pop()
 
-    return EVRPSolution(final_routes, total_dist)
+            # please don't hit this this assertion
+            assert data.nodes[previous]["type"] == "chargingStation", "No charging station found"
+            assert data.nodes[previous]["type"] == "depot", "No depot found"
+
+            capacity += data.nodes[previous]["demand"]
+            battery_left += data.distance_matrix[routes[-1]][previous] * data.energy_consumption
+
+            charging_station, _ = find_nearest_charging_station(routes[-1], data, battery_left)
+
+        assert charging_station is not None, "No charging station found"
+        routes.append(charging_station)
+        battery_left = data.energy_capacity
+
+        if charging_station == data.depot:
+            capacity = data.capacity
+
+    return EVRPSolution(routes, route_distance(routes, data.distance_matrix))
 
 
 def run_alns(data):
@@ -248,6 +274,7 @@ def run_alns(data):
     for i, route in enumerate(initial.routes):
         print(f"Vehicle {i+1}: {route}")
 
+    return
     alns = ALNS()
     alns.add_destroy_operator(lambda sol, rnd: destroy_random(sol, data))
     alns.add_repair_operator(lambda sol, rnd: repair_greedy(sol, data))
