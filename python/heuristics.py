@@ -26,7 +26,6 @@ def find_charging_station(instance: evrp.Instance, node1_id: int, node2_id: int,
 
 def nearest_neighbor(instance: evrp.Instance):
     customer_ids = instance.customer_ids.copy()
-    random.shuffle(customer_ids)
 
     routes = [instance.depot_id]
     capacity = instance.cargo_capacity
