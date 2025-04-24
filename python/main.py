@@ -3,6 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import evrp
 import utils
+import heuristics
 
 from alns import ALNS
 from alns.accept import HillClimbing
@@ -191,49 +192,10 @@ def run_alns(data):
     return result
 
 
-def plot_routes(data, routes):
-    nodes = data.nodes
-    depot = data.depot
-    charging_stations = data.charging_stations
-
-    colors = plt.cm.get_cmap("tab20", len(routes))
-
-    plt.figure(figsize=(10, 8))
-
-    # Plot all nodes
-    for idx, node in enumerate(nodes):
-        if node["type"] == "customer":
-            plt.scatter(node["x"], node["y"], color="blue",
-                        marker="o", label="Customer" if idx == 0 else "")
-        elif node["type"] == "chargingStation":
-            plt.scatter(node["x"], node["y"], color="green", marker="s",
-                        label="Charging Station" if idx == 0 else "")
-        elif node["type"] == "depot":
-            plt.scatter(node["x"], node["y"], color="red",
-                        marker="D", label="Depot")
-
-    # Plot routes
-    for idx, route in enumerate(routes):
-        route_x = [nodes[i]["x"] for i in route]
-        route_y = [nodes[i]["y"] for i in route]
-        plt.plot(route_x, route_y, color=colors(
-            idx), label=f"Vehicle {idx + 1}")
-
-    # Remove duplicate labels
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys())
-
-    plt.title("EVRP Solution with Charging Stations")
-    plt.xlabel("X Coordinate")
-    plt.ylabel("Y Coordinate")
-    plt.grid(True)
-    plt.show()
-
-
 if __name__ == "__main__":
     instance = evrp.Instance("dataset/json/E-n22-k4.json")
-    utils.plot_instance(instance)
+    solution = heuristics.nearest_neighbor(instance)
+    utils.plot_solution(solution)
 
     # result = run_alns(data)
     # plot_routes(data, result.best_state.routes)
