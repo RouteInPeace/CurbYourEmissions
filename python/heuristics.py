@@ -39,14 +39,14 @@ def nearest_neighbor(instance: evrp.Instance):
     i = 1
     while i < len(routes):
         if energy < instance.energy_required(routes[i-1], routes[i]):
-            charging_station_id, _ = instance.find_nearest_charging_station(
-                routes[i-1])
+            charging_station_id, _ = instance.find_charging_station(
+                routes[i-1], routes[i])
             while instance.energy_required(routes[i-1], charging_station_id) > energy:
                 i -= 1
                 assert i > 0
                 energy += instance.energy_required(routes[i-1], routes[i])
-                charging_station_id, _ = instance.find_nearest_charging_station(
-                    routes[i-1])
+                charging_station_id, _ = instance.find_charging_station(
+                    routes[i-1], routes[i])
 
             routes.insert(i, charging_station_id)
             energy = instance.energy_capacity

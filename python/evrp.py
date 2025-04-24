@@ -39,12 +39,19 @@ class Instance:
                 self.distance_matrix[i][j] = self.distance(i, j)
         return self.distance_matrix
 
-    def find_nearest_charging_station(self, node_id: int) -> tuple[int, float]:
-        min_distance = self.distance_matrix[node_id][self.depot_id]
-        best_station_id = self.depot_id
+    def find_charging_station(self, node_id_1: int, node_id_2: int) -> tuple[int, float]:
+        min_distance = float("inf")
+        best_station_id = -1
+
+        if node_id_1 != self.depot_id and node_id_2 == self.depot_id:
+            min_distance = self.distance_matrix[node_id_1][self.depot_id] + self.distance_matrix[self.depot_id][node_id_2]
+            best_station_id = self.depot_id
 
         for station_id in self.charging_station_ids:
-            distance = self.distance_matrix[node_id][station_id]
+            if station_id == node_id_1 or station_id == node_id_2:
+                continue
+
+            distance = self.distance_matrix[node_id_1][station_id] + self.distance_matrix[station_id][node_id_2]
             if distance < min_distance:
                 min_distance = distance
                 best_station_id = station_id
