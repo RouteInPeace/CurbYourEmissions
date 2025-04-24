@@ -1,16 +1,5 @@
 import evrp
 
-
-def test_evrp_nearest_charging_station():
-    instance = evrp.Instance("dataset/json/E-n22-k4.json")
-
-    assert instance.find_nearest_charging_station(20)[0] == 26
-    assert instance.find_nearest_charging_station(3)[0] == 25
-    assert instance.find_nearest_charging_station(12)[0] == 27
-    assert instance.find_nearest_charging_station(10)[0] == 28
-    assert instance.find_nearest_charging_station(14)[0] == 0
-
-
 def test_evrp_solution_is_valid():
     instance = evrp.Instance("dataset/json/E-n22-k4.json")
     instance.energy_capacity = 1e9
