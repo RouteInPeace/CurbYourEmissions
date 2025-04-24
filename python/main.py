@@ -1,62 +1,13 @@
 import random
-import math
 import json
 import matplotlib.pyplot as plt
-from copy import deepcopy
+import evrp
+import utils
 
 from alns import ALNS
 from alns.accept import HillClimbing
 from alns.select import RandomSelect
 from alns.stop import MaxIterations
-
-
-def euclidean_distance(n1, n2):
-    return math.hypot(n1["x"] - n2["x"], n1["y"] - n2["y"])
-
-
-def calculate_distance_matrix(nodes):
-    n = len(nodes)
-    dist = [[0] * n for _ in range(n)]
-    for i in range(n):
-        for j in range(n):
-            dist[i][j] = euclidean_distance(nodes[i], nodes[j])
-    return dist
-
-
-def route_distance(route, distance_matrix):
-    dist = 0
-    for i in range(len(route) - 1):
-        dist += distance_matrix[route[i]][route[i + 1]]
-    return dist
-
-
-class EVRPSolution:
-    def __init__(self, routes, total_distance):
-        self.routes = routes
-        self.total_distance = total_distance
-
-    def copy(self):
-        return EVRPSolution(deepcopy(self.routes), self.total_distance)
-
-    def objective(self):
-        return self.total_distance
-
-
-class EVRPData:
-    def __init__(self, json_data):
-        self.nodes = json_data["nodes"]
-        self.vehicles = json_data["vehicles"]
-        self.capacity = json_data["capacity"]
-        self.energy_capacity = json_data["energyCapacity"]
-        self.energy_consumption = json_data["energyConsumption"]
-        self.distance_matrix = calculate_distance_matrix(self.nodes)
-        self.customers = [
-            i for i, node in enumerate(self.nodes) if node["type"] == "customer"
-        ]
-        self.depot = 0
-        self.charging_stations = [
-            i for i, node in enumerate(self.nodes) if node["type"] == "chargingStation"
-        ]
 
 
 def destroy_random(solution, data, **kwargs):
@@ -204,72 +155,6 @@ def add_charging_stations(route, data):
     return new_route
 
 
-def find_nearest_charging_station(node, data, battery_left):
-    best_station = None
-    min_distance = float("inf")
-
-    if battery_left - data.distance_matrix[node][data.depot] * data.energy_consumption >= 0:
-        min_distance = data.distance_matrix[node][data.depot]
-        best_station = data.depot
-
-    for station in data.charging_stations:
-        distance = data.distance_matrix[node][station]
-        if distance < min_distance and battery_left - distance * data.energy_consumption >= 0:
-            min_distance = distance
-            best_station = station
-
-    return best_station, min_distance
-
-
-def initial_solution(data: EVRPData):
-    customers = data.customers.copy()
-
-    routes = [data.depot]
-    capacity = data.capacity
-
-    while len(customers) > 0:
-        best_customer = -1
-        best_distance = float("inf")
-        for customer in customers:
-            travel_distance = data.distance_matrix[routes[-1]][customer]
-
-            if best_distance > travel_distance:
-                best_distance = travel_distance
-                best_customer = customer
-
-        routes.append(best_customer)
-        customers.remove(best_customer)
-
-    capacity = data.capacity
-    i = 1
-    while i < len(routes):
-        capacity -= data.nodes[routes[i]]["demand"]
-        if capacity < 0:
-            routes.insert(i, data.depot)
-            capacity = data.capacity
-        i += 1
-
-    energy = data.energy_capacity
-    i = 1
-    while i < len(routes):
-        if energy < data.distance_matrix[routes[i-1]][routes[i]] * data.energy_consumption:
-            charging_station, _ = find_nearest_charging_station(routes[i-1], data, energy)
-            while charging_station is None:
-                i -= 1
-                assert i > 0
-                energy += data.distance_matrix[routes[i-1]][routes[i]] * data.energy_consumption
-                charging_station, _ = find_nearest_charging_station(routes[i-1], data, energy)
-            
-            routes.insert(i, charging_station)
-            energy = data.energy_capacity
-        else:
-            energy -= data.distance_matrix[routes[i-1]][routes[i]] * data.energy_consumption
-            
-        i += 1
-
-    return EVRPSolution(routes, route_distance(routes, data.distance_matrix))
-
-
 def run_alns(data):
     initial = initial_solution(data)
     return
@@ -347,11 +232,8 @@ def plot_routes(data, routes):
 
 
 if __name__ == "__main__":
-    dataset_json_file = "dataset/json/E-n22-k4.json"
-    with open(dataset_json_file, "r") as f:
-        json_data = json.load(f)
-        formatted_json = json.dumps(json_data, indent=4)
-        print(formatted_json)
-        data = EVRPData(json_data)
-        result = run_alns(data)
-        plot_routes(data, result.best_state.routes)
+    instance = evrp.Instance("dataset/json/E-n22-k4.json")
+    utils.plot_instance(instance)
+
+    # result = run_alns(data)
+    # plot_routes(data, result.best_state.routes)
