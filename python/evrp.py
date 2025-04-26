@@ -41,29 +41,23 @@ class Instance:
 
 
 class Solution:
-    def __init__(self, routes: list[int], instance: Instance):
+    def __init__(self, routes: list[int], instance: Instance, unassigned: list[int] = [], total_distance: float = 0):
         self.routes = routes
         self.instance = instance
-        self.total_distance = -1
+        self.unassigned = unassigned
+        self.total_distance = total_distance
 
     def copy(self) -> Self:
-        return Solution(deepcopy(self.routes), self.total_distance)
+        return Solution(deepcopy(self.routes), self.instance, self.unassigned, self.total_distance)
 
-    def eval(self):
+    def objective(self) -> float:
         self.total_distance = 0
         for i in range(len(self.routes) - 1):
             self.total_distance += self.instance.distance_matrix[self.routes[i]
                                                                  ][self.routes[i + 1]]
+        return self.total_distance
 
-    def is_valid(self) -> bool:
-        if self.routes[0] != self.instance.depot_id or self.routes[-1] != self.instance.depot_id:
-            return False
-
-        customers = [
-            id for id in self.routes if self.instance.nodes[id]["type"] == "customer"]
-        if len(self.instance.customer_ids) != len(customers) or len(self.instance.customer_ids) != len(set(customers)):
-            return False
-
+    def is_energy_and_cargo_valid(self) -> bool:
         energy = self.instance.energy_capacity
         cargo = self.instance.cargo_capacity
 
@@ -85,5 +79,16 @@ class Solution:
                 energy = self.instance.energy_capacity
             else:
                 raise "Unknown node type"
-
+            
         return True
+
+    def is_valid(self) -> bool:
+        if self.routes[0] != self.instance.depot_id or self.routes[-1] != self.instance.depot_id:
+            return False
+
+        customers = [
+            id for id in self.routes if self.instance.nodes[id]["type"] == "customer"]
+        if len(self.instance.customer_ids) != len(customers) or len(self.instance.customer_ids) != len(set(customers)):
+            return False
+
+        return self.is_energy_and_cargo_valid()

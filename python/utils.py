@@ -23,7 +23,7 @@ def plot_instance(instance: evrp.Instance):
     plt.show()
 
 
-def plot_solution(solution: evrp.Solution):
+def plot_solution(solution: evrp.Solution, path: str | None = None):
     nodes = solution.instance.nodes
 
     fig, ax = plt.subplots()
@@ -57,4 +57,7 @@ def plot_solution(solution: evrp.Solution):
             idx), label=f"Vehicle {idx + 1}")
 
     plt.title("EVRP Instance")
-    plt.show()
+    if path is not None:
+        plt.savefig(path)
+    else:
+        plt.show()
