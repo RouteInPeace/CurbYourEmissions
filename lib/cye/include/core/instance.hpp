@@ -25,6 +25,7 @@ class Instance {
     return energy_consumption_ * distance(node1_id, node2_id);
   }
   [[nodiscard]] inline auto customer_cnt() const { return customer_cnt_; }
+  [[nodiscard]] inline auto max_range() const { return energy_capacity_ / energy_consumption_; }
 
  private:
   std::string name_;

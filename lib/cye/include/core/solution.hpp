@@ -16,6 +16,7 @@ class Solution {
   [[nodiscard]] auto &routes() const { return routes_; }
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
+  [[nodiscard]] auto total_node_cnt() const { return routes_.size(); }
 
  private:
   std::shared_ptr<Instance> instance_;
