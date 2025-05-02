@@ -6,6 +6,10 @@
 cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes)
     : instance_(instance), routes_(std::move(routes)) {}
 
+cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
+                        std::vector<size_t> &&unassigned_customers)
+    : instance_(instance), routes_(std::move(routes)), unassigned_customers_(std::move(unassigned_customers)) {}
+
 auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
   auto energy = instance_->energy_capacity();
   auto cargo = instance_->max_cargo_capacity();
@@ -47,4 +51,12 @@ auto cye::Solution::is_valid() const -> bool {
   if (instance_->customer_cnt() != customer_cnt || customers_on_route.size() != customer_cnt) return false;
 
   return is_energy_and_cargo_valid();
+}
+
+auto cye::Solution::get_cost() const -> double {
+  auto cost = 0.0;
+  for (size_t i = 1UZ; i < routes_.size(); i++) {
+    cost += instance_->distance(routes_[i - 1], routes_[i]);
+  }
+  return cost;
 }
