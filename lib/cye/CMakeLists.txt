@@ -5,6 +5,7 @@ set(PROJECT_HEADERS
     include/core/solution.hpp
 
     include/heuristics/init_heuristics.hpp
+    include/heuristics/destruction_nn.hpp
 )
 
 set(PROJECT_SOURCES 
@@ -13,6 +14,7 @@ set(PROJECT_SOURCES
     src/core/solution.cpp
 
     src/heuristics/init_heuristics.cpp
+    src/heuristics/destruction_nn.cpp
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
