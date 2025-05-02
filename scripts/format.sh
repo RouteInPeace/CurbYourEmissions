@@ -9,6 +9,7 @@ fi
 DIRECTORIES=(
     "lib/cye"
     "src"
+    "test"
 )
 
 # Loop through each directory provided

@@ -1,17 +1,28 @@
 set(PROJECT_HEADERS 
-    src/instance.hpp
-    src/nodes.hpp
-    src/utils.hpp
+    include/core/instance.hpp
+    include/core/node.hpp
+    include/core/utils.hpp
+    include/core/solution.hpp
+
+    include/heuristics/init_heuristics.hpp
 )
 
 set(PROJECT_SOURCES 
-    src/instance.cpp
-    src/utils.cpp
+    src/core/instance.cpp
+    src/core/utils.cpp
+    src/core/solution.cpp
+
+    src/heuristics/init_heuristics.cpp
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
 
 add_library(${PROJECT_NAME}_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
-target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++20)
-target_link_libraries(${PROJECT_NAME}_lib rapidjson)
-target_include_directories(${PROJECT_NAME}_lib  PRIVATE ../../external)
+target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
+target_link_libraries(${PROJECT_NAME}_lib PRIVATE rapidjson Eigen3::Eigen)
+target_include_directories(${PROJECT_NAME}_lib 
+    PRIVATE ${CMAKE_SOURCE_DIR}/external 
+            ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> 
+)
