@@ -2,14 +2,10 @@
 
 namespace alns {
 
-class AcceptanceCriterion {
-    public:
-    virtual bool accept(double current, double previous, double best) = 0;
-};
 
-class HillClimbingCriterion : public AcceptanceCriterion {
+class HillClimbingCriterion {
     public:
-    bool accept(double current, double previous, double /**/) override {
+    bool accept(double current, double previous, double /**/) {
         return current < previous;
     }
 };

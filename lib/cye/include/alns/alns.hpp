@@ -4,23 +4,20 @@
 #include <memory>
 #include <vector>
 
-#include "acceptance_criterion.hpp"
-#include "operator_selection.hpp"
-
 namespace alns {
 
-template <typename Solution, typename Instance>
+template <typename Solution, typename Instance, typename AcceptanceCriterion, typename OperatorSelection>
 class ALNS {
 
 public:
     struct Config {
-        AcceptanceCriterion *acceptance_criterion;
-        OperatorSelection *operator_selection;
         size_t max_iterations;
     };
 
-    ALNS(std::shared_ptr<Instance> instance, Solution &initial_solution)
-        : instance(instance), current_solution_(initial_solution), best_solution_(initial_solution) {}
+    ALNS(std::shared_ptr<Instance> instance, Solution &initial_solution, AcceptanceCriterion &&acceptance_criterion,
+         OperatorSelection &&operator_selection)
+        : instance(instance), current_solution_(initial_solution), best_solution_(initial_solution), 
+        acceptance_criterion_(std::move(acceptance_criterion)), operator_selection_(std::move(operator_selection)) {}
 
     ALNS() = default;
 
@@ -28,9 +25,9 @@ public:
         current_solution_ = initial_solution;
         best_solution_ = initial_solution;
 
-        for (int i = 0; i < config.max_iterations; ++i) {
-            auto destroy_operator_id = config.operator_selection->select_operator();
-            auto repair_operator_id = config.operator_selection->select_operator();
+        for (size_t i = 0; i < config.max_iterations; ++i) {
+            auto destroy_operator_id = operator_selection_.select_operator();
+            auto repair_operator_id = operator_selection_.select_operator();
 
             auto destroyed_solution = destroy_operators[destroy_operator_id](current_solution_);
             auto repaired_solution = repair_operators[repair_operator_id](destroyed_solution);
@@ -39,13 +36,13 @@ public:
             auto old_cost = current_solution_.get_cost();
             auto best_cost = best_solution_.get_cost();
 
-            if (config.acceptance_criterion->accept(new_cost, old_cost, best_cost)) {
+            if (acceptance_criterion_.accept(new_cost, old_cost, best_cost)) {
                 current_solution_ = repaired_solution;
                 if (new_cost < best_cost) {
                     best_solution_ = repaired_solution;
                 }
             }
-            config.operator_selection->update(new_cost, old_cost, best_cost);
+            operator_selection_.update(new_cost, old_cost, best_cost);
         }
     }
 
@@ -62,10 +59,11 @@ public:
     }
 
 private:
+    std::shared_ptr<Instance> instance;
     Solution current_solution_;
     Solution best_solution_;
-    std::shared_ptr<Instance> instance;
-
+    AcceptanceCriterion acceptance_criterion_;
+    OperatorSelection operator_selection_;
     std::vector<std::function<Solution(Solution&)>> destroy_operators;
     std::vector<std::function<Solution(Solution&)>> repair_operators;
 };
