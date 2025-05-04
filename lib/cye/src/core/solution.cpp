@@ -99,7 +99,7 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
   size_t route_start_id = 0;
 
   size_t i = pos;
-  while (i > 0) {
+  while (i >= 0) {
     if (routes_[i] == instance_->depot_id()) {
       route_start_id = i;
       break;
@@ -111,7 +111,7 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
   size_t end_position = 0;
   std::vector<size_t> customers;
   for (int i = route_start_id; i < routes_.size(); ++i) {
-    if (routes_[i] == instance_->depot_id()) {
+    if (routes_[i] == instance_->depot_id() && i != route_start_id) {
       end_position = i;
       break;
     }
@@ -144,7 +144,7 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
     }
   }
   // erase is [begin, end>
-  routes_.erase(routes_.begin() + route_start_id, routes_.begin() + end_position + 1);
+  routes_.erase(routes_.begin() + route_start_id, routes_.begin() + end_position);
   routes_.insert(routes_.begin() + route_start_id, customers.begin(), customers.end());
 
   // TODO: check cargo elsewhere

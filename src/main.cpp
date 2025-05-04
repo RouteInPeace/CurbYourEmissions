@@ -11,14 +11,15 @@
 #include "core/solution.hpp"
 
 auto main() -> int { 
-    auto instance = std::make_shared<cye::Instance>("dataset/json/E-n22-k4.json");
+    auto instance = std::make_shared<cye::Instance>("dataset/json/E-n33-k4.json");
     auto initial_solution = cye::nearest_neighbor(instance);
 
     alns::ALNS<cye::Solution, cye::Instance, alns::HillClimbingCriterion, alns::RandomOperatorSelection> alns(instance, initial_solution, alns::HillClimbingCriterion(), alns::RandomOperatorSelection(1));
+    std::cout << "Initial solution cost: " << initial_solution.get_cost() << std::endl;
 
-    alns.add_destroy_operator([&](cye::Solution &solution) {
+    alns.add_destroy_operator([&](cye::Solution const &solution) {
         // Random random destruction
-        int n_to_remove = rand() % instance->customer_cnt();
+        int n_to_remove = rand() % instance->customer_cnt() / 3;
         std::set <size_t> removed_ids;
 
         auto customer_ids = std::vector<size_t>(instance->customer_ids().begin(), instance->customer_ids().end());
@@ -36,11 +37,12 @@ auto main() -> int {
                 new_routes.push_back(id);
             }
         }
+        std::shuffle(unassigned.begin(), unassigned.end(), std::mt19937{std::random_device{}()});
         auto destroyed_solution = cye::Solution(instance, std::move(new_routes), std::move(unassigned));
         return destroyed_solution;
     });
 
-    alns.add_repair_operator([](cye::Solution &solution) {
+    alns.add_repair_operator([](cye::Solution const &solution) {
         // Greedy repair
         auto copy = solution;
         auto const &unassigned_ids = copy.unassigned_customers();
@@ -63,6 +65,7 @@ auto main() -> int {
                 new_copy.insert_customer(i, unassigned_id);
                 if (new_copy.is_energy_and_cargo_valid()) {
                     update_cost(std::move(new_copy));
+                    continue;
                 }
                 if(new_copy.reorder_charging_station(i)) {
                     update_cost(std::move(new_copy));
@@ -78,7 +81,7 @@ auto main() -> int {
     });
 
     alns.run(initial_solution, {
-        .max_iterations = 1000
+        .max_iterations = 100000
     });
     
     auto best_solution = alns.get_best_solution();

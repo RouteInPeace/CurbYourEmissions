@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 namespace alns {
 
@@ -43,14 +44,19 @@ public:
                 }
             }
             operator_selection_.update(new_cost, old_cost, best_cost);
+
+            if (i % 100 == 0) {
+                std::cout << "Iteration: " << i << ", Current cost: " << current_solution_.get_cost()
+                          << ", Best cost: " << best_solution_.get_cost() << std::endl;
+            }
         }
     }
 
 
-    void add_destroy_operator(std::function<Solution(Solution&)> destroy_operator) {
+    void add_destroy_operator(std::function<Solution(Solution const&)> destroy_operator) {
         destroy_operators.push_back(destroy_operator);
     }
-    void add_repair_operator(std::function<Solution(Solution&)> repair_operator) {
+    void add_repair_operator(std::function<Solution(Solution const&)> repair_operator) {
         repair_operators.push_back(repair_operator);
     }
 
@@ -64,8 +70,8 @@ private:
     Solution best_solution_;
     AcceptanceCriterion acceptance_criterion_;
     OperatorSelection operator_selection_;
-    std::vector<std::function<Solution(Solution&)>> destroy_operators;
-    std::vector<std::function<Solution(Solution&)>> repair_operators;
+    std::vector<std::function<Solution(Solution const&)>> destroy_operators;
+    std::vector<std::function<Solution(Solution const&)>> repair_operators;
 };
 
 };
