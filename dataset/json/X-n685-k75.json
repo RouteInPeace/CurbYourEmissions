@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n685-k75\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 75,
-  "dimension": 685,
-  "stations": 25,
-  "capacity": 408.0,
-  "energyCapacity": 911.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 75,
+  "customerCnt": 684,
+  "chargingStationCnt": 25,
+  "cargoCapacity": 408.0,
+  "batteryCapacity": 911.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 500.0,

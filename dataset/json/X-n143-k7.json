@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n143-k7\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 7,
-  "dimension": 143,
-  "stations": 4,
-  "capacity": 1190.0,
-  "energyCapacity": 2243.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 7,
+  "customerCnt": 142,
+  "chargingStationCnt": 4,
+  "cargoCapacity": 1190.0,
+  "batteryCapacity": 2243.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 0.0,

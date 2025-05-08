@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n749-k98\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 98,
-  "dimension": 749,
-  "stations": 30,
-  "capacity": 396.0,
-  "energyCapacity": 790.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 98,
+  "customerCnt": 748,
+  "chargingStationCnt": 30,
+  "cargoCapacity": 396.0,
+  "batteryCapacity": 790.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 643.0,

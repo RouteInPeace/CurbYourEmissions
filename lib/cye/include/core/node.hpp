@@ -12,8 +12,8 @@ enum class NodeType : uint8_t { Depot = 0, Customer = 1, ChargingStation = 2 };
 struct Node {
   Node() = default;
 
-  template <typename Archive>
-  Node(Archive &&archive);
+  template <typename Value>
+  Node(Value &&value);
 
   NodeType type;
   float x;
@@ -21,11 +21,14 @@ struct Node {
   float demand;
 };
 
-template <typename Archive>
-Node::Node(Archive &&archive)
-    : type(archive.get("name")), x(archive.get["x"]), y(archive.get("y")), demand(archive.get("demand")) {}
+template <typename Value>
+Node::Node(Value &&value)
+    : type(value["type"].template get<NodeType>()),
+      x(value["x"].template get<float>()),
+      y(value["y"].template get<float>()),
+      demand(value["demand"].template get_or<float>(0.f)) {}
 
 }  // namespace cye
 
 template <>
-auto serial::JSONArchive::get<cye::NodeType>(std::string_view name) -> cye::NodeType;
+auto serial::JSONArchive::Value::get<cye::NodeType>() -> cye::NodeType;

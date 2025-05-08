@@ -4,15 +4,15 @@
 
 namespace serial {
 
-template <typename Archive, typename T>
-concept HasGet = requires(Archive archive) {
-  { archive.template get<T>("key") };
+template <typename Value, typename T>
+concept HasGet = requires(Value value) {
+  { value.template get<T>() };
 };
 
-template <typename Archive, typename T>
-concept HasLoadConstructor = requires(Archive archive) { T(std::move(archive)); };
+template <typename Value, typename T>
+concept HasLoadConstructor = requires(Value value) { T(std::move(value)); };
 
-template <typename Archive, typename T>
-concept HasLoader = HasGet<Archive, T> || HasLoadConstructor<Archive, T>;
+template <typename Value, typename T>
+concept HasLoader = HasGet<Value, T> || HasLoadConstructor<Value, T>;
 
 }  // namespace serial

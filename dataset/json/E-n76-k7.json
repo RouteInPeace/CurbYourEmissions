@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of E-n76-k7 instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
   "optimalValue": 723.367517,
-  "vehicles": 7,
-  "dimension": 76,
-  "stations": 9,
-  "capacity": 220.0,
-  "energyCapacity": 98.0,
+  "minimumRouteCnt": 7,
+  "customerCnt": 75,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 220.0,
+  "batteryCapacity": 98.0,
   "energyConsumption": 1.2,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 40.0,

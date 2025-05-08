@@ -9,7 +9,8 @@ auto main() -> int {
   auto rd = std::random_device();
   auto gen = std::mt19937(rd());
 
-  auto instance = std::make_shared<cye::Instance>("dataset/json/E-n22-k4.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
   auto solution = cye::nearest_neighbor(instance);
 
   for(auto node_ind : solution.routes()) std::cout << node_ind << ' ';

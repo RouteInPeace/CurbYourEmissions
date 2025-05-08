@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of E-n23-k3 instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
   "optimalValue": 573.130948,
-  "vehicles": 3,
-  "dimension": 23,
-  "stations": 9,
-  "capacity": 4500.0,
-  "energyCapacity": 190.0,
+  "minimumRouteCnt": 3,
+  "customerCnt": 22,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 4500.0,
+  "batteryCapacity": 190.0,
   "energyConsumption": 1.2,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 266.0,

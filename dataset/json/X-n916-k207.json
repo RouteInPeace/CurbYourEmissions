@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n916-k207\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 207,
-  "dimension": 916,
-  "stations": 9,
-  "capacity": 33.0,
-  "energyCapacity": 1591.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 207,
+  "customerCnt": 915,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 33.0,
+  "batteryCapacity": 1591.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 0.0,

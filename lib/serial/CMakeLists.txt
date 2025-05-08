@@ -1,7 +1,6 @@
 set(PROJECT_HEADERS 
     include/json_archive.hpp
     include/utils.hpp
-    include/exceptions.hpp
     include/archive.hpp
 )
 

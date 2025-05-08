@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n351-k40\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 40,
-  "dimension": 351,
-  "stations": 35,
-  "capacity": 436.0,
-  "energyCapacity": 649.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 40,
+  "customerCnt": 350,
+  "chargingStationCnt": 35,
+  "cargoCapacity": 436.0,
+  "batteryCapacity": 649.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 500.0,

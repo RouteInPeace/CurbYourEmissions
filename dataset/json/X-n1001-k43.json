@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n1001-k43\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 43,
-  "dimension": 1001,
-  "stations": 9,
-  "capacity": 131.0,
-  "energyCapacity": 1684.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 43,
+  "customerCnt": 1000,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 131.0,
+  "batteryCapacity": 1684.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 2.0,

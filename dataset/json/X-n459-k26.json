@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n459-k26\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 26,
-  "dimension": 459,
-  "stations": 20,
-  "capacity": 1106.0,
-  "energyCapacity": 929.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 26,
+  "customerCnt": 458,
+  "chargingStationCnt": 20,
+  "cargoCapacity": 1106.0,
+  "batteryCapacity": 929.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 500.0,

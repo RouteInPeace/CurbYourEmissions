@@ -11,8 +11,8 @@ namespace cye {
 
 class Instance {
  public:
-  template <typename Archive>
-  Instance(Archive &&archive);
+  template <typename Value>
+  Instance(Value &&value);
 
   [[nodiscard]] auto &nodes() const { return nodes_; }
   [[nodiscard]] auto &node(size_t ind) const { return nodes_[ind]; }
@@ -42,17 +42,17 @@ class Instance {
   std::vector<Node> nodes_;
 };
 
-template <typename Archive>
-Instance::Instance(Archive &&archive)
-    : name_(archive.template get<std::string_view>("name")),
-      optimal_value_(archive.template get<float>("optimalValue")),
-      minimum_route_cnt_(archive.template get<size_t>("minimumRouteCnt")),
-      cargo_capacity_(archive.template get<float>("cargoCapacity")),
-      battery_capacity_(archive.template get<float>("batteryCapacity")),
-      energy_consumption_(archive.template get<float>("energyConsumption")),
-      customer_cnt_(archive.template get<size_t>("customerCnt")),
-      charging_station_cnt_(archive.template get<size_t>("chargingStationCnt")),
-      nodes_(archive.template get<std::vector<Node>>("nodes")) {
+template <typename Value>
+Instance::Instance(Value &&value)
+    : name_(value["name"].template get<std::string_view>()),
+      optimal_value_(value["optimalValue"].template get<float>()),
+      minimum_route_cnt_(value["minimumRouteCnt"].template get<size_t>()),
+      cargo_capacity_(value["cargoCapacity"].template get<float>()),
+      battery_capacity_(value["batteryCapacity"].template get<float>()),
+      energy_consumption_(value["energyConsumption"].template get<float>()),
+      customer_cnt_(value["customerCnt"].template get<size_t>()),
+      charging_station_cnt_(value["chargingStationCnt"].template get<size_t>()),
+      nodes_(value["nodes"].template get<std::vector<Node>>()) {
   std::ranges::sort(nodes_,
                     [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
 }
