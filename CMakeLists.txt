@@ -13,5 +13,6 @@ find_package(Eigen3 REQUIRED NO_MODULE)
 
 add_subdirectory("src")
 add_subdirectory("lib/cye")
+add_subdirectory("lib/serial")
 add_subdirectory("extern/rapidjson")
 add_subdirectory("test")
