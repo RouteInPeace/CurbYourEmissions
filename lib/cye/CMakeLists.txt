@@ -3,9 +3,6 @@ set(PROJECT_HEADERS
     include/core/node.hpp
     include/core/utils.hpp
     include/core/solution.hpp
-    include/alns/alns.hpp
-    include/alns/acceptance_criterion.hpp
-    include/alns/operator_selection.hpp
     include/heuristics/init_heuristics.hpp
     include/heuristics/destruction_nn.hpp
 )

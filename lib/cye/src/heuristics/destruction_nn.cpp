@@ -40,28 +40,29 @@ auto cye::DestructionNN::eval(const Solution &solution, size_t node_id) const ->
 
 auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t ind_in_route) const
     -> Eigen::Matrix<float, Eigen::Dynamic, NODE_FEATURE_CNT> {
-  auto instance = solution.instance();
-  auto &query_node = instance->node(solution.routes()[ind_in_route]);
+  auto &instance = solution.instance();
+  auto &query_node = instance.node(solution.routes()[ind_in_route]);
 
-  auto input_mat = Eigen::Matrix<float, Eigen::Dynamic, NODE_FEATURE_CNT>(solution.total_node_cnt(), NODE_FEATURE_CNT);
+  auto input_mat =
+      Eigen::Matrix<float, Eigen::Dynamic, NODE_FEATURE_CNT>(solution.visited_node_cnt(), NODE_FEATURE_CNT);
 
   auto route_id = -1.f;
   auto in_route_ind = 0.f;
 
   for (const auto [idx, node_id] : std::views::enumerate(solution.routes())) {
-    auto &node = instance->node(node_id);
+    auto &node = instance.node(node_id);
     if (node.type == NodeType::Depot) {
       route_id += 1.f;
       in_route_ind = 0.f;
     }
 
     auto [r, theta] = cye::cartesian_to_polar(node.x - query_node.x, node.y - query_node.y);
-    input_mat(idx, DIST) = r / instance->max_range();
+    input_mat(idx, DIST) = r / instance.max_range();
     input_mat(idx, THETA) = theta;
     input_mat(idx, I_D) = node.type == NodeType::Depot ? 1.f : 0.f;
     input_mat(idx, I_C) = node.type == NodeType::Customer ? 1.f : 0.f;
     input_mat(idx, I_CS) = node.type == NodeType::ChargingStation ? 1.f : 0.f;
-    input_mat(idx, DEMAND) = node.demand / instance->max_cargo_capacity();
+    input_mat(idx, DEMAND) = node.demand / instance.max_cargo_capacity();
     input_mat(idx, SAME_ROUTE) = route_id;
     input_mat(idx, PROGRESS) = in_route_ind;
 
@@ -70,7 +71,7 @@ auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t i
 
   auto query_node_route_id = input_mat(ind_in_route, SAME_ROUTE);
   auto norm = 1.f;
-  for (auto i = solution.total_node_cnt(); i--;) {
+  for (auto i = solution.visited_node_cnt(); i--;) {
     input_mat(i, SAME_ROUTE) = input_mat(i, SAME_ROUTE) == query_node_route_id ? 1.f : 0.f;
     input_mat(i, PROGRESS) /= norm;
 

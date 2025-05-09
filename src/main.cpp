@@ -1,17 +1,20 @@
 #include <algorithm>
 #include <iostream>
 #include <random>
+#include <vector>
 #include <set>
 
 #include <heuristics/init_heuristics.hpp>
 
-#include <alns/alns.hpp>
-#include "alns/acceptance_criterion.hpp"
-#include "alns/operator_selection.hpp"
+#include "alns.hpp"
+#include "acceptance_criterion.hpp"
+#include "json_archive.hpp"
+#include "operator_selection.hpp"
 #include "core/solution.hpp"
 
 auto main() -> int { 
-    auto instance = std::make_shared<cye::Instance>("dataset/json/E-n33-k4.json");
+    auto archive = serial::JSONArchive("dataset/json/E-n33-k4.json");
+    auto instance = std::make_shared<cye::Instance>(archive.root());
     auto initial_solution = cye::nearest_neighbor(instance);
 
     alns::ALNS<cye::Solution, cye::Instance, alns::HillClimbingCriterion, alns::RandomOperatorSelection> alns(instance, initial_solution, alns::HillClimbingCriterion(), alns::RandomOperatorSelection(1));
@@ -22,7 +25,7 @@ auto main() -> int {
         int n_to_remove = rand() % instance->customer_cnt() / 3;
         std::set <size_t> removed_ids;
 
-        auto customer_ids = std::vector<size_t>(instance->customer_ids().begin(), instance->customer_ids().end());
+        auto customer_ids = std::ranges::to<std::vector<size_t>>(instance->customer_ids());
         std::vector<size_t> unassigned;
         std::sample(customer_ids.begin(), customer_ids.end(),
             std::back_inserter(unassigned), n_to_remove,
