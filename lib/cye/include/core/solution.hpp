@@ -55,7 +55,6 @@ class Solution {
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto get_cost() const -> double;
-  [[nodiscard]] auto total_node_cnt() const { return routes_.size(); }
 
   auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;
