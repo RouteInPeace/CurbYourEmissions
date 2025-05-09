@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n573-k30\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 30,
-  "dimension": 573,
-  "stations": 6,
-  "capacity": 210.0,
-  "energyCapacity": 1691.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 30,
+  "customerCnt": 572,
+  "chargingStationCnt": 6,
+  "cargoCapacity": 210.0,
+  "batteryCapacity": 1691.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 0.0,

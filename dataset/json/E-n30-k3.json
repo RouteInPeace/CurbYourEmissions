@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of E-n30-k3 instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
   "optimalValue": 511.253921,
-  "vehicles": 4,
-  "dimension": 30,
-  "stations": 6,
-  "capacity": 4500.0,
-  "energyCapacity": 178.0,
+  "minimumRouteCnt": 4,
+  "customerCnt": 29,
+  "chargingStationCnt": 6,
+  "cargoCapacity": 4500.0,
+  "batteryCapacity": 178.0,
   "energyConsumption": 1.2,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 162.0,

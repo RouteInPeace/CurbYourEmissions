@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of E-n51-k5 instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
   "optimalValue": 570.170703,
-  "vehicles": 5,
-  "dimension": 51,
-  "stations": 9,
-  "capacity": 160.0,
-  "energyCapacity": 105.0,
+  "minimumRouteCnt": 5,
+  "customerCnt": 50,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 160.0,
+  "batteryCapacity": 105.0,
   "energyConsumption": 1.2,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 30.0,

@@ -21,10 +21,10 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
 
 add_library(${PROJECT_NAME}_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-target_link_libraries(${PROJECT_NAME}_lib PRIVATE rapidjson Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME}_lib PRIVATE Eigen3::Eigen serial_lib)
 target_include_directories(${PROJECT_NAME}_lib 
-    PRIVATE ${CMAKE_SOURCE_DIR}/external 
-            ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+            ${CMAKE_SOURCE_DIR}/lib/serial/include 
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> 
 )

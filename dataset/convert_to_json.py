@@ -18,20 +18,26 @@ def parse_evrp_data(data):
         if line:
             if ": " in line:
                 key, value = line.split(": ", 1)
-                if key == "CAPACITY" or key == "ENERGY_CAPACITY":
-                    value = float(value)
-                else:
-                    try:
-                        value = int(value)
-                    except:
-                        try:
-                            value = float(value)
-                        except:
-                            pass
 
-                result[camel_case(key)] = value
+                if key == "Name":
+                    result["name"] = value
+                elif key == "OPTIMAL_VALUE":
+                    result["optimalValue"] = float(value)
+                elif key == "VEHICLES":
+                    result["minimumRouteCnt"] = int(value)
+                elif key == "CAPACITY":
+                    result["cargoCapacity"] = float(value)
+                elif key == "ENERGY_CAPACITY":
+                    result["batteryCapacity"] = float(value)
+                elif key == "ENERGY_CONSUMPTION":
+                    result["energyConsumption"] = float(value)
+                elif key == "DIMENSION":
+                    result["customerCnt"] = int(value)
+                elif key == "STATIONS":
+                    result["chargingStationCnt"] = int(value)
         i += 1
 
+    result["customerCnt"] -= 1
     nodes = {}
 
     i += 1

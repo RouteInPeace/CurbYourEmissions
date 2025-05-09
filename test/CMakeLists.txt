@@ -15,10 +15,11 @@ enable_testing()
 add_executable(${PROJECT_NAME}_test
   solution_test.cpp
   heuristics_test.cpp
+  serial_test.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-target_link_libraries(${PROJECT_NAME}_test PRIVATE ${PROJECT_NAME}_lib GTest::gtest_main)
+target_link_libraries(${PROJECT_NAME}_test PRIVATE ${PROJECT_NAME}_lib GTest::gtest_main serial_lib)
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME}_test)

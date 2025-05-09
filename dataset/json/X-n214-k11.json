@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n214-k11\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 11,
-  "dimension": 214,
-  "stations": 9,
-  "capacity": 944.0,
-  "energyCapacity": 987.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 11,
+  "customerCnt": 213,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 944.0,
+  "batteryCapacity": 987.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 500.0,

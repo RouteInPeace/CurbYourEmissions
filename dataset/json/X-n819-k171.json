@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of X-n819-k171\t instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
-  "optimalValue": 0,
-  "vehicles": 171,
-  "dimension": 819,
-  "stations": 25,
-  "capacity": 358.0,
-  "energyCapacity": 926.0,
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 171,
+  "customerCnt": 818,
+  "chargingStationCnt": 25,
+  "cargoCapacity": 358.0,
+  "batteryCapacity": 926.0,
   "energyConsumption": 1.0,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 500.0,

@@ -1,15 +1,12 @@
 {
   "name": "Mavrovouniotis Menelaou Instances Test: 1",
-  "comment": "Modificatification of E-n101-k8 instance. Modified by Mavrovouniotis Menelaou.",
-  "type": "EVRP",
   "optimalValue": 899.885589,
-  "vehicles": 8,
-  "dimension": 101,
-  "stations": 9,
-  "capacity": 200.0,
-  "energyCapacity": 103.0,
+  "minimumRouteCnt": 8,
+  "customerCnt": 100,
+  "chargingStationCnt": 9,
+  "cargoCapacity": 200.0,
+  "batteryCapacity": 103.0,
   "energyConsumption": 1.2,
-  "edgeWeightFormat": "EUC_2D",
   "nodes": [
     {
       "x": 35.0,
