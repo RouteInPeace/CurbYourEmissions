@@ -10,7 +10,6 @@ set(PROJECT_HEADERS
 
 set(PROJECT_SOURCES 
     src/core/instance.cpp
-    src/core/node.cpp
     src/core/utils.cpp
     src/core/solution.cpp
 

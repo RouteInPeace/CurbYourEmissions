@@ -11,8 +11,8 @@ namespace cye {
 
 class Instance {
  public:
-  template <typename Value>
-  Instance(Value &&value);
+  template <serial::Value V>
+  Instance(V &&value);
 
   [[nodiscard]] auto &nodes() const { return nodes_; }
   [[nodiscard]] auto &node(size_t ind) const { return nodes_[ind]; }
@@ -42,8 +42,8 @@ class Instance {
   std::vector<Node> nodes_;
 };
 
-template <typename Value>
-Instance::Instance(Value &&value)
+template <serial::Value V>
+Instance::Instance(V &&value)
     : name_(value["name"].template get<std::string_view>()),
       optimal_value_(value["optimalValue"].template get<float>()),
       minimum_route_cnt_(value["minimumRouteCnt"].template get<size_t>()),

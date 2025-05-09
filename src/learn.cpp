@@ -10,7 +10,7 @@ auto main() -> int {
   auto gen = std::mt19937(rd());
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   auto solution = cye::nearest_neighbor(instance);
 
   for(auto node_ind : solution.routes()) std::cout << node_ind << ' ';

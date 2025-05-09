@@ -15,6 +15,7 @@ enable_testing()
 add_executable(${PROJECT_NAME}_test
   solution_test.cpp
   heuristics_test.cpp
+  serial_test.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

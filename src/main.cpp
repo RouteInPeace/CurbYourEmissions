@@ -5,7 +5,5 @@
 
 auto main() -> int {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-
-  auto value = static_cast<serial::JSONArchive::Value>(archive);
-  auto instance = cye::Instance(value);
+  auto instance = cye::Instance(archive.root());
 }

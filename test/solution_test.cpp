@@ -5,7 +5,7 @@
 
 TEST(SolutionTest, ValidRoutes) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0,  9,  7,  6, 3,  0,  5, 8,  11, 28, 12, 19, 17, 18, 0, 16,
                                 20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2,  0};
 
@@ -14,7 +14,7 @@ TEST(SolutionTest, ValidRoutes) {
 
 TEST(SolutionTest, StartNotAtDepot) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {9,  7,  6,  3, 0,  5,  8, 11, 28, 12, 19, 17, 18, 0, 16,
                                 20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2, 0};
 
@@ -23,7 +23,7 @@ TEST(SolutionTest, StartNotAtDepot) {
 
 TEST(SolutionTest, FinishNotAtDepot) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0,  9,  7,  6,  3, 0,  5,  8, 11, 28, 12, 19, 17, 18, 0,
                                 16, 20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2};
 
@@ -32,7 +32,7 @@ TEST(SolutionTest, FinishNotAtDepot) {
 
 TEST(SolutionTest, DidNotVisitEverybody) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0, 9, 7, 6, 3, 0};
 
   EXPECT_FALSE(cye::Solution(instance, std::move(routes)).is_valid());
@@ -40,7 +40,7 @@ TEST(SolutionTest, DidNotVisitEverybody) {
 
 TEST(SolutionTest, VisitedMultipleTimes) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0,  9,  7, 6,  3,  0, 5,  8,  11, 28, 12, 19, 17, 18, 0, 16, 20,
                                 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2,  0,  9, 0};
 
@@ -49,7 +49,7 @@ TEST(SolutionTest, VisitedMultipleTimes) {
 
 TEST(SolutionTest, NotEnoughCapacity) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0,  9,  7,  6,  3, 0,  5,  8, 11, 28, 12, 19, 17, 18, 0,
                                 16, 20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 4,  2,  0};
 
@@ -58,7 +58,7 @@ TEST(SolutionTest, NotEnoughCapacity) {
 
 TEST(SolutionTest, NotEnoughEnergy) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-  auto instance = std::make_shared<cye::Instance>(static_cast<serial::JSONArchive::Value>(archive));
+  auto instance = std::make_shared<cye::Instance>(archive.root());
   std::vector<size_t> routes = {0,  9,  7,  6,  3, 0,  5, 8,  11, 28, 12, 19, 17, 18, 0,
                                 16, 20, 29, 13, 1, 14, 0, 15, 21, 24, 10, 0,  4,  2,  0};
 

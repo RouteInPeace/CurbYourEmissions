@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <json_archive.hpp>
+#include "archive.hpp"
 
 namespace cye {
 
@@ -12,8 +13,8 @@ enum class NodeType : uint8_t { Depot = 0, Customer = 1, ChargingStation = 2 };
 struct Node {
   Node() = default;
 
-  template <typename Value>
-  Node(Value &&value);
+  template <serial::Value V>
+  Node(V &&value);
 
   NodeType type;
   float x;
@@ -21,8 +22,8 @@ struct Node {
   float demand;
 };
 
-template <typename Value>
-Node::Node(Value &&value)
+template <serial::Value V>
+Node::Node(V &&value)
     : type(value["type"].template get<NodeType>()),
       x(value["x"].template get<float>()),
       y(value["y"].template get<float>()),
@@ -31,4 +32,11 @@ Node::Node(Value &&value)
 }  // namespace cye
 
 template <>
-auto serial::JSONArchive::Value::get<cye::NodeType>() -> cye::NodeType;
+constexpr auto serial::JSONArchive::Value::get<cye::NodeType>() const -> cye::NodeType {
+  auto str = get<std::string_view>();
+  if (str == "depot") return cye::NodeType::Depot;
+  if (str == "customer") return cye::NodeType::Customer;
+  if (str == "chargingStation") return cye::NodeType::ChargingStation;
+
+  throw std::runtime_error("Invalid node type.");
+}

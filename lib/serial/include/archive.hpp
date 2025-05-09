@@ -4,6 +4,12 @@
 
 namespace serial {
 
+template <typename T>
+concept Value = requires(T t) {
+  { t.template get<int>() } -> std::same_as<int>;
+  { t.template get_or<int>(0) } -> std::same_as<int>;
+};
+
 template <typename Value, typename T>
 concept HasGet = requires(Value value) {
   { value.template get<T>() };
