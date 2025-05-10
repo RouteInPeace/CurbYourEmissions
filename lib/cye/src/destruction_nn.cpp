@@ -1,8 +1,7 @@
-#include "heuristics/destruction_nn.hpp"
+#include "cye/destruction_nn.hpp"
 
 #include <iostream>
-#include <ranges>
-#include "core/utils.hpp"
+#include "cye/utils.hpp"
 
 cye::DestructionNN::DestructionNN(std::mt19937 &gen)
     : w1_(genotype_.data() + w1_offset_),

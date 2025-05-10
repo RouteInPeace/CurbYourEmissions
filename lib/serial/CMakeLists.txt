@@ -1,7 +1,7 @@
 set(PROJECT_HEADERS 
-    include/json_archive.hpp
-    include/utils.hpp
-    include/archive.hpp
+    include/serial/json_archive.hpp
+    include/serial/utils.hpp
+    include/serial/archive.hpp
 )
 
 set(PROJECT_SOURCES 

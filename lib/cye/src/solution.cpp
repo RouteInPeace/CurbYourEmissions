@@ -1,5 +1,4 @@
-#include "core/solution.hpp"
-#include <algorithm>
+#include "cye/solution.hpp"
 #include <cassert>
 #include <cstddef>
 #include <unordered_set>

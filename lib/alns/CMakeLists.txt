@@ -1,7 +1,7 @@
 set(PROJECT_HEADERS 
-    include/alns.hpp
-    include/operator_selection.hpp
-    include/acceptance_criterion.hpp
+    include/alns/alns.hpp
+    include/alns/operator_selection.hpp
+    include/alns/acceptance_criterion.hpp
 )
 
 set(PROJECT_SOURCES 

@@ -5,11 +5,11 @@
 #include <set>
 #include <vector>
 
-#include <heuristics/init_heuristics.hpp>
-#include "acceptance_criterion.hpp"
-#include "alns.hpp"
-#include "core/solution.hpp"
-#include "json_archive.hpp"
+#include "cye/init_heuristics.hpp"
+#include "alns/acceptance_criterion.hpp"
+#include "alns/alns.hpp"
+#include "cye/solution.hpp"
+#include "serial/json_archive.hpp"
 
 auto main() -> int {
   auto archive = serial::JSONArchive("dataset/json/E-n33-k4.json");
