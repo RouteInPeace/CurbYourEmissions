@@ -8,5 +8,4 @@ namespace serial {
 
 auto readFile(std::filesystem::path path) -> std::optional<std::string>;
 
-
-}  // namespace cye
+}  // namespace serial

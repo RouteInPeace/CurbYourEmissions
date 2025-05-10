@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 #include <string_view>
 #include <vector>
-#include "json_archive.hpp"
+#include "serial/json_archive.hpp"
 
 TEST(Serial, BasicTypes) {
   auto archive = serial::JSONArchive("test/data/test.json");

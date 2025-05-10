@@ -1,7 +1,7 @@
-#include "core/utils.hpp"
+#include "cye/utils.hpp"
 
-#include <fstream>
 #include <cmath>
+#include <fstream>
 
 auto cye::readFile(std::filesystem::path path) -> std::optional<std::string> {
   std::ifstream f(path);
@@ -24,4 +24,3 @@ auto cye::cartesian_to_polar(float x, float y) -> std::pair<float, float> {
   double theta = std::atan2(y, x);
   return {r, theta};
 }
-

@@ -4,7 +4,7 @@
 #include <array>
 #include <cstddef>
 #include <random>
-#include "core/solution.hpp"
+#include "solution.hpp"
 
 namespace cye {
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
-#include "core/instance.hpp"
-#include "core/solution.hpp"
+#include "instance.hpp"
+#include "solution.hpp"
 
 namespace cye {
 
