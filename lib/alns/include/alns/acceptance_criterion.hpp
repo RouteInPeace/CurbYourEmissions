@@ -1,5 +1,7 @@
 #pragma once
 
+#include "random_engine.hpp"
+
 namespace alns {
 
 class AcceptanceCriterion {
@@ -14,12 +16,12 @@ class AcceptanceCriterion {
 
   virtual ~AcceptanceCriterion() = default;
 
-  virtual auto accept(double current, double previous, double best) -> bool = 0;
+  virtual auto accept(double current, double previous, double best, RandomEngine &gen) -> bool = 0;
 };
 
 class HillClimbingCriterion : public AcceptanceCriterion {
  public:
-  [[nodiscard]] virtual auto accept(double current, double previous, double best) -> bool override;
+  [[nodiscard]] auto accept(double current, double previous, double best, RandomEngine &gen) -> bool override;
 };
 
 }  // namespace alns

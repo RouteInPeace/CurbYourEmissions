@@ -2,6 +2,7 @@ set(PROJECT_HEADERS
     include/alns/alns.hpp
     include/alns/operator_selection.hpp
     include/alns/acceptance_criterion.hpp
+    include/alns/random_engine.hpp
 )
 
 set(PROJECT_SOURCES 

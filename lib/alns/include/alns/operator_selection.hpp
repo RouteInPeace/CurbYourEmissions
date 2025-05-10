@@ -4,6 +4,8 @@
 #include <cstdlib>
 #include <tuple>
 
+#include "random_engine.hpp"
+
 namespace alns {
 
 class OperatorSelection {
@@ -19,20 +21,22 @@ class OperatorSelection {
   virtual ~OperatorSelection() = default;
 
   virtual auto set_operator_cnt(size_t destroy_operator_cnt, size_t repair_operator_cnt) -> void = 0;
-  virtual auto select_operators() -> std::tuple<size_t, size_t> = 0;
+  virtual auto select_operators(RandomEngine &gen) -> std::tuple<size_t, size_t> = 0;
   virtual auto update(double current, double previous, double best) -> void = 0;
 };
 
 class RandomOperatorSelection : public OperatorSelection {
  public:
-  inline virtual auto set_operator_cnt(size_t destroy_operator_cnt, size_t repair_operator_cnt) -> void override {
+  inline auto set_operator_cnt(size_t destroy_operator_cnt, size_t repair_operator_cnt) -> void override {
     destroy_operator_cnt_ = destroy_operator_cnt;
     repair_operator_cnt_ = repair_operator_cnt;
   }
-  inline virtual auto select_operators() -> std::tuple<size_t, size_t> override {
-    return {rand() % destroy_operator_cnt_, rand() % repair_operator_cnt_};
+  inline auto select_operators(RandomEngine &gen) -> std::tuple<size_t, size_t> override {
+    std::uniform_int_distribution<size_t> destroy_dist(0, destroy_operator_cnt_ - 1);
+    std::uniform_int_distribution<size_t> repair_dist(0, repair_operator_cnt_ - 1);
+    return {destroy_dist(gen), repair_dist(gen)};
   };
-  inline virtual auto update(double /* current */, double /* previous */, double /* best */) -> void override {};
+  inline auto update(double /* current */, double /* previous */, double /* best */) -> void override {};
 
  private:
   size_t destroy_operator_cnt_ = 0;
