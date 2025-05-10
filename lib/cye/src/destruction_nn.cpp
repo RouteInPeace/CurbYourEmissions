@@ -48,7 +48,8 @@ auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t i
   auto route_id = -1.f;
   auto in_route_ind = 0.f;
 
-  for (const auto [idx, node_id] : std::views::enumerate(solution.routes())) {
+  int idx = 0;
+  for (auto node_id : solution.routes()) {
     auto &node = instance.node(node_id);
     if (node.type == NodeType::Depot) {
       route_id += 1.f;
@@ -66,6 +67,7 @@ auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t i
     input_mat(idx, PROGRESS) = in_route_ind;
 
     in_route_ind += 1.f;
+    ++idx;
   }
 
   auto query_node_route_id = input_mat(ind_in_route, SAME_ROUTE);
