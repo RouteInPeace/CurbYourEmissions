@@ -10,7 +10,7 @@ template <typename I, typename ValueT>
 class MutationOperator {
  public:
   MutationOperator() = default;
-  virtual ~MutationOperator();
+  virtual ~MutationOperator() = default;
 
   MutationOperator(MutationOperator const &) = delete;
   auto operator=(MutationOperator const &) -> MutationOperator & = delete;
@@ -37,9 +37,11 @@ template <Individual<float> I>
 [[nodiscard]] auto GaussianMutation<I>::mutate(RandomEngine &re, I &&individual) -> I {
   auto dist = std::normal_distribution<float>(0.0, sigma_);
 
-  for (auto &g : individual.get_genotype()) {
+  for (auto &g : individual.get_mutable_genotype()) {
     g += dist(re);
   }
+
+  return individual;
 }
 
 }  // namespace ga

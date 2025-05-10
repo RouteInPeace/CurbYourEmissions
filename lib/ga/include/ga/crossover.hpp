@@ -10,7 +10,7 @@ template <typename I, typename ValueT>
 class CrossoverOperator {
  public:
   CrossoverOperator() = default;
-  virtual ~CrossoverOperator();
+  virtual ~CrossoverOperator() = default;
 
   CrossoverOperator(CrossoverOperator const &) = delete;
   auto operator=(CrossoverOperator const &) -> CrossoverOperator & = delete;
@@ -37,9 +37,13 @@ class BLXAlpha : public CrossoverOperator<I, float> {
 template <Individual<float> I>
 [[nodiscard]] auto BLXAlpha<I>::crossover(RandomEngine &re, I const &a, I const &b) -> I {
   auto dist = std::uniform_real_distribution<float>(-alpha_, 1.0 + alpha_);
-  I individual;
+  auto individual = a;
 
-  for (auto &[ga, gb, gr] : std::views::zip(a.get_genotype(), b.get_genotype(), individual.get_genotype())) {
+  auto a_genotype = a.get_genotype();
+  auto b_genotype = b.get_genotype();
+  auto r_genotype = individual.get_mutable_genotype();
+
+  for (const auto& [ga, gb, gr] : std::views::zip(a_genotype, b_genotype, r_genotype)) {
     gr = ga + dist(re) * (gb - ga);
   }
 

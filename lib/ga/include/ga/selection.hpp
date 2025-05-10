@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstddef>
+#include <random>
 #include <ranges>
 #include <set>
 #include <span>
@@ -13,7 +15,7 @@ template <typename I, typename ValueT>
 class SelectionOperator {
  public:
   SelectionOperator() = default;
-  virtual ~SelectionOperator();
+  virtual ~SelectionOperator() = default;
 
   SelectionOperator(SelectionOperator const &) = delete;
   auto operator=(SelectionOperator const &) -> SelectionOperator & = delete;
@@ -27,7 +29,7 @@ class SelectionOperator {
 
 template <typename I, typename ValueT>
   requires Individual<I, ValueT>
-class KWayTournamentSelectionOperator : SelectionOperator<I, ValueT> {
+class KWayTournamentSelectionOperator : public SelectionOperator<I, ValueT> {
  public:
   inline KWayTournamentSelectionOperator(size_t k) : k_(k) {};
 
@@ -42,16 +44,13 @@ template <typename I, typename ValueT>
   requires Individual<I, ValueT>
 [[nodiscard]] auto KWayTournamentSelectionOperator<I, ValueT>::select(RandomEngine &re, std::span<I> population)
     -> std::tuple<size_t, size_t, size_t> {
+
+  auto dist = std::uniform_int_distribution<size_t>(0, population.size()-1);
   auto comparator = [&population](size_t i, size_t j) { return population[i].fitness() < population[j].fitness(); };
 
   auto set = std::set<size_t, decltype(comparator)>(comparator);
-  for(auto i : std::views::iota(0UZ, k_)) {
-    set.insert(i);
-  }
-
-  for(auto i = k_; i < population.size(); ++i) {
-    set.insert(i);
-    set.erase(std::prev(set.end()));
+  for(auto i = 0UZ; i < k_; ++i) {
+    set.insert(dist(re));
   }
 
   return {*set.begin(), *std::next(set.begin()), *std::prev(set.end())};
