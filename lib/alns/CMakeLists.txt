@@ -5,7 +5,7 @@ set(PROJECT_HEADERS
 )
 
 set(PROJECT_SOURCES 
-    src/alns.cpp
+    src/acceptance_criterion.cpp
 )
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")

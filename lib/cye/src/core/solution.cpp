@@ -66,9 +66,7 @@ auto cye::Solution::insert_customer(size_t i, size_t customer_id) -> void {
   routes_.insert(routes_.begin() + i, customer_id);
 }
 
-auto cye::Solution::remove_customer(size_t i) -> void {
-  routes_.erase(routes_.begin() + i);
-}
+auto cye::Solution::remove_customer(size_t i) -> void { routes_.erase(routes_.begin() + i); }
 
 auto cye::Solution::find_charging_station(size_t node1_id, size_t node2_id, float remaining_battery)
     -> std::optional<size_t> {
@@ -77,7 +75,8 @@ auto cye::Solution::find_charging_station(size_t node1_id, size_t node2_id, floa
 
   if (node1_id != instance_->depot_id() && node2_id != instance_->depot_id() &&
       remaining_battery >= instance_->energy_required(node1_id, instance_->depot_id())) {
-    min_distance = instance_->distance(node1_id, instance_->depot_id()) + instance_->distance(instance_->depot_id(), node2_id);
+    min_distance =
+        instance_->distance(node1_id, instance_->depot_id()) + instance_->distance(instance_->depot_id(), node2_id);
     best_station_id = instance_->depot_id();
   }
 
