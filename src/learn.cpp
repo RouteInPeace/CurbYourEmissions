@@ -1,9 +1,9 @@
 #include <iostream>
 #include <memory>
 #include <ostream>
-#include "cye/instance.hpp"
 #include "cye/destruction_nn.hpp"
 #include "cye/init_heuristics.hpp"
+#include "cye/instance.hpp"
 
 auto main() -> int {
   auto rd = std::random_device();

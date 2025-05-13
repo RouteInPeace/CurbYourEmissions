@@ -33,6 +33,7 @@ auto optimize(Config<Solution> const &config, RandomEngine &gen) -> Solution {
 
   auto current_solution = config.initial_solution;
   auto best_solution = config.initial_solution;
+  std::cout << config.initial_solution.routes().size() << std::endl;
 
   for (size_t i = 0; i < config.max_iterations; ++i) {
     auto [destroy_operator_id, repair_operator_id] = config.operator_selection->select_operators(gen);
