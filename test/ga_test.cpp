@@ -2,7 +2,6 @@
 #include <gtest/gtest.h>
 #include <array>
 #include <cstdlib>
-#include <print>
 #include <random>
 #include <span>
 #include <vector>
@@ -41,6 +40,8 @@ class QuadraticEquation {
     for (auto [x, y] : *dataset_) {
       fitness_ += std::abs(evaluate(x) - y);
     }
+
+    fitness_ /= static_cast<float>(dataset_->size());
   }
 
   auto a() { return genotype_[0]; }
@@ -58,7 +59,7 @@ TEST(GA, KWayTournamentSelection) {
   auto re = std::mt19937(rd());
 
   auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
-  auto selection_operator = ga::KWayTournamentSelectionOperator<Dummy, float>(3);
+  auto selection_operator = ga::KWayTournamentSelectionOperator<Dummy>(3);
 
   auto population = std::vector<Dummy>();
   for (auto i = 0UZ; i < 1000; i++) {
@@ -89,28 +90,21 @@ TEST(GA, BasicRegression) {
     dataset.push_back({x, y});
   }
 
-  auto config = ga::Config<QuadraticEquation, float>();
   auto population_size = 100UZ;
+  auto population = std::vector<QuadraticEquation>();
+  population.reserve(population_size);
 
   for (auto i = 0UZ; i < population_size; i++) {
-    config.population.emplace_back(&dataset, dist(re), dist(re), dist(re));
+    population.emplace_back(&dataset, dist(re), dist(re), dist(re));
   }
 
-  config.crossover_operator = std::make_unique<ga::BLXAlpha<QuadraticEquation>>(0.5);
-  config.mutation_operator = std::make_unique<ga::GaussianMutation<QuadraticEquation>>(2.0);
-  config.selection_operator = std::make_unique<ga::KWayTournamentSelectionOperator<QuadraticEquation, float>>(7);
-  config.max_iterations = 100000;
-  config.verbose = true;
+  auto ga = ga::GeneticAlgorithm<QuadraticEquation>(
+      std::move(population), std::make_unique<ga::BLXAlpha<QuadraticEquation>>(0.f),
+      std::make_unique<ga::GaussianMutation<QuadraticEquation>>(0.02),
+      std::make_unique<ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
 
-  ga::optimize(re, config);
+  ga.optimize(re);
+  auto &best = ga.best_individual();
 
-  auto best = &config.population[0];
-  for (auto &ind : config.population) {
-    if (ind.fitness() < best->fitness()) {
-      best = &ind;
-    }
-  }
-
-  std::println("Expected: a: {}, b: {}, c: {}", a, b, c);
-  std::println("Best found: a: {}, b: {}, c: {}", best->a(), best->b(), best->c());
+  EXPECT_LE(best.fitness(), 0.01f);
 }

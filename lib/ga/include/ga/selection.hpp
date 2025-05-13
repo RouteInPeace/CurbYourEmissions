@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <random>
-#include <ranges>
 #include <set>
 #include <span>
 #include <tuple>
@@ -10,8 +9,7 @@
 
 namespace ga {
 
-template <typename I, typename ValueT>
-  requires Individual<I, ValueT>
+template <typename I>
 class SelectionOperator {
  public:
   SelectionOperator() = default;
@@ -27,9 +25,8 @@ class SelectionOperator {
       -> std::tuple<size_t, size_t, size_t> = 0;
 };
 
-template <typename I, typename ValueT>
-  requires Individual<I, ValueT>
-class KWayTournamentSelectionOperator : public SelectionOperator<I, ValueT> {
+template <Individual I>
+class KWayTournamentSelectionOperator : public SelectionOperator<I> {
  public:
   inline KWayTournamentSelectionOperator(size_t k) : k_(k) {};
 
@@ -40,9 +37,8 @@ class KWayTournamentSelectionOperator : public SelectionOperator<I, ValueT> {
 };
 
 /* ------------------------------------- Implementation ------------------------------------- */
-template <typename I, typename ValueT>
-  requires Individual<I, ValueT>
-[[nodiscard]] auto KWayTournamentSelectionOperator<I, ValueT>::select(RandomEngine &re, std::span<I> population)
+template <Individual I>
+[[nodiscard]] auto KWayTournamentSelectionOperator<I>::select(RandomEngine &re, std::span<I> population)
     -> std::tuple<size_t, size_t, size_t> {
 
   auto dist = std::uniform_int_distribution<size_t>(0, population.size()-1);

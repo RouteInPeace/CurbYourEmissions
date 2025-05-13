@@ -5,8 +5,7 @@
 
 namespace ga {
 
-template <typename I, typename ValueT>
-  requires Individual<I, ValueT>
+template <Individual I>
 class CrossoverOperator {
  public:
   CrossoverOperator() = default;
@@ -21,8 +20,8 @@ class CrossoverOperator {
   [[nodiscard]] virtual auto crossover(RandomEngine &re, I const &a, I const &b) -> I = 0;
 };
 
-template <Individual<float> I>
-class BLXAlpha : public CrossoverOperator<I, float> {
+template <Individual I> requires GeneType<I, float>
+class BLXAlpha : public CrossoverOperator<I> {
  public:
   inline BLXAlpha(float alpha) : alpha_(alpha) {}
 
@@ -34,7 +33,7 @@ class BLXAlpha : public CrossoverOperator<I, float> {
 
 /* ------------------------------------- Implementation ------------------------------------- */
 
-template <Individual<float> I>
+template <Individual I> requires GeneType<I, float>
 [[nodiscard]] auto BLXAlpha<I>::crossover(RandomEngine &re, I const &a, I const &b) -> I {
   auto dist = std::uniform_real_distribution<float>(-alpha_, 1.0 + alpha_);
   auto individual = a;
