@@ -23,7 +23,7 @@ auto main() -> int {
   config.operator_selection = std::make_unique<alns::RandomOperatorSelection>();
   config.destroy_operators = {cye::random_destroy};
   config.repair_operators = {cye::regret_repair};
-  config.max_iterations = 100'000;
+  config.max_iterations = 1'000;
   config.verbose = true;
 
   std::cout << "Initial solution cost: " << config.initial_solution.get_cost() << std::endl;
@@ -31,6 +31,7 @@ auto main() -> int {
   alns::RandomEngine gen{std::random_device{}()};
   auto best_solution = alns::optimize(config, gen);
   std::cout << "Best solution cost: " << best_solution.get_cost() << std::endl;
+  std::cout << "Best solution route size: " << best_solution.routes().size() << std::endl;
 
   return 0;
 }
