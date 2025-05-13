@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <json_archive.hpp>
-#include "archive.hpp"
+#include <serial/json_archive.hpp>
+#include "serial/archive.hpp"
 
 namespace cye {
 

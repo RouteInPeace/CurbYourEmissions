@@ -18,8 +18,6 @@ auto softmax(const Eigen::MatrixBase<Derived> &x) {
   return exp_shifted / sum_exp;
 }
 
-constexpr inline float sigmoid(float x) {
-  return 1.0f / (1.0f + std::exp(-x));
-}
+constexpr inline float sigmoid(float x) { return 1.0f / (1.0f + std::exp(-x)); }
 
 }  // namespace cye

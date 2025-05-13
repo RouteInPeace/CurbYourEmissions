@@ -1,7 +1,7 @@
-#include "core/solution.hpp"
+#include "cye/solution.hpp"
 #include <gtest/gtest.h>
-#include "core/instance.hpp"
-#include "json_archive.hpp"
+#include "cye/instance.hpp"
+#include "serial/json_archive.hpp"
 
 TEST(SolutionTest, ValidRoutes) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");

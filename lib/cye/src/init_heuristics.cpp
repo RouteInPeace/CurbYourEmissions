@@ -1,11 +1,9 @@
-#include "heuristics/init_heuristics.hpp"
+#include "cye/init_heuristics.hpp"
 #include <cassert>
 #include <limits>
 #include <optional>
-#include <ranges>
 #include <unordered_set>
-#include <vector>
-#include "core/instance.hpp"
+#include "cye/instance.hpp"
 
 auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
     -> std::optional<size_t> {
