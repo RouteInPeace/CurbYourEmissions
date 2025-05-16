@@ -62,7 +62,7 @@ auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t i
     input_mat(idx, I_D) = node.type == NodeType::Depot ? 1.f : 0.f;
     input_mat(idx, I_C) = node.type == NodeType::Customer ? 1.f : 0.f;
     input_mat(idx, I_CS) = node.type == NodeType::ChargingStation ? 1.f : 0.f;
-    input_mat(idx, DEMAND) = node.demand / instance.max_cargo_capacity();
+    input_mat(idx, DEMAND) = node.demand / instance.cargo_capacity();
     input_mat(idx, SAME_ROUTE) = route_id;
     input_mat(idx, PROGRESS) = in_route_ind;
 

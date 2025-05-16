@@ -12,14 +12,17 @@ class Solution {
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
            std::vector<size_t> &&unassigned_customers);
 
-  [[nodiscard]] auto &instance() const { return *instance_; }
-  [[nodiscard]] auto &routes() const { return routes_; }
-  [[nodiscard]] auto &unassigned_customers() const { return unassigned_customers_; }
-  [[nodiscard]] auto visited_node_cnt() const { return routes_.size(); }
+  [[nodiscard]] inline auto &instance() const { return *instance_; }
+  [[nodiscard]] inline auto &routes() const { return routes_; }
+  [[nodiscard]] inline auto &unassigned_customers() const { return unassigned_customers_; }
+  [[nodiscard]] inline auto visited_node_cnt() const { return routes_.size(); }
+  [[nodiscard]] inline auto node_id(size_t ind) const { return routes_[ind]; }
 
+  [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto get_cost() const -> double;
+  
 
   auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;

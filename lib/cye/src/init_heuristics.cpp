@@ -4,6 +4,8 @@
 #include <optional>
 #include <unordered_set>
 #include "cye/instance.hpp"
+#include "cye/repair.hpp"
+#include "cye/solution.hpp"
 
 auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
     -> std::optional<size_t> {
@@ -35,8 +37,6 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   std::vector<size_t> routes;
   routes.push_back(instance->depot_id());
 
-  auto cargo_capacity = instance->max_cargo_capacity();
-
   // Nearest neighbor
   while (!remaining_customer_ids.empty()) {
     auto best_customer_id = 0UZ;
@@ -51,20 +51,17 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
       }
     }
 
-    cargo_capacity -= instance->node(best_customer_id).demand;
-    if (cargo_capacity < 0) {
-      routes.push_back(instance->depot_id());
-      cargo_capacity = instance->max_cargo_capacity() - instance->node(best_customer_id).demand;
-    }
-
     routes.push_back(best_customer_id);
     remaining_customer_ids.erase(best_customer_id);
   }
 
   routes.push_back(instance->depot_id());
 
+  auto solution = repair_cargo_violations_optimally(Solution(instance, std::move(routes)), 2001UZ);
+  routes = std::move(solution.routes());
+
   // Fix battery constrint violations
-  auto energy = instance->energy_capacity();
+  auto energy = instance->battery_capacity();
   for (auto i = 1UZ; i < routes.size(); i++) {
     if (energy < instance->energy_required(routes[i - 1], routes[i])) {
       auto charging_station_id = find_charging_station(*instance, routes[i - 1], routes[i], energy);
@@ -77,10 +74,10 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
 
       auto it = routes.begin() + i;
       routes.insert(it, *charging_station_id);
-      energy = instance->energy_capacity();
+      energy = instance->battery_capacity();
     } else {
       if (routes[i] == instance->depot_id()) {
-        energy = instance->energy_capacity();
+        energy = instance->battery_capacity();
       } else {
         energy -= instance->energy_required(routes[i - 1], routes[i]);
       }
