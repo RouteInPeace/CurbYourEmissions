@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <queue>
+#include <unordered_map>
 #include <vector>
 
 auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution {
@@ -95,46 +97,109 @@ auto cye::repair_cargo_violations_trivially(Solution &&solution) -> Solution {
   return solution;
 }
 
-auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
-    -> std::optional<size_t> {
-  auto best_station_id = std::optional<size_t>{};
-  auto min_distance = std::numeric_limits<float>::infinity();
+cye::ChargingStationFinder::ChargingStationFinder() : unvisited_queue_(cmp_) {}
 
-  if (node1_id != instance.depot_id() && node2_id != instance.depot_id() &&
-      remaining_battery >= instance.energy_required(node1_id, instance.depot_id())) {
-    min_distance = instance.distance(node1_id, instance.depot_id()) + instance.distance(instance.depot_id(), node2_id);
-    best_station_id = instance.depot_id();
+auto cye::ChargingStationFinder::clear_() -> void {
+  visited_.clear();
+  while (!unvisited_queue_.empty()) {
+    unvisited_queue_.pop();
   }
+}
 
-  for (const auto station_id : instance.charging_station_ids()) {
-    if (station_id == node1_id || station_id == node2_id) continue;
-    if (remaining_battery < instance.energy_required(node1_id, station_id)) continue;
+auto cye::ChargingStationFinder::find_between(cye::Instance const &instance, size_t start_node_id, size_t goal_node_id,
+                                              float remaining_battery) -> std::optional<std::vector<size_t>> {
+  clear_();
 
-    auto distance = instance.distance(node1_id, station_id) + instance.distance(station_id, node2_id);
-    if (distance < min_distance) {
-      min_distance = distance;
-      best_station_id = station_id;
+  for (auto cs_id : instance.charging_station_ids()) {
+    if (cs_id == start_node_id || cs_id == goal_node_id) {
+      continue;
+    }
+
+    if (instance.energy_required(start_node_id, cs_id) <= remaining_battery) {
+      unvisited_queue_.emplace(cs_id, start_node_id, instance.distance(start_node_id, cs_id),
+                               instance.distance(cs_id, goal_node_id));
     }
   }
 
-  return best_station_id;
+  if (start_node_id != instance.depot_id() && goal_node_id != instance.depot_id()) {
+    if (instance.energy_required(start_node_id, instance.depot_id()) <= remaining_battery) {
+      unvisited_queue_.emplace(instance.depot_id(), start_node_id,
+                               instance.distance(start_node_id, instance.depot_id()),
+                               instance.distance(instance.depot_id(), goal_node_id));
+    }
+  }
+
+  while (!unvisited_queue_.empty()) {
+    auto unvisited_node = unvisited_queue_.top();
+    unvisited_queue_.pop();
+
+    if (visited_.contains(unvisited_node.node_id)) {
+      continue;
+    }
+
+    visited_.emplace(unvisited_node.node_id, VisitedNode_{unvisited_node.g, unvisited_node.parent});
+
+    if (unvisited_node.node_id == goal_node_id) {
+      break;
+    }
+
+    if (instance.energy_required(unvisited_node.node_id, goal_node_id) <= instance.battery_capacity()) {
+      unvisited_queue_.emplace(goal_node_id, unvisited_node.node_id,
+                               unvisited_node.g + instance.distance(unvisited_node.node_id, goal_node_id), 0.f);
+    }
+
+    for (auto cs_id : instance.charging_station_ids()) {
+      if (visited_.contains(cs_id)) {
+        continue;
+      }
+
+      if (instance.energy_required(unvisited_node.node_id, cs_id) <= instance.battery_capacity()) {
+        unvisited_queue_.emplace(cs_id, unvisited_node.node_id,
+                                 unvisited_node.g + instance.distance(unvisited_node.node_id, cs_id),
+                                 instance.distance(cs_id, goal_node_id));
+      }
+    }
+
+    if (!visited_.contains(instance.depot_id())) {
+      if (instance.energy_required(unvisited_node.node_id, instance.depot_id()) <= instance.battery_capacity()) {
+        unvisited_queue_.emplace(instance.depot_id(), unvisited_node.node_id,
+                                 unvisited_node.g + instance.distance(unvisited_node.node_id, instance.depot_id()),
+                                 instance.distance(instance.depot_id(), goal_node_id));
+      }
+    }
+  }
+
+  if (!visited_.contains(goal_node_id)) {
+    return {};
+  }
+
+  auto ret = std::vector<size_t>();
+  for (auto node_id = visited_[goal_node_id].parent; node_id != start_node_id; node_id = visited_[node_id].parent) {
+    ret.push_back(node_id);
+  }
+
+  return {ret};
 }
 
 auto cye::repair_energy_violations_trivially(Solution &&solution) -> Solution {
   auto &instance = solution.instance();
+  auto cs_finder = ChargingStationFinder();
 
   auto energy = instance.battery_capacity();
   for (auto i = 1UZ; i < solution.visited_node_cnt(); i++) {
     if (energy < instance.energy_required(solution.node_id(i - 1), solution.node_id(i))) {
-      auto charging_station_id = find_charging_station(instance, solution.node_id(i - 1), solution.node_id(i), energy);
-      while (!charging_station_id.has_value()) {
+      auto cs_ids = cs_finder.find_between(instance, solution.node_id(i - 1), solution.node_id(i), energy);
+      while (!cs_ids.has_value()) {
         i -= 1;
         assert(i > 0);
         energy += instance.energy_required(solution.node_id(i - 1), solution.node_id(i));
-        charging_station_id = find_charging_station(instance, solution.node_id(i - 1), solution.node_id(i), energy);
+        cs_ids = cs_finder.find_between(instance, solution.node_id(i - 1), solution.node_id(i), energy);
       }
 
-      solution.insert_customer(i, *charging_station_id);
+      for (auto cs_id : *cs_ids) {
+        solution.insert_customer(i, cs_id);
+      }
+
       energy = instance.battery_capacity();
     } else {
       if (solution.node_id(i) == instance.depot_id()) {

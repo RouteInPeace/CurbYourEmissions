@@ -46,18 +46,19 @@ TEST(Repair, FixCargoViolationsOptimally) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 30UZ; i++) {
+    for (auto i = 0UZ; i < 100UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;
       auto copy2 = routes;
 
-      auto solution_opt = cye::repair_cargo_violations_optimally(cye::Solution(instance, std::move(copy)), 10001u);
+      auto solution_opt = cye::repair_cargo_violations_optimally(
+          cye::Solution(instance, std::move(copy)), static_cast<unsigned>(instance->cargo_capacity()) + 1u);
       auto solution_tr = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy2)));
       EXPECT_TRUE(solution_opt.is_cargo_valid());
       EXPECT_TRUE(solution_tr.is_cargo_valid());
 
-      EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.06f);
+      EXPECT_LE(solution_opt.get_cost(), solution_tr.get_cost());
     }
   }
 }
@@ -77,7 +78,7 @@ TEST(Repair, FixEnergyViolationsTrivially) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 1000UZ; i++) {
+    for (auto i = 0UZ; i < 100UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;

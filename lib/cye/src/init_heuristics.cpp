@@ -32,6 +32,6 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
 
   routes.push_back(instance->depot_id());
 
-  auto solution = repair_cargo_violations_optimally(Solution(instance, std::move(routes)), 2001UZ);  
+  auto solution = repair_cargo_violations_optimally(Solution(instance, std::move(routes)), static_cast<unsigned>(instance->cargo_capacity()) + 1u);  
   return repair_energy_violations_trivially(std::move(solution));
 }
