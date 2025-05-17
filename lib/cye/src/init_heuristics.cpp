@@ -87,5 +87,5 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
     }
   }
 
-  return Solution(instance, std::move(routes));
+  return Solution(instance, routes);
 }

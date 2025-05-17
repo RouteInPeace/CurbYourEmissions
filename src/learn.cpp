@@ -13,7 +13,7 @@ auto main() -> int {
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto solution = cye::nearest_neighbor(instance);
 
-  for (auto node_ind : solution.routes()) std::cout << node_ind << ' ';
+  for (auto node_it = solution.begin(); node_it != solution.end(); ++node_it) std::cout << *node_it << ' ';
   std::cout << '\n';
 
   auto destruction_nn = cye::DestructionNN(gen);

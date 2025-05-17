@@ -19,18 +19,18 @@ auto main() -> int {
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
   auto config = alns::Config<cye::Solution>(cye::nearest_neighbor(instance));
-  config.acceptance_criterion = std::make_unique<alns::HillClimbingCriterion>();
-  config.operator_selection = std::make_unique<alns::RandomOperatorSelection>();
-  config.destroy_operators = {cye::random_destroy};
-  config.repair_operators = {cye::greedy_repair};
-  config.max_iterations = 100'000;
-  config.verbose = true;
+  // config.acceptance_criterion = std::make_unique<alns::HillClimbingCriterion>();
+  // config.operator_selection = std::make_unique<alns::RandomOperatorSelection>();
+  // config.destroy_operators = {cye::random_destroy};
+  // config.repair_operators = {cye::greedy_repair};
+  // config.max_iterations = 100'000;
+  // config.verbose = true;
 
   std::cout << "Initial solution cost: " << config.initial_solution.get_cost() << std::endl;
 
-  alns::RandomEngine gen{std::random_device{}()};
-  auto best_solution = alns::optimize(config, gen);
-  std::cout << "Best solution cost: " << best_solution.get_cost() << std::endl;
+  // alns::RandomEngine gen{std::random_device{}()};
+  // auto best_solution = alns::optimize(config, gen);
+  // std::cout << "Best solution cost: " << best_solution.get_cost() << std::endl;
 
   return 0;
 }

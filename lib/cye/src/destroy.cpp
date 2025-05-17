@@ -17,7 +17,7 @@ Solution random_destroy(Solution &&solution, alns::RandomEngine &gen) {
 
   removed_ids.insert(unassigned.begin(), unassigned.end());
 
-  auto &routes = solution.routes();
+  auto &routes = solution.customers();
   std::vector<size_t> new_routes;
   for (auto id : routes) {
     if (removed_ids.find(id) == removed_ids.end()) {
