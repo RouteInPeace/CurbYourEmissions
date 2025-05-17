@@ -5,17 +5,14 @@ set(PROJECT_HEADERS
     include/ga/mutation.hpp
 )
 
-set(PROJECT_SOURCES 
-    src/ga.cpp
-)
+add_library(ga_lib INTERFACE)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
+target_compile_features(ga_lib INTERFACE cxx_std_23)
 
-add_library(ga_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
-target_compile_options(ga_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-# target_link_libraries(ga_lib PUBLIC rapidjson)
+target_compile_options(ga_lib INTERFACE -Wall -Wextra -Wpedantic)
+
 target_include_directories(ga_lib 
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
-    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> 
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )

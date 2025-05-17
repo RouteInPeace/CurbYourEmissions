@@ -5,9 +5,6 @@
 #include <random>
 #include <span>
 #include <vector>
-#include "ga/crossover.hpp"
-#include "ga/mutation.hpp"
-#include "ga/selection.hpp"
 
 class Dummy {
  public:

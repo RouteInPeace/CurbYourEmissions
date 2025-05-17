@@ -6,8 +6,8 @@
 #include <memory>
 #include <print>
 #include <vector>
+#include "common.hpp"
 #include "crossover.hpp"
-#include "ga/common.hpp"
 #include "mutation.hpp"
 #include "selection.hpp"
 

@@ -20,7 +20,8 @@ class MutationOperator {
   [[nodiscard]] virtual auto mutate(RandomEngine &re, I &&individual) -> I = 0;
 };
 
-template <Individual I> requires GeneType<I, float>
+template <Individual I>
+  requires GeneType<I, float>
 class GaussianMutation : public MutationOperator<I> {
  public:
   inline GaussianMutation(float sigma) : sigma_(sigma) {}
@@ -32,7 +33,8 @@ class GaussianMutation : public MutationOperator<I> {
 };
 
 /* ------------------------------------- Implementation ------------------------------------- */
-template <Individual I> requires GeneType<I, float>
+template <Individual I>
+  requires GeneType<I, float>
 [[nodiscard]] auto GaussianMutation<I>::mutate(RandomEngine &re, I &&individual) -> I {
   auto dist = std::normal_distribution<float>(0.0, sigma_);
 

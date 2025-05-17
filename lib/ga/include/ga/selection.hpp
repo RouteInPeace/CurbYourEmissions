@@ -40,12 +40,11 @@ class KWayTournamentSelectionOperator : public SelectionOperator<I> {
 template <Individual I>
 [[nodiscard]] auto KWayTournamentSelectionOperator<I>::select(RandomEngine &re, std::span<I> population)
     -> std::tuple<size_t, size_t, size_t> {
-
-  auto dist = std::uniform_int_distribution<size_t>(0, population.size()-1);
+  auto dist = std::uniform_int_distribution<size_t>(0, population.size() - 1);
   auto comparator = [&population](size_t i, size_t j) { return population[i].fitness() < population[j].fitness(); };
 
   auto set = std::set<size_t, decltype(comparator)>(comparator);
-  for(auto i = 0UZ; i < k_; ++i) {
+  for (auto i = 0UZ; i < k_; ++i) {
     set.insert(dist(re));
   }
 

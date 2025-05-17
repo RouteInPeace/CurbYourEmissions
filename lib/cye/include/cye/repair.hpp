@@ -1,8 +1,8 @@
 #pragma once
 
-#include "cye/solution.hpp"
 #include "alns/random_engine.hpp"
+#include "cye/solution.hpp"
 
 namespace cye {
-    Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
+Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
 }

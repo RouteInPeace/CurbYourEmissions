@@ -148,3 +148,21 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
   // TODO: check cargo elsewhere
   return is_energy_and_cargo_valid();
 }
+
+cye::NewSolution::NewSolution(std::shared_ptr<Instance> instance, std::vector<size_t> const &routes)
+    : instance_(instance) {
+  size_t customer_depot_id = 0;
+  size_t customer_id = 0;
+  for (auto id : routes) {
+    if (instance_->node(id).type == NodeType::ChargingStation) {
+      stations_.push_back({id, customer_depot_id});
+    } else if (instance_->node(id).type == NodeType::Depot) {
+      depots_.push_back(customer_id);
+      ++customer_depot_id;
+    } else {
+      customers_.push_back(id);
+      ++customer_depot_id;
+      ++customer_id;
+    }
+  }
+}
