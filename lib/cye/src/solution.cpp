@@ -8,10 +8,13 @@
 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&customers,
                         std::vector<size_t> &&unassigned_customers)
-    : instance_(instance), customers_(std::move(customers)), unassigned_customers_(std::move(unassigned_customers)), stations_valid_(false), depots_valid_(false) {}
+    : instance_(instance),
+      customers_(std::move(customers)),
+      unassigned_customers_(std::move(unassigned_customers)),
+      stations_valid_(false),
+      depots_valid_(false) {}
 
-cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> const &routes)
-    : instance_(instance) {
+cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> const &routes) : instance_(instance) {
   size_t customer_depot_id = 0;
   size_t customer_id = 0;
   for (auto id : routes) {
@@ -32,7 +35,7 @@ auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
   auto energy = instance_->energy_capacity();
   auto cargo = instance_->max_cargo_capacity();
 
-  size_t previous_node_id = 0; // depot
+  size_t previous_node_id = 0;  // depot
   for (auto it = ++begin(); it != end(); ++it) {
     auto node_id = *it;
     energy -= instance_->energy_required(previous_node_id, node_id);
@@ -56,6 +59,7 @@ auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
         energy = instance_->energy_capacity();
         break;
     }
+    previous_node_id = node_id;
   }
 
   return true;
@@ -94,18 +98,14 @@ auto cye::Solution::insert_charging_station(size_t position, size_t station_id) 
   stations_valid_ = false;
 }
 
-  auto cye::Solution::insert_depot(size_t position) -> void {
-    depots_.insert(depots_.begin() + position, 0);
-    depots_valid_ = false;
-    stations_valid_ = false;
-  }
+auto cye::Solution::insert_depot(size_t position) -> void {
+  depots_.insert(depots_.begin() + position, 0);
+  depots_valid_ = false;
+  stations_valid_ = false;
+}
 
-  auto cye::Solution::clear_charging_stations() -> void {
-    stations_.clear();
-  }
-  auto cye::Solution::clear_depots() -> void {
-    depots_.clear();
-  }
+auto cye::Solution::clear_charging_stations() -> void { stations_.clear(); }
+auto cye::Solution::clear_depots() -> void { depots_.clear(); }
 
 auto cye::Solution::insert_customer(size_t i, size_t customer_id) -> void {
   customers_.insert(customers_.begin() + i, customer_id);
@@ -194,4 +194,3 @@ auto cye::Solution::insert_customer(size_t i, size_t customer_id) -> void {
 //   // TODO: check cargo elsewhere
 //   return is_energy_and_cargo_valid();
 // }
-

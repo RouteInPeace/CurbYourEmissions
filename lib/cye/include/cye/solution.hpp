@@ -44,7 +44,7 @@ class Solution {
 
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> const &routes);
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
-              std::vector<size_t> &&unassigned_customers);
+           std::vector<size_t> &&unassigned_customers);
 
   [[nodiscard]] auto &instance() const { return *instance_; }
   [[nodiscard]] auto &customers() const { return customers_; }
@@ -56,7 +56,7 @@ class Solution {
   [[nodiscard]] auto get_cost() const -> double;
 
   // ajajaja
-  auto operator[](size_t i) const -> size_t { 
+  auto operator[](size_t i) const -> size_t {
     for (auto it = begin(); it != end(); ++it) {
       if (i == 0) {
         return *it;
@@ -64,7 +64,7 @@ class Solution {
       --i;
     }
     assert(false);
-   }
+  }
 
   // auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;

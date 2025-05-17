@@ -3,18 +3,14 @@
 #include "cye/instance.hpp"
 #include "serial/json_archive.hpp"
 
-// TEST(SolutionTest, ValidRoutes) {
-//   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
-//   auto instance = std::make_shared<cye::Instance>(archive.root());
-//   std::vector<size_t> routes = {0,  9,  7,  6, 3,  0,  5, 8,  11, 28, 12, 19, 17, 18, 0, 16,
-//                                 20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2,  0};
+TEST(SolutionTest, ValidRoutes) {
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+  std::vector<size_t> routes = {0,  9,  7,  6, 3,  0,  5, 8,  11, 28, 12, 19, 17, 18, 0, 16,
+                                20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2,  0};
 
-//   for (auto &node : instance->nodes()) {
-//     std::cout << node.x << " " << node.y << "\n";
-//   }
-
-//   EXPECT_TRUE(cye::Solution(instance, std::move(routes)).is_valid());
-// }
+  EXPECT_TRUE(cye::Solution(instance, std::move(routes)).is_valid());
+}
 
 TEST(SolutionTest, StartNotAtDepot) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
