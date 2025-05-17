@@ -1,35 +1,43 @@
 #include "cye/repair.hpp"
-#include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <limits>
-#include <print>
 #include <vector>
 
 auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution {
   auto &instance = solution.instance();
   auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(),
                                              std::pair<float, unsigned>(std::numeric_limits<float>::infinity(), 0)));
-  auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
-  auto eps = 1e-9f;
 
-  // Forward
+  // Amount of cargo per bin
+  auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
+  auto eps = 1e-12f;
+
+  // Forward pass
+
+  // We always start at the depot with the full capacity remaining
   dp[bin_cnt - 1][0].first = 0;
+
+  // Iterate over nodes in routes
   for (auto j = 1UZ; j < solution.visited_node_cnt(); ++j) {
+    // The distance between the curent ad previous node
     auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
+    // The distance if we go from the previous node to the depo and back to the current node
     auto distance_with_depot = instance.distance(solution.node_id(j - 1), instance.depot_id()) +
                                instance.distance(instance.depot_id(), solution.node_id(j));
 
     auto demand = instance.demand(solution.node_id(j));
     auto demand_quant = static_cast<unsigned>(std::ceil(demand / cargo_quant));
 
+    // For every cargo quantization
     for (auto i = 0u; i < bin_cnt; ++i) {
+      // If we go from the node j-1 with capacity i to the depot and than back to the node j
       if (dp[bin_cnt - demand_quant - 1][j].first > dp[i][j - 1].first + distance_with_depot) {
         dp[bin_cnt - demand_quant - 1][j].first = dp[i][j - 1].first + distance_with_depot;
         dp[bin_cnt - demand_quant - 1][j].second = i;
       }
 
+      // If we go straight from the node j-1 to j and end up with a remaining capacity i
       if (i + demand_quant < bin_cnt && dp[i][j].first > dp[i + demand_quant][j - 1].first + distance) {
         dp[i][j].first = dp[i + demand_quant][j - 1].first + distance;
         dp[i][j].second = i + demand_quant;
@@ -37,7 +45,9 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
     }
   }
 
-  // Backward
+  // Backward pass
+
+  // Find the smallest cost in the last column
   auto ind = 0u;
   auto min_const = std::numeric_limits<float>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
@@ -47,44 +57,25 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
     }
   }
 
-  // std::cout << "Backtrace: ";
+  // Trace back through the table
   auto insertion_places = std::vector<size_t>();
   for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
     auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
     auto demand = instance.demand(solution.node_id(j));
     auto demand_quant = static_cast<unsigned>(std::ceil(demand / cargo_quant));
 
+    // Check if we detoured to the depot
     if (ind + demand_quant >= bin_cnt ||
         std::abs(dp[ind][j].first - (dp[ind + demand_quant][j - 1].first + distance)) > eps) {
       insertion_places.push_back(j);
     }
-    // std::cout << ind << ' ';
     ind = dp[ind][j].second;
   }
-  // std::cout << ind << "\nInsertion places: ";
 
+  // Insert depot into the solution
   for (auto ind : insertion_places) {
-    // std::cout << ind << ' ';
     solution.insert_customer(ind, instance.depot_id());
   }
-  // std::cout << "\nNode ids:      ";
-
-  // for (const auto &x : solution.routes()) {
-  //   std::print("{:2} ", x);
-  // }
-  // std::cout << "\nQuant demands: ";
-  // for (const auto &x : solution.routes()) {
-  //   std::print("{:2} ", static_cast<size_t>(std::ceil(instance.demand(x) / cargo_quant)));
-  // }
-
-  // std::cout << "\n\n";
-
-  // for (const auto &row : dp) {
-  //   for (const auto &x : row) {
-  //     std::print("{:6.2f},{:2}  ", x.first, x.second);
-  //   }
-  //   std::cout << '\n';
-  // }
 
   return solution;
 }

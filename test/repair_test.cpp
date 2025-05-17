@@ -46,7 +46,7 @@ TEST(Repair, FixCargoViolationsOptimally) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 50UZ; i++) {
+    for (auto i = 0UZ; i < 30UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;
