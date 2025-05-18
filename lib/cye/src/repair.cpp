@@ -6,6 +6,7 @@
 #include <limits>
 #include <print>
 #include <queue>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
@@ -243,20 +244,33 @@ auto cye::OptimalEnergyRepair::find_between_(size_t start_node_id, size_t goal_n
   return {{ret, visited_[goal_node_id].g}};
 }
 
+struct DPCell {
+  DPCell()
+      : dist(std::numeric_limits<float>::infinity()),
+        prev(0),
+        entry_ind(std::numeric_limits<uint16_t>::max()),
+        exit_ind(std::numeric_limits<uint16_t>::max()) {}
+
+  float dist;
+  unsigned prev;
+  uint16_t entry_ind;
+  uint16_t exit_ind;
+};
+
 auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> Solution {
   auto &instance = solution.instance();
-  auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(),
-                                             std::pair<float, unsigned>(std::numeric_limits<float>::infinity(), 0)));
+
+  auto no_cs = std::numeric_limits<uint16_t>::max();
+  auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(), DPCell()));
 
   // Energy per bin
   auto energy_per_bin = instance.battery_capacity() / static_cast<float>(bin_cnt - 1);
-  auto eps = 1e-9f;
   auto cs_cnt = instance_->charging_station_cnt() + 1;
 
   // Forward pass
 
   // We always start at the depot with a full battery
-  dp[bin_cnt - 1][0].first = 0.f;
+  dp[bin_cnt - 1][0].dist = 0.f;
 
   // Iterate over nodes in routes
   for (auto j = 1UZ; j < solution.visited_node_cnt(); ++j) {
@@ -293,9 +307,11 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
           auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
 
           if (energy_from_exit_cs_quant < bin_cnt &&
-              dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first > dp[i][j - 1].first + total_distance) {
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first = dp[i][j - 1].first + total_distance;
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].second = i;
+              dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist > dp[i][j - 1].dist + total_distance) {
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist = dp[i][j - 1].dist + total_distance;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].prev = i;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].entry_ind = k;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].exit_ind = l;
           }
         }
       }
@@ -306,9 +322,11 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
       auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
 
       // If we go straight from the node j-1 to j and end up with a remaining battery i
-      if (i + energy_quant < bin_cnt && dp[i][j].first > dp[i + energy_quant][j - 1].first + distance) {
-        dp[i][j].first = dp[i + energy_quant][j - 1].first + distance;
-        dp[i][j].second = i + energy_quant;
+      if (i + energy_quant < bin_cnt && dp[i][j].dist > dp[i + energy_quant][j - 1].dist + distance) {
+        dp[i][j].dist = dp[i + energy_quant][j - 1].dist + distance;
+        dp[i][j].prev = i + energy_quant;
+        dp[i][j].entry_ind = no_cs;
+        dp[i][j].exit_ind = no_cs;
       }
     }
   }
@@ -319,88 +337,42 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
   auto ind = 0u;
   auto min_cost = std::numeric_limits<float>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
-    if (dp[i][solution.visited_node_cnt() - 1].first < min_cost) {
-      min_cost = dp[i][solution.visited_node_cnt() - 1].first;
+    if (dp[i][solution.visited_node_cnt() - 1].dist < min_cost) {
+      min_cost = dp[i][solution.visited_node_cnt() - 1].dist;
       ind = i;
     }
   }
 
-  // Trace back through the table
-  auto insertion_places = std::vector<std::pair<size_t, size_t>>();
-  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
-    auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
-    auto energy = distance * instance.energy_consumption();
-    auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
-
-    // Check if we detoured through charging stations
-    if (ind + energy_quant >= bin_cnt ||
-        std::abs(dp[ind][j].first - (dp[ind + energy_quant][j - 1].first + distance)) > eps) {
-      insertion_places.emplace_back(ind, j);
-    }
-    // std::cout << ind << ' ';
-    ind = dp[ind][j].second;
+  if (min_cost == std::numeric_limits<float>::infinity()) {
+    throw std::runtime_error("Solution not found");
   }
-  // std::cout << ind << "\nInsertion places: ";
+
+  // Trace back through the table
+  auto insertion_places = std::vector<std::tuple<size_t, uint16_t, uint16_t>>();
+  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
+    if (dp[ind][j].entry_ind != no_cs) {
+      insertion_places.emplace_back(j, dp[ind][j].entry_ind, dp[ind][j].exit_ind);
+    }
+
+    ind = dp[ind][j].prev;
+  }
 
   // Insert charging stations into the solution
-  for (auto [ind, j] : insertion_places) {
-    // std::cout << j << ' ';
-    auto i = dp[ind][j].second;
+  for (auto [j, entry_ind, exit_ind] : insertion_places) {
+    auto entry_node_id = entry_ind == 0 ? instance_->depot_id() : instance_->charging_station_ids()[entry_ind - 1];
+    auto exit_node_id = exit_ind == 0 ? instance_->depot_id() : instance_->charging_station_ids()[exit_ind - 1];
 
-    auto min_entry_node = std::numeric_limits<size_t>::max();
-    auto min_exit_node = std::numeric_limits<size_t>::max();
-    auto min_dist = std::numeric_limits<float>::infinity();
-    for (auto k = 0UZ; k < cs_cnt; ++k) {
-      auto entry_node_id = k == 0 ? instance_->depot_id() : instance_->charging_station_ids()[k - 1];
-
-      // TODO: handle this edge case better
-      if (entry_node_id == solution.node_id(j - 1)) {
-        continue;
-      }
-
-      auto distance_to_entry_cs = instance_->distance(solution.node_id(j - 1), entry_node_id);
-      auto energy_to_entry_cs = distance_to_entry_cs * instance.energy_consumption();
-      auto remaining_battery = static_cast<float>(i) * energy_per_bin;
-
-      if (energy_to_entry_cs > remaining_battery) {
-        continue;
-      }
-
-      for (auto l = 0UZ; l < cs_cnt; ++l) {
-        auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
-
-        // TODO: handle this edge case better
-        if (exit_node_id == solution.node_id(j)) {
-          continue;
-        }
-
-        auto distance_from_exit_cs = instance_->distance(exit_node_id, solution.node_id(j));
-        auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
-        auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
-        auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
-
-        if (energy_from_exit_cs_quant < bin_cnt && bin_cnt - energy_from_exit_cs_quant - 1 == ind &&
-            (dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first - (dp[i][j - 1].first + total_distance)) < eps) {
-          if (total_distance < min_dist) {
-            min_dist = total_distance;
-            min_entry_node = entry_node_id;
-            min_exit_node = exit_node_id;
-          }
-        }
-      }
-    }
-
-    if (min_entry_node == min_exit_node) {
-      solution.insert_customer(j, min_entry_node);
+    if (entry_node_id == exit_node_id) {
+      solution.insert_customer(j, entry_node_id);
     } else {
-      solution.insert_customer(j, min_exit_node);
+      solution.insert_customer(j, exit_node_id);
 
-      auto [cs_ids, _] = *find_between_(min_entry_node, min_exit_node);
+      auto [cs_ids, _] = *find_between_(entry_node_id, exit_node_id);
       for (auto cs_id : cs_ids) {
         solution.insert_customer(j, cs_id);
       }
 
-      solution.insert_customer(j, min_entry_node);
+      solution.insert_customer(j, entry_node_id);
     }
   }
   // std::cout << '\n';
@@ -409,7 +381,7 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
 
   // for (const auto &row : dp) {
   //   for (const auto &x : row) {
-  //     std::print("{:5.1f},{:2}  ", x.first, x.second);
+  //     std::print("{:5.1f},{:2}  ", x.dist, x.prev);
   //   }
   //   std::cout << '\n';
   // }

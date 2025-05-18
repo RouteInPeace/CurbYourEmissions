@@ -114,7 +114,7 @@ TEST(Repair, FixEnergyViolationsOptimally) {
       auto copy = routes;
 
       auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
-      solution = optimal_energy_repair.repair(std::move(solution), 1001u);
+      solution = optimal_energy_repair.repair(std::move(solution), 11u);
       EXPECT_TRUE(solution.is_valid());
     }
   }
