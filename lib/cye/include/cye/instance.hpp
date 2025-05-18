@@ -26,6 +26,7 @@ class Instance {
   [[nodiscard]] inline auto energy_required(size_t node1_id, size_t node2_id) const {
     return energy_consumption_ * distance(node1_id, node2_id);
   }
+  [[nodiscard]] inline auto energy_consumption() const { return energy_consumption_; }
   [[nodiscard]] inline auto customer_cnt() const { return customer_cnt_; }
   [[nodiscard]] inline auto max_range() const { return battery_capacity_ / energy_consumption_; }
   [[nodiscard]] inline auto demand(size_t ind) const { return nodes_[ind].demand; }

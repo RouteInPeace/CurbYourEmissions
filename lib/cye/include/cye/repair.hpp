@@ -14,6 +14,7 @@ auto repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) ->
 auto repair_cargo_violations_trivially(Solution &&solution) -> Solution;
 
 auto repair_energy_violations_trivially(Solution &&solution) -> Solution;
+auto repair_energy_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution;
 
 Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
 
@@ -21,7 +22,7 @@ class ChargingStationFinder {
  public:
   ChargingStationFinder();
   auto find_between(cye::Instance const &instance, size_t start_node_id, size_t goal_node_id, float battery_remaining)
-      -> std::optional<std::vector<size_t>>;
+      -> std::optional<std::pair<std::vector<size_t>, float>>;
 
  private:
   auto clear_() -> void;
