@@ -17,21 +17,38 @@ auto main() -> int {
   }
   routes.push_back(instance->depot_id());
 
-  auto seed = 2;
+  // auto seed = 6600;
 
-  std::mt19937 gen(seed);
+  // std::mt19937 gen(seed);
 
-  auto copy = routes;
-  std::shuffle(copy.begin() + 1, copy.end() - 1, gen);
-  auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+  // auto copy = routes;
+  // std::shuffle(copy.begin() + 1, copy.end() - 1, gen);
+  // auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
 
-  for (auto node_ind : solution.routes()) std::print("{} ", node_ind);
-  std::cout << '\n';
+  // for (auto node_ind : solution.routes()) std::print("{} ", node_ind);
+  // std::cout << '\n';
+
+  // auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+  // solution = optimal_energy_repair.repair(std::move(solution), 6u);
+
+  // std::cout << solution.is_valid() << '\n';
+  // for (auto node_ind : solution.routes()) std::print("{:3} ", node_ind);
+  // std::cout << '\n';
 
   auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
-  solution = optimal_energy_repair.repair(std::move(solution), 11u);
 
-  std::cout << solution.is_valid() << '\n';
-  for (auto node_ind : solution.routes()) std::print("{:3} ", node_ind);
-  std::cout << '\n';
+  for (int i = 0; i < 100000; i++) {
+    std::mt19937 gen(i);
+
+    auto copy = routes;
+    std::shuffle(copy.begin() + 1, copy.end() - 1, gen);
+    auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+
+    solution = optimal_energy_repair.repair(std::move(solution), 11u);
+    // solution = cye::repair_energy_violations_trivially(std::move(solution));
+
+    if (!solution.is_valid()) {
+      std::cout << i << '\n';
+    }
+  }
 }

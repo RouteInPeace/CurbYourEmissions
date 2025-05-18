@@ -250,7 +250,7 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
 
   // Energy per bin
   auto energy_per_bin = instance.battery_capacity() / static_cast<float>(bin_cnt - 1);
-  auto eps = 1e-12f;
+  auto eps = 1e-9f;
   auto cs_cnt = instance_->charging_station_cnt() + 1;
 
   // Forward pass
@@ -335,7 +335,7 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
     // Check if we detoured through charging stations
     if (ind + energy_quant >= bin_cnt ||
         std::abs(dp[ind][j].first - (dp[ind + energy_quant][j - 1].first + distance)) > eps) {
-      insertion_places.emplace_back(dp[ind][j].second, j);
+      insertion_places.emplace_back(ind, j);
     }
     // std::cout << ind << ' ';
     ind = dp[ind][j].second;
@@ -343,8 +343,9 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
   // std::cout << ind << "\nInsertion places: ";
 
   // Insert charging stations into the solution
-  for (auto [i, j] : insertion_places) {
+  for (auto [ind, j] : insertion_places) {
     // std::cout << j << ' ';
+    auto i = dp[ind][j].second;
 
     auto min_entry_node = std::numeric_limits<size_t>::max();
     auto min_exit_node = std::numeric_limits<size_t>::max();
@@ -378,7 +379,7 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
         auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
         auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
 
-        if (energy_from_exit_cs_quant < bin_cnt &&
+        if (energy_from_exit_cs_quant < bin_cnt && bin_cnt - energy_from_exit_cs_quant - 1 == ind &&
             (dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first - (dp[i][j - 1].first + total_distance)) < eps) {
           if (total_distance < min_dist) {
             min_dist = total_distance;

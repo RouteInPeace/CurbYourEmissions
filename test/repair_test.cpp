@@ -89,3 +89,33 @@ TEST(Repair, FixEnergyViolationsTrivially) {
     }
   }
 }
+
+TEST(Repair, FixEnergyViolationsOptimally) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
+    auto archive = serial::JSONArchive(path);
+    auto instance = std::make_shared<cye::Instance>(archive.root());
+    auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+
+    auto routes = std::vector<size_t>();
+    routes.push_back(instance->depot_id());
+    for (auto c : instance->customer_ids()) {
+      routes.push_back(c);
+    }
+    routes.push_back(instance->depot_id());
+
+    std::cout << path << '\n';
+
+    for (auto i = 0UZ; i < 100UZ; i++) {
+      std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
+
+      auto copy = routes;
+
+      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+      solution = optimal_energy_repair.repair(std::move(solution), 1001u);
+      EXPECT_TRUE(solution.is_valid());
+    }
+  }
+}
