@@ -8,6 +8,8 @@ TEST(Heuristics, NearestNeighbor) {
     auto instance = std::make_shared<cye::Instance>(archive.root());
     auto solution = cye::nearest_neighbor(instance);
 
+    // std::cout << path << ' ' << solution.get_cost() << '\n';
+
     EXPECT_TRUE(solution.is_valid());
   }
 }

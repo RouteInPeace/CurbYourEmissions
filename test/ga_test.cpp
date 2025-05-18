@@ -68,8 +68,8 @@ TEST(GA, KWayTournamentSelection) {
 
   for (auto i = 0UZ; i < 10000; i++) {
     auto [p1, p2, r] = selection_operator.select(re, population);
-    EXPECT_TRUE(population[p1].fitness() <= population[p2].fitness());
-    EXPECT_TRUE(population[p2].fitness() <= population[r].fitness());
+    EXPECT_LE(population[p1].fitness(), population[p2].fitness());
+    EXPECT_LE(population[p2].fitness(), population[r].fitness());
   }
 }
 

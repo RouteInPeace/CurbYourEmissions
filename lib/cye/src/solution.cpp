@@ -10,9 +10,32 @@ cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> 
                         std::vector<size_t> &&unassigned_customers)
     : instance_(instance), routes_(std::move(routes)), unassigned_customers_(std::move(unassigned_customers)) {}
 
+auto cye::Solution::is_cargo_valid() const -> bool {
+  auto cargo = instance_->cargo_capacity();
+
+  for (auto i = 1UZ; i < routes_.size(); i++) {
+    auto &node = instance_->node(routes_[i]);
+    switch (node.type) {
+      case NodeType::Depot:
+        cargo = instance_->cargo_capacity();
+        break;
+      case NodeType::Customer:
+        cargo -= node.demand;
+        if (cargo < 0) {
+          return false;
+        }
+        break;
+      case NodeType::ChargingStation:
+        break;
+    }
+  }
+
+  return true;
+}
+
 auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
-  auto energy = instance_->energy_capacity();
-  auto cargo = instance_->max_cargo_capacity();
+  auto energy = instance_->battery_capacity();
+  auto cargo = instance_->cargo_capacity();
 
   for (auto i = 1UZ; i < routes_.size(); i++) {
     energy -= instance_->energy_required(routes_[i - 1], routes_[i]);
@@ -23,8 +46,8 @@ auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
     auto &node = instance_->node(routes_[i]);
     switch (node.type) {
       case NodeType::Depot:
-        energy = instance_->energy_capacity();
-        cargo = instance_->max_cargo_capacity();
+        energy = instance_->battery_capacity();
+        cargo = instance_->cargo_capacity();
         break;
       case NodeType::Customer:
         cargo -= node.demand;
@@ -33,7 +56,7 @@ auto cye::Solution::is_energy_and_cargo_valid() const -> bool {
         }
         break;
       case NodeType::ChargingStation:
-        energy = instance_->energy_capacity();
+        energy = instance_->battery_capacity();
         break;
     }
   }
@@ -117,7 +140,7 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
     customers.push_back(routes_[i]);
   }
 
-  auto energy = instance_->energy_capacity();
+  auto energy = instance_->battery_capacity();
   for (i = 1; i < customers.size(); i++) {
     if (energy < instance_->energy_required(customers[i - 1], customers[i])) {
       auto charging_station_id = find_charging_station(customers[i - 1], customers[i], energy);
@@ -132,10 +155,10 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
 
       auto it = customers.begin() + i;
       customers.insert(it, *charging_station_id);
-      energy = instance_->energy_capacity();
+      energy = instance_->battery_capacity();
     } else {
       if (customers[i] == instance_->depot_id()) {
-        energy = instance_->energy_capacity();
+        energy = instance_->battery_capacity();
       } else {
         energy -= instance_->energy_required(customers[i - 1], customers[i]);
       }

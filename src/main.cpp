@@ -27,11 +27,11 @@ auto main() -> int {
   config.max_iterations = 100'000;
   config.verbose = true;
 
-  std::cout << "Initial solution cost: " << config.initial_solution.get_cost() << std::endl;
+  // std::cout << "Initial solution cost: " << config.initial_solution.get_cost() << std::endl;
 
-  alns::RandomEngine gen{std::random_device{}()};
-  auto best_solution = alns::optimize(config, gen);
-  std::cout << "Best solution cost: " << best_solution.get_cost() << std::endl;
+  // alns::RandomEngine gen{std::random_device{}()};
+  // auto best_solution = alns::optimize(config, gen);
+  // std::cout << "Best solution cost: " << best_solution.get_cost() << std::endl;
 
   return 0;
 }

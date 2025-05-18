@@ -1,0 +1,39 @@
+{
+  "name": "Mavrovouniotis Menelaou Instances Test: 1",
+  "optimalValue": 723.367517,
+  "minimumRouteCnt": 7,
+  "customerCnt": 2,
+  "chargingStationCnt": 1,
+  "cargoCapacity": 220.0,
+  "batteryCapacity": 98.0,
+  "energyConsumption": 1.2,
+  "nodes": [
+    {
+      "x": 40.0,
+      "y": 40.0,
+      "demand": 0.0,
+      "type": "depot",
+      "id": "1"
+    },
+    {
+      "x": 7.0,
+      "y": 43.0,
+      "demand": 27.0,
+      "type": "customer",
+      "id": "25"
+    },
+    {
+      "x": 17.0,
+      "y": 64.0,
+      "demand": 14.0,
+      "type": "customer",
+      "id": "26"
+    },
+    {
+      "x": 17.0,
+      "y": 64.0,
+      "type": "chargingStation",
+      "id": "79"
+    }
+  ]
+}
