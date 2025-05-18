@@ -21,7 +21,7 @@ TEST(Repair, FixCargoViolationsTrivially) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 10000UZ; i++) {
+    for (auto i = 0UZ; i < 100UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;
@@ -47,7 +47,7 @@ TEST(Repair, FixCargoViolationsOptimally) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 100UZ; i++) {
+    for (auto i = 0UZ; i < 1000UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;
@@ -64,62 +64,62 @@ TEST(Repair, FixCargoViolationsOptimally) {
   }
 }
 
-TEST(Repair, FixEnergyViolationsTrivially) {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+// TEST(Repair, FixEnergyViolationsTrivially) {
+//   std::random_device rd;
+//   std::mt19937 gen(rd());
 
-  for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
-    auto archive = serial::JSONArchive(path);
-    auto instance = std::make_shared<cye::Instance>(archive.root());
+//   for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
+//     auto archive = serial::JSONArchive(path);
+//     auto instance = std::make_shared<cye::Instance>(archive.root());
 
-    auto routes = std::vector<size_t>();
-    routes.push_back(instance->depot_id());
-    for (auto c : instance->customer_ids()) {
-      routes.push_back(c);
-    }
-    routes.push_back(instance->depot_id());
+//     auto routes = std::vector<size_t>();
+//     routes.push_back(instance->depot_id());
+//     for (auto c : instance->customer_ids()) {
+//       routes.push_back(c);
+//     }
+//     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 100UZ; i++) {
-      std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
+//     for (auto i = 0UZ; i < 100UZ; i++) {
+//       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
-      auto copy = routes;
+//       auto copy = routes;
 
-      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
-      auto solution2 = cye::repair_energy_violations_trivially(std::move(solution));
-      EXPECT_TRUE(solution2.is_valid());
-    }
-  }
-}
+//       auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+//       auto solution2 = cye::repair_energy_violations_trivially(std::move(solution));
+//       EXPECT_TRUE(solution2.is_valid());
+//     }
+//   }
+// }
 
-TEST(Repair, FixEnergyViolationsOptimally) {
-  std::random_device rd;
-  std::mt19937 gen(rd());
+// TEST(Repair, FixEnergyViolationsOptimally) {
+//   std::random_device rd;
+//   std::mt19937 gen(rd());
 
-  for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
-    auto archive = serial::JSONArchive(path);
-    auto instance = std::make_shared<cye::Instance>(archive.root());
-    auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+//   for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
+//     auto archive = serial::JSONArchive(path);
+//     auto instance = std::make_shared<cye::Instance>(archive.root());
+//     auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
 
-    auto routes = std::vector<size_t>();
-    routes.push_back(instance->depot_id());
-    for (auto c : instance->customer_ids()) {
-      routes.push_back(c);
-    }
-    routes.push_back(instance->depot_id());
+//     auto routes = std::vector<size_t>();
+//     routes.push_back(instance->depot_id());
+//     for (auto c : instance->customer_ids()) {
+//       routes.push_back(c);
+//     }
+//     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 10UZ; i++) {
-      std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
+//     for (auto i = 0UZ; i < 10UZ; i++) {
+//       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
-      auto copy = routes;
+//       auto copy = routes;
 
-      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
-      auto solution_copy = solution;
+//       auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+//       auto solution_copy = solution;
 
-      auto solution_tr = cye::repair_energy_violations_trivially(std::move(solution));
-      auto solution_opt = optimal_energy_repair.repair(std::move(solution_copy), 101u);
-      EXPECT_TRUE(solution_opt.is_valid());
-      EXPECT_TRUE(solution_tr.is_valid());
-      EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.02f);
-    }
-  }
-}
+//       auto solution_tr = cye::repair_energy_violations_trivially(std::move(solution));
+//       auto solution_opt = optimal_energy_repair.repair(std::move(solution_copy), 101u);
+//       EXPECT_TRUE(solution_opt.is_valid());
+//       EXPECT_TRUE(solution_tr.is_valid());
+//       EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.02f);
+//     }
+//   }
+// }

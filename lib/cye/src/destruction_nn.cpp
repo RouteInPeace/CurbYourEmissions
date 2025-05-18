@@ -40,7 +40,8 @@ auto cye::DestructionNN::eval(const Solution &solution, size_t node_id) const ->
 auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t ind_in_route) const
     -> Eigen::Matrix<float, Eigen::Dynamic, NODE_FEATURE_CNT> {
   auto &instance = solution.instance();
-  auto &query_node = instance.node(solution.routes()[ind_in_route]);
+
+  auto &query_node = instance.node(solution[ind_in_route]);
 
   auto input_mat =
       Eigen::Matrix<float, Eigen::Dynamic, NODE_FEATURE_CNT>(solution.visited_node_cnt(), NODE_FEATURE_CNT);
@@ -49,8 +50,8 @@ auto cye::DestructionNN::construct_input_mat_(const Solution &solution, size_t i
   auto in_route_ind = 0.f;
 
   int idx = 0;
-  for (auto node_id : solution.routes()) {
-    auto &node = instance.node(node_id);
+  for (auto node_it = solution.begin(); node_it != solution.end(); ++node_it) {
+    auto &node = instance.node(*node_it);
     if (node.type == NodeType::Depot) {
       route_id += 1.f;
       in_route_ind = 0.f;
