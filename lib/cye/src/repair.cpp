@@ -2,27 +2,31 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 #include <limits>
-#include <print>
 #include <queue>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
 
+struct CargoDPCell {
+  CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
+
+  float dist;
+  unsigned prev;
+  bool inserted;
+};
+
 auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution {
   auto &instance = solution.instance();
-  auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(),
-                                             std::pair<float, unsigned>(std::numeric_limits<float>::infinity(), 0)));
+  auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(), CargoDPCell()));
 
   // Amount of cargo per bin
   auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
-  auto eps = 1e-12f;
 
   // Forward pass
 
   // We always start at the depot with the full capacity remaining
-  dp[bin_cnt - 1][0].first = 0;
+  dp[bin_cnt - 1][0].dist = 0;
 
   // Iterate over nodes in routes
   for (auto j = 1UZ; j < solution.visited_node_cnt(); ++j) {
@@ -38,15 +42,17 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
     // For every cargo quantization
     for (auto i = 0u; i < bin_cnt; ++i) {
       // If we go from the node j-1 with capacity i to the depot and than back to the node j
-      if (dp[bin_cnt - demand_quant - 1][j].first > dp[i][j - 1].first + distance_with_depot) {
-        dp[bin_cnt - demand_quant - 1][j].first = dp[i][j - 1].first + distance_with_depot;
-        dp[bin_cnt - demand_quant - 1][j].second = i;
+      if (dp[bin_cnt - demand_quant - 1][j].dist > dp[i][j - 1].dist + distance_with_depot) {
+        dp[bin_cnt - demand_quant - 1][j].dist = dp[i][j - 1].dist + distance_with_depot;
+        dp[bin_cnt - demand_quant - 1][j].prev = i;
+        dp[bin_cnt - demand_quant - 1][j].inserted = true;
       }
 
       // If we go straight from the node j-1 to j and end up with a remaining capacity i
-      if (i + demand_quant < bin_cnt && dp[i][j].first > dp[i + demand_quant][j - 1].first + distance) {
-        dp[i][j].first = dp[i + demand_quant][j - 1].first + distance;
-        dp[i][j].second = i + demand_quant;
+      if (i + demand_quant < bin_cnt && dp[i][j].dist > dp[i + demand_quant][j - 1].dist + distance) {
+        dp[i][j].dist = dp[i + demand_quant][j - 1].dist + distance;
+        dp[i][j].prev = i + demand_quant;
+        dp[i][j].inserted = false;
       }
     }
   }
@@ -57,8 +63,8 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
   auto ind = 0u;
   auto min_cost = std::numeric_limits<float>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
-    if (dp[i][solution.visited_node_cnt() - 1].first < min_cost) {
-      min_cost = dp[i][solution.visited_node_cnt() - 1].first;
+    if (dp[i][solution.visited_node_cnt() - 1].dist < min_cost) {
+      min_cost = dp[i][solution.visited_node_cnt() - 1].dist;
       ind = i;
     }
   }
@@ -66,16 +72,11 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
   // Trace back through the table
   auto insertion_places = std::vector<size_t>();
   for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
-    auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
-    auto demand = instance.demand(solution.node_id(j));
-    auto demand_quant = static_cast<unsigned>(std::ceil(demand / cargo_quant));
-
     // Check if we detoured to the depot
-    if (ind + demand_quant >= bin_cnt ||
-        std::abs(dp[ind][j].first - (dp[ind + demand_quant][j - 1].first + distance)) > eps) {
+    if (dp[ind][j].inserted) {
       insertion_places.push_back(j);
     }
-    ind = dp[ind][j].second;
+    ind = dp[ind][j].prev;
   }
 
   // Insert depot into the solution
@@ -175,13 +176,6 @@ auto cye::OptimalEnergyRepair::compute_cs_dist_mat_() -> void {
       }
     }
   }
-
-  // for (const auto &row : cs_dist_mat_) {
-  //   for (const auto x : row) {
-  //     std::print("{:4.1f}  ", x);
-  //   }
-  //   std::cout << '\n';
-  // }
 }
 
 auto cye::OptimalEnergyRepair::reset_() -> void {
@@ -316,7 +310,7 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
         }
       }
 
-      // The distance between the curent and previous node
+      // The distance between the curent and the previous node
       auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
       auto energy = distance * instance.energy_consumption();
       auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
@@ -375,16 +369,6 @@ auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> 
       solution.insert_customer(j, entry_node_id);
     }
   }
-  // std::cout << '\n';
-
-  // std::println("Ind: {}, Min const: {}", ind, min_cost);
-
-  // for (const auto &row : dp) {
-  //   for (const auto &x : row) {
-  //     std::print("{:5.1f},{:2}  ", x.dist, x.prev);
-  //   }
-  //   std::cout << '\n';
-  // }
 
   return solution;
 }
