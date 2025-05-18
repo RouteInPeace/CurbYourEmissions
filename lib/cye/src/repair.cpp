@@ -1,4 +1,5 @@
 #include "cye/repair.hpp"
+#include <cassert>
 #include <cmath>
 #include <cstddef>
 #include <iostream>
@@ -99,91 +100,6 @@ auto cye::repair_cargo_violations_trivially(Solution &&solution) -> Solution {
   return solution;
 }
 
-cye::ChargingStationFinder::ChargingStationFinder() : unvisited_queue_(cmp_) {}
-
-auto cye::ChargingStationFinder::clear_() -> void {
-  visited_.clear();
-  while (!unvisited_queue_.empty()) {
-    unvisited_queue_.pop();
-  }
-}
-
-auto cye::ChargingStationFinder::find_between(cye::Instance const &instance, size_t start_node_id, size_t goal_node_id,
-                                              float remaining_battery)
-    -> std::optional<std::pair<std::vector<size_t>, float>> {
-  clear_();
-
-  for (auto cs_id : instance.charging_station_ids()) {
-    if (cs_id == start_node_id || cs_id == goal_node_id) {
-      continue;
-    }
-
-    if (instance.energy_required(start_node_id, cs_id) <= remaining_battery) {
-      unvisited_queue_.emplace(cs_id, start_node_id, instance.distance(start_node_id, cs_id),
-                               instance.distance(cs_id, goal_node_id));
-    }
-  }
-
-  if (start_node_id != instance.depot_id() && goal_node_id != instance.depot_id()) {
-    if (instance.energy_required(start_node_id, instance.depot_id()) <= remaining_battery) {
-      unvisited_queue_.emplace(instance.depot_id(), start_node_id,
-                               instance.distance(start_node_id, instance.depot_id()),
-                               instance.distance(instance.depot_id(), goal_node_id));
-    }
-  }
-
-  while (!unvisited_queue_.empty()) {
-    auto unvisited_node = unvisited_queue_.top();
-    unvisited_queue_.pop();
-
-    if (visited_.contains(unvisited_node.node_id)) {
-      continue;
-    }
-
-    visited_.emplace(unvisited_node.node_id, VisitedNode_{unvisited_node.g, unvisited_node.parent});
-
-    if (unvisited_node.node_id == goal_node_id) {
-      break;
-    }
-
-    if (instance.energy_required(unvisited_node.node_id, goal_node_id) <= instance.battery_capacity()) {
-      unvisited_queue_.emplace(goal_node_id, unvisited_node.node_id,
-                               unvisited_node.g + instance.distance(unvisited_node.node_id, goal_node_id), 0.f);
-    }
-
-    for (auto cs_id : instance.charging_station_ids()) {
-      if (visited_.contains(cs_id)) {
-        continue;
-      }
-
-      if (instance.energy_required(unvisited_node.node_id, cs_id) <= instance.battery_capacity()) {
-        unvisited_queue_.emplace(cs_id, unvisited_node.node_id,
-                                 unvisited_node.g + instance.distance(unvisited_node.node_id, cs_id),
-                                 instance.distance(cs_id, goal_node_id));
-      }
-    }
-
-    if (!visited_.contains(instance.depot_id())) {
-      if (instance.energy_required(unvisited_node.node_id, instance.depot_id()) <= instance.battery_capacity()) {
-        unvisited_queue_.emplace(instance.depot_id(), unvisited_node.node_id,
-                                 unvisited_node.g + instance.distance(unvisited_node.node_id, instance.depot_id()),
-                                 instance.distance(instance.depot_id(), goal_node_id));
-      }
-    }
-  }
-
-  if (!visited_.contains(goal_node_id)) {
-    return {};
-  }
-
-  auto ret = std::vector<size_t>();
-  for (auto node_id = visited_[goal_node_id].parent; node_id != start_node_id; node_id = visited_[node_id].parent) {
-    ret.push_back(node_id);
-  }
-
-  return {{ret, visited_[goal_node_id].g}};
-}
-
 auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
     -> std::optional<size_t> {
   auto best_station_id = std::optional<size_t>{};
@@ -237,7 +153,97 @@ auto cye::repair_energy_violations_trivially(Solution &&solution) -> Solution {
   return solution;
 }
 
-auto cye::repair_energy_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution {
+cye::OptimalEnergyRepair::OptimalEnergyRepair(std::shared_ptr<Instance> instance)
+    : instance_(instance), unvisited_queue_(cmp_) {
+  compute_cs_dist_mat_();
+}
+
+auto cye::OptimalEnergyRepair::compute_cs_dist_mat_() -> void {
+  auto cs_cnt = instance_->charging_station_cnt() + 1;
+  cs_dist_mat_ = std::vector(cs_cnt, std::vector(cs_cnt, std::numeric_limits<float>::infinity()));
+
+  for (auto i = 0UZ; i < cs_cnt; ++i) {
+    cs_dist_mat_[i][i] = 0.f;
+    auto start_node_id = i == 0 ? instance_->depot_id() : instance_->charging_station_ids()[i - 1];
+    for (auto j = i + 1; j < cs_cnt; ++j) {
+      auto goal_node_id = j == 0 ? instance_->depot_id() : instance_->charging_station_ids()[j - 1];
+      auto ret = find_between_(start_node_id, goal_node_id);
+      if (ret) {
+        cs_dist_mat_[i][j] = ret->second;
+        cs_dist_mat_[j][i] = ret->second;
+      }
+    }
+  }
+
+  // for (const auto &row : cs_dist_mat_) {
+  //   for (const auto x : row) {
+  //     std::print("{:4.1f}  ", x);
+  //   }
+  //   std::cout << '\n';
+  // }
+}
+
+auto cye::OptimalEnergyRepair::reset_() -> void {
+  visited_.clear();
+  while (!unvisited_queue_.empty()) {
+    unvisited_queue_.pop();
+  }
+}
+
+auto cye::OptimalEnergyRepair::find_between_(size_t start_node_id, size_t goal_node_id)
+    -> std::optional<std::pair<std::vector<size_t>, float>> {
+  reset_();
+
+  unvisited_queue_.emplace(start_node_id, start_node_id, 0.f, instance_->distance(start_node_id, goal_node_id));
+
+  while (!unvisited_queue_.empty()) {
+    auto unvisited_node = unvisited_queue_.top();
+    unvisited_queue_.pop();
+
+    if (visited_.contains(unvisited_node.node_id)) {
+      continue;
+    }
+
+    visited_.emplace(unvisited_node.node_id, VisitedNode_{unvisited_node.g, unvisited_node.parent});
+
+    if (unvisited_node.node_id == goal_node_id) {
+      break;
+    }
+
+    for (auto cs_id : instance_->charging_station_ids()) {
+      if (visited_.contains(cs_id)) {
+        continue;
+      }
+
+      if (instance_->energy_required(unvisited_node.node_id, cs_id) <= instance_->battery_capacity()) {
+        unvisited_queue_.emplace(cs_id, unvisited_node.node_id,
+                                 unvisited_node.g + instance_->distance(unvisited_node.node_id, cs_id),
+                                 instance_->distance(cs_id, goal_node_id));
+      }
+    }
+
+    if (!visited_.contains(instance_->depot_id())) {
+      if (instance_->energy_required(unvisited_node.node_id, instance_->depot_id()) <= instance_->battery_capacity()) {
+        unvisited_queue_.emplace(instance_->depot_id(), unvisited_node.node_id,
+                                 unvisited_node.g + instance_->distance(unvisited_node.node_id, instance_->depot_id()),
+                                 instance_->distance(instance_->depot_id(), goal_node_id));
+      }
+    }
+  }
+
+  if (!visited_.contains(goal_node_id)) {
+    return {};
+  }
+
+  auto ret = std::vector<size_t>();
+  for (auto node_id = visited_[goal_node_id].parent; node_id != start_node_id; node_id = visited_[node_id].parent) {
+    ret.push_back(node_id);
+  }
+
+  return {{ret, visited_[goal_node_id].g}};
+}
+
+auto cye::OptimalEnergyRepair::repair(Solution &&solution, unsigned bin_cnt) -> Solution {
   auto &instance = solution.instance();
   auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(),
                                              std::pair<float, unsigned>(std::numeric_limits<float>::infinity(), 0)));
@@ -245,38 +251,59 @@ auto cye::repair_energy_violations_optimally(Solution &&solution, unsigned bin_c
   // Energy per bin
   auto energy_per_bin = instance.battery_capacity() / static_cast<float>(bin_cnt - 1);
   auto eps = 1e-12f;
+  auto cs_cnt = instance_->charging_station_cnt() + 1;
 
   // Forward pass
 
   // We always start at the depot with a full battery
-  dp[bin_cnt - 1][0].first = 0;
-  auto cs_finder = ChargingStationFinder();
+  dp[bin_cnt - 1][0].first = 0.f;
 
   // Iterate over nodes in routes
   for (auto j = 1UZ; j < solution.visited_node_cnt(); ++j) {
-    // The distance between the curent and previous node
-    auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
-
-    auto energy = distance * instance.energy_consumption();
-    auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
-
     // For every energy quantization
     for (auto i = 0u; i < bin_cnt; ++i) {
-      // The optimal charging stations to take between nodes j-1 and j
-      auto remaining_battery = static_cast<float>(i) * energy_per_bin;
-      auto cs_finder_ret =
-          cs_finder.find_between(instance, solution.node_id(j - 1), solution.node_id(j), remaining_battery);
-
       // If we charge the vehicle between nodes j-1 and j
-      if (cs_finder_ret) {
-        auto energy_from_last_cs = instance.energy_required(cs_finder_ret->first[0], solution.node_id(j));
-        auto energy_from_last_cs_quant = static_cast<unsigned>(std::ceil(energy_from_last_cs / energy_per_bin));
+      for (auto k = 0UZ; k < cs_cnt; ++k) {
+        auto entry_node_id = k == 0 ? instance_->depot_id() : instance_->charging_station_ids()[k - 1];
 
-        if (dp[bin_cnt - energy_from_last_cs_quant - 1][j].first > dp[i][j - 1].first + cs_finder_ret->second) {
-          dp[bin_cnt - energy_from_last_cs_quant - 1][j].first = dp[i][j - 1].first + cs_finder_ret->second;
-          dp[bin_cnt - energy_from_last_cs_quant - 1][j].second = i;
+        // TODO: handle this edge case better
+        if (entry_node_id == solution.node_id(j - 1)) {
+          continue;
+        }
+
+        auto distance_to_entry_cs = instance_->distance(solution.node_id(j - 1), entry_node_id);
+        auto energy_to_entry_cs = distance_to_entry_cs * instance.energy_consumption();
+        auto remaining_battery = static_cast<float>(i) * energy_per_bin;
+
+        if (energy_to_entry_cs > remaining_battery) {
+          continue;
+        }
+
+        for (auto l = 0UZ; l < cs_cnt; ++l) {
+          auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
+
+          // TODO: handle this edge case better
+          if (exit_node_id == solution.node_id(j)) {
+            continue;
+          }
+
+          auto distance_from_exit_cs = instance_->distance(exit_node_id, solution.node_id(j));
+          auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
+          auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
+          auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
+
+          if (energy_from_exit_cs_quant < bin_cnt &&
+              dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first > dp[i][j - 1].first + total_distance) {
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first = dp[i][j - 1].first + total_distance;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].second = i;
+          }
         }
       }
+
+      // The distance between the curent and previous node
+      auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
+      auto energy = distance * instance.energy_consumption();
+      auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
 
       // If we go straight from the node j-1 to j and end up with a remaining battery i
       if (i + energy_quant < bin_cnt && dp[i][j].first > dp[i + energy_quant][j - 1].first + distance) {
@@ -299,7 +326,7 @@ auto cye::repair_energy_violations_optimally(Solution &&solution, unsigned bin_c
   }
 
   // Trace back through the table
-  auto insertion_places = std::vector<std::pair<size_t, float>>();
+  auto insertion_places = std::vector<std::pair<size_t, size_t>>();
   for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
     auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
     auto energy = distance * instance.energy_consumption();
@@ -308,8 +335,7 @@ auto cye::repair_energy_violations_optimally(Solution &&solution, unsigned bin_c
     // Check if we detoured through charging stations
     if (ind + energy_quant >= bin_cnt ||
         std::abs(dp[ind][j].first - (dp[ind + energy_quant][j - 1].first + distance)) > eps) {
-      auto remaining_battery = static_cast<float>(dp[ind][j].second) * energy_per_bin;
-      insertion_places.emplace_back(j, remaining_battery);
+      insertion_places.emplace_back(dp[ind][j].second, j);
     }
     // std::cout << ind << ' ';
     ind = dp[ind][j].second;
@@ -317,27 +343,75 @@ auto cye::repair_energy_violations_optimally(Solution &&solution, unsigned bin_c
   // std::cout << ind << "\nInsertion places: ";
 
   // Insert charging stations into the solution
-  for (auto [j, remaining_battery] : insertion_places) {
+  for (auto [i, j] : insertion_places) {
     // std::cout << j << ' ';
 
-    auto [cs_ids, _] =
-        *cs_finder.find_between(instance, solution.node_id(j - 1), solution.node_id(j), remaining_battery);
+    auto min_entry_node = std::numeric_limits<size_t>::max();
+    auto min_exit_node = std::numeric_limits<size_t>::max();
+    auto min_dist = std::numeric_limits<float>::infinity();
+    for (auto k = 0UZ; k < cs_cnt; ++k) {
+      auto entry_node_id = k == 0 ? instance_->depot_id() : instance_->charging_station_ids()[k - 1];
 
-    for (auto cs_id : cs_ids) {
-      // std::cout << cs_id << ' ';
-      solution.insert_customer(j, cs_id);
+      // TODO: handle this edge case better
+      if (entry_node_id == solution.node_id(j - 1)) {
+        continue;
+      }
+
+      auto distance_to_entry_cs = instance_->distance(solution.node_id(j - 1), entry_node_id);
+      auto energy_to_entry_cs = distance_to_entry_cs * instance.energy_consumption();
+      auto remaining_battery = static_cast<float>(i) * energy_per_bin;
+
+      if (energy_to_entry_cs > remaining_battery) {
+        continue;
+      }
+
+      for (auto l = 0UZ; l < cs_cnt; ++l) {
+        auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
+
+        // TODO: handle this edge case better
+        if (exit_node_id == solution.node_id(j)) {
+          continue;
+        }
+
+        auto distance_from_exit_cs = instance_->distance(exit_node_id, solution.node_id(j));
+        auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
+        auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
+        auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
+
+        if (energy_from_exit_cs_quant < bin_cnt &&
+            (dp[bin_cnt - energy_from_exit_cs_quant - 1][j].first - (dp[i][j - 1].first + total_distance)) < eps) {
+          if (total_distance < min_dist) {
+            min_dist = total_distance;
+            min_entry_node = entry_node_id;
+            min_exit_node = exit_node_id;
+          }
+        }
+      }
+    }
+
+    if (min_entry_node == min_exit_node) {
+      solution.insert_customer(j, min_entry_node);
+    } else {
+      solution.insert_customer(j, min_exit_node);
+
+      auto [cs_ids, _] = *find_between_(min_entry_node, min_exit_node);
+      for (auto cs_id : cs_ids) {
+        solution.insert_customer(j, cs_id);
+      }
+
+      solution.insert_customer(j, min_entry_node);
     }
   }
   // std::cout << '\n';
 
   // std::println("Ind: {}, Min const: {}", ind, min_cost);
 
-  for (const auto &row : dp) {
-    for (const auto &x : row) {
-      std::print("{:5.1f},{:2}  ", x.first, x.second);
-    }
-    std::cout << '\n';
-  }
+  // for (const auto &row : dp) {
+  //   for (const auto &x : row) {
+  //     std::print("{:5.1f},{:2}  ", x.first, x.second);
+  //   }
+  //   std::cout << '\n';
+  // }
 
   return solution;
 }

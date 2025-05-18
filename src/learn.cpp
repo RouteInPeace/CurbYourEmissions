@@ -17,7 +17,7 @@ auto main() -> int {
   }
   routes.push_back(instance->depot_id());
 
-  auto seed = 4;
+  auto seed = 2;
 
   std::mt19937 gen(seed);
 
@@ -28,9 +28,10 @@ auto main() -> int {
   for (auto node_ind : solution.routes()) std::print("{} ", node_ind);
   std::cout << '\n';
 
-  auto solution2 = cye::repair_energy_violations_optimally(std::move(solution), 11u);
+  auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+  solution = optimal_energy_repair.repair(std::move(solution), 11u);
 
-  std::cout << solution2.is_valid() << '\n';
-  for (auto node_ind : solution2.routes()) std::print("{:5} ", node_ind);
+  std::cout << solution.is_valid() << '\n';
+  for (auto node_ind : solution.routes()) std::print("{:3} ", node_ind);
   std::cout << '\n';
 }

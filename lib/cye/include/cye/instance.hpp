@@ -30,6 +30,7 @@ class Instance {
   [[nodiscard]] inline auto customer_cnt() const { return customer_cnt_; }
   [[nodiscard]] inline auto max_range() const { return battery_capacity_ / energy_consumption_; }
   [[nodiscard]] inline auto demand(size_t ind) const { return nodes_[ind].demand; }
+  [[nodiscard]] inline auto charging_station_cnt() const { return charging_station_cnt_; }
 
  private:
   std::string name_;
