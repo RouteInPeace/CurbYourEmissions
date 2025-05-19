@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstddef>
 #include <unordered_set>
+#include <vector>
 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes)
     : instance_(instance), routes_(std::move(routes)) {}
@@ -170,4 +171,9 @@ auto cye::Solution::reorder_charging_station(size_t pos) -> bool {
 
   // TODO: check cargo elsewhere
   return is_energy_and_cargo_valid();
+}
+
+auto cye::Solution::get_customers() const -> std::vector<size_t> {
+  return routes_ | std::views::filter([this](auto ind) { return instance_->is_customer(ind); }) |
+         std::ranges::to<std::vector<size_t>>();
 }

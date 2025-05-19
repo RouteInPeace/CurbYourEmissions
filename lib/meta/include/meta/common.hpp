@@ -6,6 +6,8 @@
 
 using RandomEngine = std::mt19937;
 
+namespace meta {
+  
 template <typename I>
 concept Individual = requires(I individual) {
   requires std::ranges::range<decltype(individual.get_genotype())>;
@@ -19,3 +21,5 @@ concept GeneType = requires(I individual) {
   { *std::ranges::begin(individual.get_genotype()) } -> std::convertible_to<T>;
   { *std::ranges::begin(individual.get_mutable_genotype()) } -> std::convertible_to<T>;
 };
+
+}  // namespace meta
