@@ -3,7 +3,7 @@
 #include <random>
 #include "common.hpp"
 
-namespace ga {
+namespace meta {
 
 template <Individual I>
 class MutationOperator {

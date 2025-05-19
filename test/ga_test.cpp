@@ -1,13 +1,13 @@
-#include "ga/ga.hpp"
+#include "meta/ga.hpp"
 #include <gtest/gtest.h>
 #include <array>
 #include <cstdlib>
 #include <random>
 #include <span>
 #include <vector>
-#include "ga/crossover.hpp"
-#include "ga/mutation.hpp"
-#include "ga/selection.hpp"
+#include "meta/crossover.hpp"
+#include "meta/mutation.hpp"
+#include "meta/selection.hpp"
 
 class Dummy {
  public:
@@ -59,7 +59,7 @@ TEST(GA, KWayTournamentSelection) {
   auto re = std::mt19937(rd());
 
   auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
-  auto selection_operator = ga::KWayTournamentSelectionOperator<Dummy>(3);
+  auto selection_operator = meta::KWayTournamentSelectionOperator<Dummy>(3);
 
   auto population = std::vector<Dummy>();
   for (auto i = 0UZ; i < 1000; i++) {
@@ -98,10 +98,10 @@ TEST(GA, BasicRegression) {
     population.emplace_back(&dataset, dist(re), dist(re), dist(re));
   }
 
-  auto ga = ga::GeneticAlgorithm<QuadraticEquation>(
-      std::move(population), std::make_unique<ga::BLXAlpha<QuadraticEquation>>(0.f),
-      std::make_unique<ga::GaussianMutation<QuadraticEquation>>(0.02),
-      std::make_unique<ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
+  auto ga = meta::GeneticAlgorithm<QuadraticEquation>(
+      std::move(population), std::make_unique<meta::BLXAlpha<QuadraticEquation>>(0.f),
+      std::make_unique<meta::GaussianMutation<QuadraticEquation>>(0.02),
+      std::make_unique<meta::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
 
   ga.optimize(re);
   auto &best = ga.best_individual();

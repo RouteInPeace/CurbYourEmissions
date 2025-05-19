@@ -13,6 +13,8 @@ class Solution {
            std::vector<size_t> &&unassigned_customers);
 
   [[nodiscard]] inline auto &instance() const { return *instance_; }
+  [[nodiscard]] inline auto instance_ptr() const { return instance_; }
+
   [[nodiscard]] inline auto &routes() const { return routes_; }
   [[nodiscard]] inline auto &unassigned_customers() const { return unassigned_customers_; }
   [[nodiscard]] inline auto visited_node_cnt() const { return routes_.size(); }
@@ -22,7 +24,8 @@ class Solution {
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto get_cost() const -> double;
-  
+
+  auto get_customers() const -> std::vector<size_t>;
 
   auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;

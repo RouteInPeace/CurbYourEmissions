@@ -7,7 +7,7 @@
 #include <tuple>
 #include "common.hpp"
 
-namespace ga {
+namespace meta {
 
 template <typename I>
 class SelectionOperator {

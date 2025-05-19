@@ -7,11 +7,11 @@
 #include <print>
 #include <vector>
 #include "crossover.hpp"
-#include "ga/common.hpp"
+#include "meta/common.hpp"
 #include "mutation.hpp"
 #include "selection.hpp"
 
-namespace ga {
+namespace meta {
 
 template <Individual I>
 class GeneticAlgorithm {
