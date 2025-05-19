@@ -9,7 +9,7 @@ set(PROJECT_SOURCES
     src/acceptance_criterion.cpp
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
 
 add_library(alns_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 target_compile_options(alns_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

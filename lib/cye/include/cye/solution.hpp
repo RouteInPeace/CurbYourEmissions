@@ -27,17 +27,6 @@ class Solution {
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto get_cost() const -> double;
 
-  // ajajaja
-  auto operator[](size_t i) const -> size_t {
-    for (auto it = begin(); it != end(); ++it) {
-      if (i == 0) {
-        return *it;
-      }
-      --i;
-    }
-    assert(false);
-  }
-
   auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;
 
@@ -130,6 +119,21 @@ class Solution {
     CustomerDepotIterator operator++(int) {
       CustomerDepotIterator tmp = *this;
       ++(*this);
+      return tmp;
+    }
+
+    CustomerDepotIterator &operator--() {
+      if (depot_pos_ > 0 && depots_[depot_pos_ - 1] == customer_pos_) {
+        --depot_pos_;
+      } else {
+        --customer_pos_;
+      }
+      return *this;
+    }
+
+    CustomerDepotIterator operator--(int) {
+      CustomerDepotIterator tmp = *this;
+      --(*this);
       return tmp;
     }
 

@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <limits>
 #include <queue>
+#include <ranges>
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
@@ -86,9 +87,9 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
 
   // Insert depot into the solution
   auto end_depot = solution.pop_depot();
-  for (auto it = insertion_places.rbegin(); it != insertion_places.rend(); ++it) {
-    // TODO: WHY IS THIS -1 NEEDED?????
-    solution.insert_depot(*it - 1);
+  for (auto i : insertion_places | std::views::reverse) {
+    // i-1 because depot is not included in customers
+    solution.insert_depot(i-1);
   }
   solution.insert_depot(end_depot);
 
@@ -142,22 +143,25 @@ auto cye::repair_energy_violations_trivially(Solution &&solution) -> Solution {
   auto &instance = solution.instance();
 
   auto energy = instance.battery_capacity();
-  auto it = solution.begin();
+  auto it = solution.customer_depot_begin();
   auto prev_node_id = *it;
   auto i = 1UZ;
-  for (++it; i < solution.visited_node_cnt(); ++i, ++it) {
+  for (++it; it != solution.customer_depot_end(); ++i, ++it) {
     auto node_id = *it;
     if (energy < instance.energy_required(prev_node_id, node_id)) {
       auto charging_station_id = find_charging_station(instance, prev_node_id, node_id, energy);
       while (!charging_station_id.has_value()) {
         i -= 1;
         assert(i > 0);
+        --it;
         energy += instance.energy_required(prev_node_id, node_id);
+        node_id = prev_node_id;
+        prev_node_id = *it;
         charging_station_id = find_charging_station(instance, prev_node_id, node_id, energy);
       }
 
-      solution.insert_customer(i, *charging_station_id);
-      energy = instance.battery_capacity();
+      solution.insert_charging_station(i, *charging_station_id);
+      energy = instance.battery_capacity() - instance.energy_required(*charging_station_id, node_id);
     } else {
       if (node_id == instance.depot_id()) {
         energy = instance.battery_capacity();

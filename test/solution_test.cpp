@@ -65,6 +65,26 @@ TEST(SolutionTest, NotEnoughEnergy) {
   EXPECT_FALSE(cye::Solution(instance, std::move(routes)).is_valid());
 }
 
+TEST(SolutionTest, InsertDepot) {
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+  std::vector<size_t> routes = {0, 9, 7, 6, 0};
+
+  auto solution = cye::Solution(instance, routes);
+  auto top = solution.pop_depot();
+  solution.insert_depot(1);
+  solution.insert_depot(top);
+
+  auto expected = std::vector<size_t>{0, 9, 0, 7, 6, 0};
+
+  auto result = std::vector<size_t>{};
+  for (auto it = solution.customer_depot_begin(); it != solution.customer_depot_end(); ++it) {
+    result.push_back(*it);
+  }
+  EXPECT_EQ(result, expected);
+}
+
+
 TEST(SolutionTest, TestCustomerIterator) {
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
@@ -93,6 +113,26 @@ TEST(SolutionTest, TestCustomerDepotIterator) {
   for (auto it = solution.customer_depot_begin(); it != solution.customer_depot_end(); ++it) {
     result.push_back(*it);
   }
+  auto expected =
+      std::vector<size_t>{0, 9, 7, 6, 3, 0, 5, 8, 11, 12, 19, 17, 18, 0, 16, 20, 13, 1, 14, 0, 15, 21, 10, 0, 4, 2, 0};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(SolutionTest, TestCustomerDepotIteratorReverse) {
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+  std::vector<size_t> routes = {0,  9,  7,  6, 3,  0,  5, 8,  11, 28, 12, 19, 17, 18, 0, 16,
+                                20, 29, 13, 1, 14, 24, 0, 15, 21, 24, 10, 0,  4,  2,  0};
+
+  auto solution = cye::Solution(instance, routes);
+
+  auto result = std::vector<size_t>{};
+  for (auto it = --solution.customer_depot_end(); it != solution.customer_depot_begin(); --it) {
+    result.push_back(*it);
+  }
+  result.push_back(*solution.customer_depot_begin());
+  std::reverse(result.begin(), result.end());
+
   auto expected =
       std::vector<size_t>{0, 9, 7, 6, 3, 0, 5, 8, 11, 12, 19, 17, 18, 0, 16, 20, 13, 1, 14, 0, 15, 21, 10, 0, 4, 2, 0};
   EXPECT_EQ(result, expected);

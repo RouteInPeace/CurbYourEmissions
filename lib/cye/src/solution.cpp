@@ -105,10 +105,17 @@ auto cye::Solution::swap_customer(size_t customer_id1, size_t customer_id2) -> v
 }
 
 auto cye::Solution::insert_charging_station(size_t position, size_t station_id) -> void {
-  stations_.insert(stations_.begin() + position, {station_id, position});
+  assert(stations_.empty() || stations_.back().position <= position);
+
+  stations_.emplace_back(station_id, position);
 
   depots_valid_ = false;
   stations_valid_ = false;
+
+  // if(stations_.empty() || stations_.back().position <= position) {
+  //   std::sort(stations_.begin(), stations_.end(),
+  //        [](const Station &a, const Station &b) { return a.position < b.position; });
+  // }
 }
 
 auto cye::Solution::pop_depot() -> size_t {
@@ -121,6 +128,7 @@ auto cye::Solution::pop_depot() -> size_t {
 }
 
 auto cye::Solution::insert_depot(size_t position) -> void {
+  assert(depots_.empty() || depots_.back() <= position);
   depots_.emplace_back(position);
   depots_valid_ = false;
   stations_valid_ = false;
