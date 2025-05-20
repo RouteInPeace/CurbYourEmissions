@@ -22,4 +22,7 @@ concept GeneType = requires(I individual) {
   { *std::ranges::begin(individual.get_mutable_genotype()) } -> std::convertible_to<T>;
 };
 
+template <Individual I>
+using GeneT = std::ranges::range_value_t<decltype(std::declval<I>().get_genotype())>;
+
 }  // namespace meta
