@@ -8,6 +8,7 @@
 #include <ranges>
 #include <span>
 #include <string_view>
+#include <utility>
 #include <vector>
 #include "meta/crossover.hpp"
 #include "meta/mutation.hpp"
@@ -132,6 +133,41 @@ TEST(GA, PMXCrossoverStress) {
     std::ranges::sort(child.get_mutable_genotype());
 
     for (auto [x, y] : std::views::zip(child.get_genotype(), p1.get_genotype())) {
+      EXPECT_EQ(x, y);
+    }
+  }
+}
+
+TEST(GA, TwoOptMutationSimple) {
+  auto gen = std::mt19937(0);
+
+  auto parent = StringIndividual("abcdefgh");
+  auto mutation = meta::TwoOpt<StringIndividual>();
+
+  auto m1 = mutation.mutate(gen, std::move(parent));
+  EXPECT_EQ(m1.get_genotype(), std::string("abcdefgh"));
+
+  auto m2 = mutation.mutate(gen, std::move(m1));
+  EXPECT_EQ(m2.get_genotype(), std::string("abcdegfh"));
+
+  auto m3 = mutation.mutate(gen, std::move(m2));
+  EXPECT_EQ(m3.get_genotype(), std::string("abcdfgeh"));
+}
+
+TEST(GA, TwoOptMutationStress) {
+  auto rd = std::random_device();
+  auto gen = std::mt19937(rd());
+
+  auto parent = IntIndividual(1000UZ);
+  auto mutation = meta::TwoOpt<IntIndividual>();
+
+  for (auto i = 0UZ; i < 1000UZ; ++i) {
+    auto copy = parent;
+    auto child = mutation.mutate(gen, std::move(copy));
+
+    std::ranges::sort(child.get_mutable_genotype());
+
+    for (auto [x, y] : std::views::zip(child.get_genotype(), parent.get_genotype())) {
       EXPECT_EQ(x, y);
     }
   }
