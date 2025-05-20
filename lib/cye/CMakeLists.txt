@@ -7,6 +7,7 @@ set(PROJECT_HEADERS
     include/cye/destruction_nn.hpp
     include/cye/repair.hpp
     include/cye/destroy.hpp
+    include/cye/patchable_vector.hpp
 )
 
 set(PROJECT_SOURCES 
@@ -17,9 +18,9 @@ set(PROJECT_SOURCES
     src/destruction_nn.cpp
     src/repair.cpp
     src/destroy.cpp
+    src/patchable_vector.cpp
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
 
 add_library(${PROJECT_NAME}_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
