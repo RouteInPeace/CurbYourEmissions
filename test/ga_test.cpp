@@ -1,9 +1,13 @@
 #include "meta/ga.hpp"
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <random>
+#include <ranges>
 #include <span>
+#include <string_view>
 #include <vector>
 #include "meta/crossover.hpp"
 #include "meta/mutation.hpp"
@@ -71,6 +75,65 @@ TEST(GA, KWayTournamentSelection) {
 
     EXPECT_LE(population[p1].fitness(), population[p2].fitness());
     EXPECT_LE(population[p2].fitness(), population[r].fitness());
+  }
+}
+
+class StringIndividual {
+ public:
+  StringIndividual(std::string_view genotype) : genotype_(genotype) {}
+
+  [[nodiscard]] inline auto &get_genotype() const { return genotype_; }
+  [[nodiscard]] inline auto &get_mutable_genotype() { return genotype_; }
+  [[nodiscard]] inline auto fitness() { return 0.f; }
+  [[nodiscard]] inline auto update_fitness() {}
+
+ private:
+  std::string genotype_;
+};
+
+class IntIndividual {
+ public:
+  IntIndividual(size_t size) : genotype_(std::views::iota(0UZ, size) | std::ranges::to<std::vector>()) {}
+
+  [[nodiscard]] inline auto &get_genotype() const { return genotype_; }
+  [[nodiscard]] inline auto &get_mutable_genotype() { return genotype_; }
+  [[nodiscard]] inline auto fitness() { return 0.f; }
+  [[nodiscard]] inline auto update_fitness() {}
+
+ private:
+  std::vector<size_t> genotype_;
+};
+
+TEST(GA, PMXCrossoverBasic) {
+  auto re = std::mt19937(40);
+
+  auto p1 = StringIndividual("abcdefgh");
+  auto p2 = StringIndividual("cgeafhbd");
+  auto expected = std::string("cghdefba");
+
+  auto crossover = meta::PMX<StringIndividual>();
+  auto child = crossover.crossover(re, p1, p2);
+  EXPECT_EQ(child.get_genotype(), expected);
+}
+
+TEST(GA, PMXCrossoverStress) {
+  auto rd = std::random_device();
+  auto gen = std::mt19937(rd());
+
+  auto p1 = IntIndividual(1000UZ);
+  auto p2 = IntIndividual(1000UZ);
+  std::ranges::shuffle(p2.get_mutable_genotype(), gen);
+
+  auto crossover = meta::PMX<IntIndividual>();
+
+  for (auto i = 0UZ; i < 1000UZ; ++i) {
+    auto child = crossover.crossover(gen, p1, p2);
+
+    std::ranges::sort(child.get_mutable_genotype());
+
+    for (auto [x, y] : std::views::zip(child.get_genotype(), p1.get_genotype())) {
+      EXPECT_EQ(x, y);
+    }
   }
 }
 
