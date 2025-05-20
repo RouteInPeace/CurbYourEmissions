@@ -20,18 +20,6 @@ class JSONArchive {
     template <typename T>
     [[nodiscard]] constexpr auto get() const -> T = delete;
 
-    template <>
-    [[nodiscard]] constexpr auto get<int>() const -> int;
-
-    template <>
-    [[nodiscard]] constexpr auto get<float>() const -> float;
-
-    template <>
-    [[nodiscard]] constexpr auto get<size_t>() const -> size_t;
-
-    template <>
-    [[nodiscard]] constexpr auto get<std::string_view>() const -> std::string_view;
-
     template <typename T>
       requires std::is_same_v<T, std::vector<typename T::value_type>>
     [[nodiscard]] constexpr auto get() const -> T;

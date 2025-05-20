@@ -9,8 +9,6 @@ set(PROJECT_SOURCES
     src/utils.cpp
 )
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDEBUG")
-
 add_library(serial_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 target_compile_options(serial_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
 target_link_libraries(serial_lib PUBLIC rapidjson)
