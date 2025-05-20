@@ -62,12 +62,13 @@ TEST(GA, KWayTournamentSelection) {
   auto selection_operator = meta::KWayTournamentSelectionOperator<Dummy>(3);
 
   auto population = std::vector<Dummy>();
-  for (auto i = 0UZ; i < 1000; i++) {
+  for (auto i = 0UZ; i < 10000; i++) {
     population.emplace_back(dist(re));
   }
 
-  for (auto i = 0UZ; i < 10000; i++) {
+  for (auto i = 0UZ; i < 100000UZ; i++) {
     auto [p1, p2, r] = selection_operator.select(re, population);
+
     EXPECT_LE(population[p1].fitness(), population[p2].fitness());
     EXPECT_LE(population[p2].fitness(), population[r].fitness());
   }
