@@ -54,17 +54,19 @@ class PatchableVector {
     using pointer = value_type *;
     using reference = value_type &;
 
-    Iterator(size_t base_ind, bool started_base, std::vector<size_t> &&indices, std::vector<size_t> &&change_indices,
-             std::vector<T> &base, std::vector<Patch<T>> &patches)
+    Iterator(size_t base_ind, bool started_base, std::vector<size_t> &&indices, std::vector<bool> &&started,
+             std::vector<size_t> &&change_indices, std::vector<T> &base, std::vector<Patch<T>> &patches)
         : current_value_(nullptr),
           base_ind_(base_ind),
           started_base_(started_base),
           indices_(std::move(indices)),
+          started_(std::move(started)),
           change_indices_(std::move(change_indices)),
           base_(base),
           patches_(patches) {
       if (patches.size() > 0) {
         for (auto i = patches_.size(); i-- > 0;) {
+          started_[i] = true;
           if (change_indices_[i] > 0 && last_applied_change_(i).ind == indices_[i]) {
             current_value_ = &last_applied_change_(i).value;
             return;
@@ -90,9 +92,13 @@ class PatchableVector {
     auto operator++() -> Iterator & {
       if (patches_.size() > 0) {
         for (auto i = patches_.size(); i-- > 0;) {
-          indices_[i]++;
+          if (!started_[i]) {
+            started_[i] = true;
+          } else {
+            indices_[i]++;
+          }
           if (!reached_end_of_patch_(i) &&
-              (change_(i).ind == 0 || (started_base_ && change_(i).ind - 1UZ == ind_in_predecessor_(i)))) {
+              (change_(i).ind == 0 || (started_prev_(i) && change_(i).ind - 1UZ == ind_in_predecessor_(i)))) {
             current_value_ = &change_(i).value;
             change_indices_[i]++;
             return *this;
@@ -113,8 +119,8 @@ class PatchableVector {
     }
 
     friend auto operator==(const Iterator &a, const Iterator &b) -> bool {
-      return a.base_ind_ == b.base_ind_ && a.indices_ == b.indices_ && &a.base_ == &b.base_ &&
-             &a.patches_ == &b.patches_;
+      return a.base_ind_ == b.base_ind_ && a.started_base_ == b.started_base_ && a.indices_ == b.indices_ &&
+             a.started_ == b.started_ && &a.base_ == &b.base_ && &a.patches_ == &b.patches_;
     };
     friend auto operator!=(const Iterator &a, const Iterator &b) -> bool { return !(a == b); };
 
@@ -127,12 +133,18 @@ class PatchableVector {
       if (i == 0) return base_ind_;
       return indices_[i - 1UZ];
     }
+    auto started_prev_(size_t i) -> bool {
+      if (i == 0) return started_base_;
+      return started_[i - 1UZ];
+    }
 
     T *current_value_;
 
     size_t base_ind_;
     bool started_base_;
+
     std::vector<size_t> indices_;  // The curent index on each level
+    std::vector<bool> started_;
     std::vector<size_t> change_indices_;
 
     std::vector<T> &base_;
@@ -140,8 +152,8 @@ class PatchableVector {
   };
 
   auto begin() -> Iterator {
-    return Iterator(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ), std::vector<size_t>(patches_.size(), 0UZ),
-                    base_, patches_);
+    return Iterator(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ), std::vector<bool>(patches_.size(), false),
+                    std::vector<size_t>(patches_.size(), 0UZ), base_, patches_);
   }
   auto end() -> Iterator {
     auto indices = std::vector<size_t>(patches_.size(), 0UZ);
@@ -153,7 +165,8 @@ class PatchableVector {
       change_indices_[i] = patches_[i].changes_.size();
     }
 
-    return Iterator(base_.size(), true, std::move(indices), std::move(change_indices_), base_, patches_);
+    return Iterator(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
+                    std::move(change_indices_), base_, patches_);
   }
 
  private:
