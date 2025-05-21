@@ -15,7 +15,7 @@ set(PROJECT_SOURCES
     src/utils.cpp
     src/solution.cpp
     src/init_heuristics.cpp
-    src/destruction_nn.cpp
+    #src/destruction_nn.cpp
     src/repair.cpp
     src/destroy.cpp
 )

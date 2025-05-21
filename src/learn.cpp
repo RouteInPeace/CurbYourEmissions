@@ -23,17 +23,18 @@ auto main() -> int {
 
   auto copy = routes;
   std::shuffle(copy.begin() + 1, copy.end() - 1, gen);
-  auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+  // cye::patch_cargo_trivially(std::move(copy));
+  // auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
 
-  for (auto node_ind : solution.routes()) std::print("{} ", node_ind);
-  std::cout << '\n';
+  // for (auto node_ind : solution.routes()) std::print("{} ", node_ind);
+  // std::cout << '\n';
 
-  auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
-  solution = optimal_energy_repair.repair(std::move(solution), 6u);
+  // auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+  // solution = optimal_energy_repair.repair(std::move(solution), 6u);
 
-  std::cout << solution.is_valid() << '\n';
-  for (auto node_ind : solution.routes()) std::print("{:3} ", node_ind);
-  std::cout << '\n';
+  // std::cout << solution.is_valid() << '\n';
+  // for (auto node_ind : solution.routes()) std::print("{:3} ", node_ind);
+  // std::cout << '\n';
 
   // auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
 

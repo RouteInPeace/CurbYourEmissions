@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 #include "cye/patchable_vector.hpp"
+#include "cye/solution.hpp"
 
 struct CargoDPCell {
   CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
@@ -418,29 +419,41 @@ struct Insertion {
   friend bool operator<(Insertion const &x, Insertion const &y) { return x.cost < y.cost; }
 };
 
+auto get_customers_with_endpoints(cye::Solution const &solution) -> cye::Solution {
+    auto customers = std::vector<size_t>();
+    auto &instance = solution.instance();
+    customers.reserve(instance.customer_cnt() + 2);
+    customers.emplace_back(instance.depot_id());
+    for (auto id : solution.routes()) {
+      if (instance.is_customer(id)) {
+        customers.emplace_back(id);
+      }
+    }
+    customers.emplace_back(instance.depot_id());
+    return cye::Solution(solution.instance_ptr(), std::move(customers));
+  }
+
 auto reorder_solution(cye::Solution &solution) -> cye::Solution {
-  auto customers = solution.get_customers_with_endpoints();
-  auto new_solution = cye::Solution(solution.instance_ptr(), std::move(customers));
-  new_solution = cye::repair_cargo_violations_trivially(std::move(new_solution));
-  return cye::repair_energy_violations_trivially(std::move(new_solution));
+  auto new_solution = get_customers_with_endpoints(solution);
+  cye::patch_cargo_trivially(new_solution);
+  cye::patch_energy_trivially(new_solution);
+  return new_solution;
 }
 
 auto reorder_solution_optimally(cye::Solution &solution) -> cye::Solution {
-  auto customers = solution.get_customers_with_endpoints();
-  auto new_solution = cye::Solution(solution.instance_ptr(), std::move(customers));
-  // new_solution = cye::repair_cargo_violations_trivially(std::move(new_solution));
-  new_solution =
-      cye::repair_cargo_violations_optimally(std::move(new_solution), solution.instance().cargo_capacity() + 1u);
-  auto energy_repair = cye::OptimalEnergyRepair(solution.instance_ptr());
-  // return energy_repair.repair(std::move(new_solution), 1000);
-  return cye::repair_energy_violations_trivially(std::move(new_solution));
+  auto new_solution = get_customers_with_endpoints(solution);
+  cye::patch_cargo_optimally(new_solution, new_solution.instance().charging_station_cnt() + 1U);
+  cye::patch_energy_trivially(new_solution);
+  return new_solution;
 }
 
 template <typename Callback>
 void find_best_insertion(cye::Solution &copy, size_t unassigned_id, Callback callback) {
   for (size_t j = 1; j < copy.routes().size(); ++j) {
     auto new_copy = copy;
-    new_copy.insert_customer(j, unassigned_id);
+    auto patch = cye::Patch<size_t>{};
+    patch.add_change(j, unassigned_id);
+    new_copy.routes().add_patch(std::move(patch));
     auto new_solution = reorder_solution(new_copy);
     callback(std::move(new_solution), j);
   }
@@ -454,10 +467,10 @@ cye::Solution cye::greedy_repair(Solution &&solution, alns::RandomEngine &gen) {
 
   for (auto unassigned_id : unassigned_ids) {
     auto best_cost = std::numeric_limits<double>::max();
-    auto best_solution = cye::Solution(nullptr, {});
+    auto best_solution = cye::Solution(nullptr, std::vector<size_t>{});
 
     auto update_cost = [&](cye::Solution &&new_solution, size_t /**/) {
-      auto cost = copy.get_cost();
+      auto cost = new_solution.get_cost();
       if (cost < best_cost) {
         best_cost = cost;
         best_solution = std::move(new_solution);
@@ -481,7 +494,7 @@ cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::Rand
   while (!unassigned_ids.empty()) {
     auto best_cost = std::numeric_limits<double>::max();
     int best_unassigned_id = -1;
-    auto best_solution = cye::Solution(nullptr, {});
+    auto best_solution = cye::Solution(nullptr, std::vector<size_t>{});
     for (size_t i = 0; i < unassigned_ids.size(); ++i) {
       auto unassigned_id = unassigned_ids[i];
 
@@ -539,7 +552,9 @@ cye::Solution cye::regret_repair(cye::Solution &&solution, alns::RandomEngine &g
 
     if (best_insertion.route_id == 0) return original;
     // reconstruct the solution
-    copy.insert_customer(best_insertion.route_id, best_insertion.customer_id);
+    auto patch = cye::Patch<size_t>{};
+    patch.add_change(best_insertion.route_id, best_insertion.customer_id);
+    copy.routes().add_patch(std::move(patch));
     copy = reorder_solution(copy);
     unassigned_ids.erase(std::find(unassigned_ids.begin(), unassigned_ids.end(), best_insertion.customer_id));
   }
