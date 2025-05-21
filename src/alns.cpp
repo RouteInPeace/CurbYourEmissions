@@ -27,7 +27,7 @@ auto main() -> int {
   config.acceptance_criterion = std::make_unique<alns::HillClimbingCriterion>();
   config.operator_selection = std::make_unique<alns::RandomOperatorSelection>();
   config.destroy_operators = {cye::random_destroy};
-  config.repair_operators = {cye::regret_repair, cye::greedy_repair_best_first};
+  config.repair_operators = {cye::regret_repair, cye::greedy_repair_best_first, cye::greedy_repair};
   config.max_iterations = 100000;
   config.verbose = true;
 

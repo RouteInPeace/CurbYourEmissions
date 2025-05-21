@@ -142,7 +142,7 @@ TEST(Repair, GreedyRepair) {
 
   auto repaired_solution = cye::greedy_repair(std::move(solution), gen);
 
-  expected = { 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
+  expected = {14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
   ASSERT_EQ(repaired_solution.get_customers(), expected);
 }
 
@@ -162,7 +162,7 @@ TEST(Repair, GreedyRepairBestFirst) {
 
   auto repaired_solution = cye::greedy_repair_best_first(std::move(solution), gen);
 
-  expected = { 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
+  expected = {14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
   ASSERT_EQ(repaired_solution.get_customers(), expected);
 }
 
