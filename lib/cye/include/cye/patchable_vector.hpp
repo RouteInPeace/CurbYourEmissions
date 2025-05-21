@@ -121,9 +121,48 @@ class PatchableVector {
       return *this;
     }
 
+    auto operator--() -> Iterator & {
+      if (patches_.size() > 0) {
+        for (auto i = patches_.size(); i-- > 0;) {
+          if (!started_[i]) {
+            return *this;
+          }
+
+          if (indices_[i] == 0) {
+            started_[i] = false;
+            change_indices_[i]--;
+            return *this;
+          }
+
+          indices_[i]--;
+
+          if (change_indices_[i] > 0 &&
+              (prev_change_(i).ind == 0 || prev_change_(i).ind - 1UZ == ind_in_predecessor_(i))) {
+            change_indices_[i]--;
+            return *this;
+          }
+        }
+      }
+
+      if (!started_base_) {
+        return *this;
+      }
+
+      if (base_ind_ == 0) {
+        started_base_ = false;
+        return *this;
+      }
+
+      base_ind_--;
+      current_value_ = &base_[base_ind_];
+
+      return *this;
+    }
+
     friend auto operator==(const Iterator &a, const Iterator &b) -> bool {
       return a.base_ind_ == b.base_ind_ && a.started_base_ == b.started_base_ && a.indices_ == b.indices_ &&
-             a.started_ == b.started_ && &a.base_ == &b.base_ && &a.patches_ == &b.patches_;
+             a.started_ == b.started_ && a.change_indices_ == b.change_indices_ && &a.base_ == &b.base_ &&
+             &a.patches_ == &b.patches_;
     };
     friend auto operator!=(const Iterator &a, const Iterator &b) -> bool { return !(a == b); };
 
@@ -131,6 +170,7 @@ class PatchableVector {
     auto patch_size_(size_t i) const { return patches_[i].changes_.size(); }
     auto reached_end_of_patch_(size_t i) const { return change_indices_[i] >= patch_size_(i); }
     auto &change_(size_t i) const { return patches_[i].changes_[change_indices_[i]]; }
+    auto &prev_change_(size_t i) const { return patches_[i].changes_[change_indices_[i] - 1UZ]; }
     auto &last_applied_change_(size_t i) const { return patches_[i].changes_[change_indices_[i] - 1UZ]; }
     auto ind_in_predecessor_(size_t i) {
       if (i == 0) return base_ind_;
@@ -146,9 +186,10 @@ class PatchableVector {
     size_t base_ind_;
     bool started_base_;
 
-    std::vector<size_t> indices_;  // The curent index on each level
-    std::vector<bool> started_;
-    std::vector<size_t> change_indices_;
+    std::vector<size_t> indices_;  // The curent index on each level.
+    std::vector<bool>
+        started_;  // Did we start iteration on that level? This is needed when the patch inserts at position 0.
+    std::vector<size_t> change_indices_;  // Index of the next change to apply in a patch
 
     std::vector<T> &base_;
     std::vector<Patch<T>> &patches_;

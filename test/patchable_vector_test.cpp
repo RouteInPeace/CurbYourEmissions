@@ -294,3 +294,134 @@ TEST(PatchableVector, Squash) {
     EXPECT_EQ(result, elements);
   }
 }
+
+TEST(PatchableVector, DecrementWithoutPatches) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+
+  for (auto it = ++vec.begin(); it != vec.end(); ++it) {
+    auto copy_it = it;
+    --copy_it;
+    ++copy_it;
+    EXPECT_EQ(it, copy_it);
+  }
+}
+
+TEST(PatchableVector, DecrementWithOnePatch) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+  auto patch = cye::Patch<size_t>();
+  patch.add_change(0, 10);
+  patch.add_change(0, 10);
+  patch.add_change(1, 10);
+  patch.add_change(1, 20);
+  patch.add_change(3, 30);
+  vec.add_patch(std::move(patch));
+
+  for (auto it = ++vec.begin(); it != vec.end(); ++it) {
+    auto copy_it = it;
+    --copy_it;
+    std::cout << *copy_it << ' ' << *it << '\n';
+    ++copy_it;
+
+    EXPECT_EQ(it, copy_it);
+  }
+}
+
+TEST(PatchableVector, DecrementWithTwoPatch) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+  auto patch = cye::Patch<size_t>();
+  patch.add_change(0, 10);
+  patch.add_change(1, 10);
+  vec.add_patch(std::move(patch));
+
+  auto patch2 = cye::Patch<size_t>();
+  patch2.add_change(0, 10);
+  patch2.add_change(1, 10);
+  patch2.add_change(2, 10);
+
+  vec.add_patch(std::move(patch2));
+
+  auto begin = vec.begin();
+
+  for (auto it = ++vec.begin(); it != vec.end(); ++it) {
+    auto copy_it = it;
+    --copy_it;
+    std::cout << *copy_it << ' ' << *it << '\n';
+    ++copy_it;
+
+    EXPECT_EQ(it, copy_it);
+  }
+}
+
+TEST(PatchableVector, DecrementWithTwoPatch2) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+  auto patch = cye::Patch<size_t>();
+  patch.add_change(1, 10);
+  patch.add_change(2, 10);
+  vec.add_patch(std::move(patch));
+
+  auto patch2 = cye::Patch<size_t>();
+  patch2.add_change(0, 10);
+  vec.add_patch(std::move(patch2));
+
+  auto begin = vec.begin();
+
+  for (auto it = ++vec.begin(); it != vec.end(); ++it) {
+    auto copy_it = it;
+    --copy_it;
+    std::cout << *copy_it << ' ' << *it << '\n';
+    ++copy_it;
+
+    EXPECT_EQ(it, copy_it);
+  }
+}
+
+TEST(PatchableVector, DecrementStress) {
+  auto rd = std::random_device();
+  auto gen = std::mt19937(0);
+
+  auto dist = std::uniform_int_distribution(1UZ, 100UZ);
+  auto patch_cnt_dist = std::uniform_int_distribution(0UZ, 5UZ);
+
+  for (auto iter = 0UZ; iter < 1000UZ; ++iter) {
+    // std::cout << iter << '\n';
+
+    auto elements = std::vector<size_t>();
+    auto element_cnt = dist(gen);
+    for (auto i = 0UZ; i < element_cnt; ++i) elements.push_back(dist(gen));
+
+    auto copy = elements;
+    auto patchable_vec = cye::PatchableVector<size_t>(std::move(copy));
+
+    auto patch_cnt = patch_cnt_dist(gen);
+    for (auto p = 0UZ; p < patch_cnt; ++p) {
+      auto insertion_dist = std::uniform_int_distribution(0UZ, elements.size() - 1UZ);
+      std::vector<std::pair<size_t, size_t>> changes;
+      auto change_cnt = dist(gen);
+
+      for (auto i = 0UZ; i < change_cnt; ++i) {
+        changes.emplace_back(insertion_dist(gen), dist(gen));
+      }
+
+      std::ranges::sort(changes);
+      for (auto [ind, value] : changes | std::views::reverse) {
+        elements.insert(elements.begin() + ind, value);
+      }
+
+      auto patch = cye::Patch<size_t>();
+      for (auto [ind, value] : changes) {
+        patch.add_change(ind, value);
+      }
+      patchable_vec.add_patch(std::move(patch));
+    }
+
+    for (auto it = ++patchable_vec.begin(); it != patchable_vec.end(); ++it) {
+      auto copy_it = it;
+      --copy_it;
+      ++copy_it;
+
+      // std::cout << *copy_it << ' ' << *it << '\n';
+      EXPECT_EQ(it, copy_it);
+    }
+    // std::cout << "\n\n";
+  }
+}
