@@ -14,7 +14,7 @@ namespace cye {
 auto patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void;
 auto patch_cargo_trivially(Solution &solution) -> void;
 
-auto repair_energy_violations_trivially(Solution &&solution) -> Solution;
+auto patch_energy_trivially(Solution &solution) -> void;
 
 Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
 Solution greedy_repair_best_first(Solution &&solution, alns::RandomEngine &gen);
@@ -23,7 +23,7 @@ Solution regret_repair(Solution &&solution, alns::RandomEngine &gen);
 class OptimalEnergyRepair {
  public:
   OptimalEnergyRepair(std::shared_ptr<Instance> instance);
-  auto repair(Solution &&solution, unsigned bin_cnt) -> Solution;
+  auto patch(Solution &solution, unsigned bin_cnt) -> void;
 
  private:
   auto compute_cs_dist_mat_() -> void;
