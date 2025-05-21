@@ -26,6 +26,7 @@ class Solution {
   [[nodiscard]] auto get_cost() const -> double;
 
   auto get_customers() const -> std::vector<size_t>;
+  auto get_customers_with_endpoints() -> std::vector<size_t>;
 
   auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
   auto insert_customer(size_t i, size_t customer_id) -> void;

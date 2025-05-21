@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "cye/instance.hpp"
 #include "cye/init_heuristics.hpp"
+#include "cye/instance.hpp"
 
 TEST(Heuristics, NearestNeighbor) {
   for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {

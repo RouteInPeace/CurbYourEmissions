@@ -17,6 +17,8 @@ auto repair_cargo_violations_trivially(Solution &&solution) -> Solution;
 auto repair_energy_violations_trivially(Solution &&solution) -> Solution;
 
 Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
+Solution greedy_repair_best_first(Solution &&solution, alns::RandomEngine &gen);
+Solution regret_repair(Solution &&solution, alns::RandomEngine &gen);
 
 class OptimalEnergyRepair {
  public:

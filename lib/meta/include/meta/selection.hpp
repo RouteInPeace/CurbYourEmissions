@@ -37,7 +37,7 @@ class KWayTournamentSelectionOperator : public SelectionOperator<I> {
     if (a.second == b.second) {
       return a.first < b.first;
     }
-    
+
     return a.second < b.second;
   };
   std::set<std::pair<size_t, float>, decltype(cmp_)> set_;
