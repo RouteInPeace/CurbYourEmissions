@@ -177,3 +177,15 @@ auto cye::Solution::get_customers() const -> std::vector<size_t> {
   return routes_ | std::views::filter([this](auto ind) { return instance_->is_customer(ind); }) |
          std::ranges::to<std::vector<size_t>>();
 }
+
+auto cye::Solution::get_customers_with_endpoints() -> std::vector<size_t> {
+  const auto &customers = get_customers();
+  std::vector<size_t> result;
+  result.reserve(customers.size() + 2);
+
+  result.emplace_back(instance_->depot_id());
+  result.insert(result.end(), customers.begin(), customers.end());
+  result.emplace_back(instance_->depot_id());
+
+  return result;
+}

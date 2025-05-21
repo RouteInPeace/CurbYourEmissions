@@ -7,7 +7,7 @@
 using RandomEngine = std::mt19937;
 
 namespace meta {
-  
+
 template <typename I>
 concept Individual = requires(I individual) {
   requires std::ranges::range<decltype(individual.get_genotype())>;

@@ -86,4 +86,4 @@ auto GeneticAlgorithm<I>::best_individual() const -> I const & {
   return *best;
 }
 
-}  // namespace ga
+}  // namespace meta
