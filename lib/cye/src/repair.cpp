@@ -420,23 +420,22 @@ cye::Solution cye::greedy_repair(Solution &&solution, alns::RandomEngine &gen) {
   for (auto unassigned_id : unassigned_ids) {
     auto best_cost = std::numeric_limits<double>::max();
     auto best_solution = cye::Solution(nullptr, {});
+    auto stripped_copy = cye::Solution(copy.instance_ptr(), copy.get_customers_with_endpoints());
 
-    auto update_cost = [&](cye::Solution &&new_solution, size_t /**/) {
-      auto cost = copy.get_cost();
+    auto update_cost = [&](cye::Solution &&new_solution, size_t j) {
+      auto cost = new_solution.get_cost();
       if (cost < best_cost) {
         best_cost = cost;
         best_solution = std::move(new_solution);
       }
     };
 
-    find_best_insertion(copy, unassigned_id, update_cost);
-    if (best_solution.routes().size()) {
-      copy = std::move(best_solution);
-    }
+    find_best_insertion(stripped_copy, unassigned_id, update_cost);
+    copy = std::move(best_solution);
   }
 
   copy.clear_unassigned_customers();
-  return copy;
+  return reorder_solution_optimally(copy);
 }
 
 cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::RandomEngine &gen) {
@@ -445,12 +444,13 @@ cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::Rand
 
   while (!unassigned_ids.empty()) {
     auto best_cost = std::numeric_limits<double>::max();
+    auto stripped_copy = cye::Solution(copy.instance_ptr(), copy.get_customers_with_endpoints());
     int best_unassigned_id = -1;
     auto best_solution = cye::Solution(nullptr, {});
     for (size_t i = 0; i < unassigned_ids.size(); ++i) {
       auto unassigned_id = unassigned_ids[i];
 
-      auto update_cost = [&](cye::Solution &&new_solution, size_t /**/) {
+      auto update_cost = [&](cye::Solution &&new_solution, size_t j) {
         auto cost = new_solution.get_cost();
         if (cost < best_cost) {
           best_cost = cost;
@@ -458,7 +458,7 @@ cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::Rand
           best_unassigned_id = i;
         }
       };
-      find_best_insertion(copy, unassigned_id, update_cost);
+      find_best_insertion(stripped_copy, unassigned_id, update_cost);
     }
     unassigned_ids.erase(unassigned_ids.begin() + best_unassigned_id);
     if (best_unassigned_id != -1) {
@@ -481,12 +481,13 @@ cye::Solution cye::regret_repair(cye::Solution &&solution, alns::RandomEngine &g
     insertions.resize(unassigned_ids.size());
     for (size_t i = 0; i < unassigned_ids.size(); ++i) {
       auto unassigned_id = unassigned_ids[i];
+      auto stripped_copy = cye::Solution(copy.instance_ptr(), copy.get_customers_with_endpoints());
 
       auto update_cost = [&](cye::Solution &&new_solution, size_t position) {
         auto cost = new_solution.get_cost();
         insertions[i].push_back({position, unassigned_id, cost});
       };
-      find_best_insertion(copy, unassigned_id, update_cost);
+      find_best_insertion(stripped_copy, unassigned_id, update_cost);
     }
     for (auto &insertions_vec : insertions) {
       std::sort(insertions_vec.begin(), insertions_vec.end());

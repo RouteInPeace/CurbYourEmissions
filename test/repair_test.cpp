@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <random>
 #include <utility>
+#include "cye/destroy.hpp"
+#include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
 
@@ -122,4 +124,63 @@ TEST(Repair, FixEnergyViolationsOptimally) {
       EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.02f);
     }
   }
+}
+
+TEST(Repair, GreedyRepair) {
+  std::mt19937 gen(8);
+
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto initial_solution = cye::nearest_neighbor(instance);
+  auto solution = cye::random_destroy(std::move(initial_solution), gen);
+
+  std::vector<size_t> expected = {14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2};
+  ASSERT_EQ(solution.get_customers(), expected);
+
+  auto copy = solution;
+
+  auto repaired_solution = cye::greedy_repair(std::move(solution), gen);
+
+  expected = { 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
+  ASSERT_EQ(repaired_solution.get_customers(), expected);
+}
+
+TEST(Repair, GreedyRepairBestFirst) {
+  std::mt19937 gen(8);
+
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto initial_solution = cye::nearest_neighbor(instance);
+  auto solution = cye::random_destroy(std::move(initial_solution), gen);
+
+  std::vector<size_t> expected = {14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2};
+  ASSERT_EQ(solution.get_customers(), expected);
+
+  auto copy = solution;
+
+  auto repaired_solution = cye::greedy_repair_best_first(std::move(solution), gen);
+
+  expected = { 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17};
+  ASSERT_EQ(repaired_solution.get_customers(), expected);
+}
+
+TEST(Repair, RegretRepair) {
+  std::mt19937 gen(8);
+
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto initial_solution = cye::nearest_neighbor(instance);
+  auto solution = cye::random_destroy(std::move(initial_solution), gen);
+
+  std::vector<size_t> expected = {14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2};
+  ASSERT_EQ(solution.get_customers(), expected);
+
+  auto copy = solution;
+
+  auto repaired_solution = cye::regret_repair(std::move(solution), gen);
+
+  expected = {14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2};
 }
