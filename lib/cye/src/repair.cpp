@@ -393,9 +393,9 @@ auto reorder_solution(cye::Solution &solution) -> cye::Solution {
 auto reorder_solution_optimally(cye::Solution &solution) -> cye::Solution {
   auto customers = solution.get_customers_with_endpoints();
   auto new_solution = cye::Solution(solution.instance_ptr(), std::move(customers));
-  new_solution = cye::repair_cargo_violations_trivially(std::move(new_solution));
-  // new_solution = cye::repair_cargo_violations_optimally(std::move(new_solution), solution.instance().cargo_capacity()
-  // + 1u);
+  // new_solution = cye::repair_cargo_violations_trivially(std::move(new_solution));
+  new_solution =
+      cye::repair_cargo_violations_optimally(std::move(new_solution), solution.instance().cargo_capacity() + 1u);
   auto energy_repair = cye::OptimalEnergyRepair(solution.instance_ptr());
   // return energy_repair.repair(std::move(new_solution), 1000);
   return cye::repair_energy_violations_trivially(std::move(new_solution));
