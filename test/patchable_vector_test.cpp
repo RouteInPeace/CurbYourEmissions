@@ -190,7 +190,7 @@ TEST(PatchableVector, TwoPatches) {
 
   auto result = std::vector<size_t>();
   for (auto it = vec.begin(); it != vec.end(); ++it) {
-    std::cout << *it << '\n';
+    // std::cout << *it << '\n';
     result.push_back(*it);
   }
 
@@ -298,11 +298,13 @@ TEST(PatchableVector, Squash) {
 TEST(PatchableVector, DecrementWithoutPatches) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
 
+  auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    auto copy_it = it;
-    --copy_it;
-    ++copy_it;
-    EXPECT_EQ(it, copy_it);
+    auto copy = it;
+    --copy;
+    EXPECT_EQ(prev_it, copy);
+    EXPECT_EQ(*prev_it, *copy);
+    prev_it = it;
   }
 }
 
@@ -310,19 +312,20 @@ TEST(PatchableVector, DecrementWithOnePatch) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
   auto patch = cye::Patch<size_t>();
   patch.add_change(0, 10);
-  patch.add_change(0, 10);
-  patch.add_change(1, 10);
-  patch.add_change(1, 20);
-  patch.add_change(3, 30);
+  patch.add_change(0, 20);
+  patch.add_change(1, 30);
+  patch.add_change(1, 40);
+  patch.add_change(3, 50);
   vec.add_patch(std::move(patch));
 
+  auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    auto copy_it = it;
-    --copy_it;
-    std::cout << *copy_it << ' ' << *it << '\n';
-    ++copy_it;
-
-    EXPECT_EQ(it, copy_it);
+    // std::cout << *it << '\n';
+    auto copy = it;
+    --copy;
+    EXPECT_EQ(prev_it, copy);
+    EXPECT_EQ(*prev_it, *copy);
+    prev_it = it;
   }
 }
 
@@ -330,25 +333,26 @@ TEST(PatchableVector, DecrementWithTwoPatch) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
   auto patch = cye::Patch<size_t>();
   patch.add_change(0, 10);
-  patch.add_change(1, 10);
+  patch.add_change(1, 20);
   vec.add_patch(std::move(patch));
 
   auto patch2 = cye::Patch<size_t>();
-  patch2.add_change(0, 10);
-  patch2.add_change(1, 10);
-  patch2.add_change(2, 10);
+  patch2.add_change(0, 30);
+  patch2.add_change(1, 40);
+  patch2.add_change(2, 50);
 
   vec.add_patch(std::move(patch2));
 
   auto begin = vec.begin();
 
+  auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    auto copy_it = it;
-    --copy_it;
-    std::cout << *copy_it << ' ' << *it << '\n';
-    ++copy_it;
-
-    EXPECT_EQ(it, copy_it);
+    // std::cout << *it << '\n';
+    auto copy = it;
+    --copy;
+    EXPECT_EQ(prev_it, copy);
+    EXPECT_EQ(*prev_it, *copy);
+    prev_it = it;
   }
 }
 
@@ -356,28 +360,29 @@ TEST(PatchableVector, DecrementWithTwoPatch2) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
   auto patch = cye::Patch<size_t>();
   patch.add_change(1, 10);
-  patch.add_change(2, 10);
+  patch.add_change(2, 20);
   vec.add_patch(std::move(patch));
 
   auto patch2 = cye::Patch<size_t>();
-  patch2.add_change(0, 10);
+  patch2.add_change(0, 30);
   vec.add_patch(std::move(patch2));
 
   auto begin = vec.begin();
 
+  auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    auto copy_it = it;
-    --copy_it;
-    std::cout << *copy_it << ' ' << *it << '\n';
-    ++copy_it;
-
-    EXPECT_EQ(it, copy_it);
+    // std::cout << *it << '\n';
+    auto copy = it;
+    --copy;
+    EXPECT_EQ(prev_it, copy);
+    EXPECT_EQ(*prev_it, *copy);
+    prev_it = it;
   }
 }
 
 TEST(PatchableVector, DecrementStress) {
   auto rd = std::random_device();
-  auto gen = std::mt19937(0);
+  auto gen = std::mt19937(rd());
 
   auto dist = std::uniform_int_distribution(1UZ, 100UZ);
   auto patch_cnt_dist = std::uniform_int_distribution(0UZ, 5UZ);
@@ -414,13 +419,14 @@ TEST(PatchableVector, DecrementStress) {
       patchable_vec.add_patch(std::move(patch));
     }
 
+    auto prev_it = patchable_vec.begin();
     for (auto it = ++patchable_vec.begin(); it != patchable_vec.end(); ++it) {
-      auto copy_it = it;
-      --copy_it;
-      ++copy_it;
-
-      // std::cout << *copy_it << ' ' << *it << '\n';
-      EXPECT_EQ(it, copy_it);
+      // std::cout << *it << '\n';
+      auto copy = it;
+      --copy;
+      EXPECT_EQ(prev_it, copy);
+      EXPECT_EQ(*prev_it, *copy);
+      prev_it = it;
     }
     // std::cout << "\n\n";
   }
