@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include "cye/patchable_vector.hpp"
 #include "instance.hpp"
 
 namespace cye {
@@ -9,6 +10,7 @@ namespace cye {
 class Solution {
  public:
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes);
+  Solution(std::shared_ptr<Instance> instance, PatchableVector<size_t> &&routes);
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
            std::vector<size_t> &&unassigned_customers);
 
@@ -16,29 +18,20 @@ class Solution {
   [[nodiscard]] inline auto instance_ptr() const { return instance_; }
 
   [[nodiscard]] inline auto &routes() const { return routes_; }
+  [[nodiscard]] inline auto &routes() { return routes_; }
   [[nodiscard]] inline auto &unassigned_customers() const { return unassigned_customers_; }
   [[nodiscard]] inline auto visited_node_cnt() const { return routes_.size(); }
-  [[nodiscard]] inline auto node_id(size_t ind) const { return routes_[ind]; }
 
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto get_cost() const -> double;
 
-  auto get_customers() const -> std::vector<size_t>;
-  auto get_customers_with_endpoints() -> std::vector<size_t>;
-
-  auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
-  auto insert_customer(size_t i, size_t customer_id) -> void;
-  auto remove_customer(size_t i) -> void;
-
-  // TODO: this doe not belong here
-  auto find_charging_station(size_t node1_id, size_t node2_id, float remaining_battery) -> std::optional<size_t>;
-  auto reorder_charging_station(size_t i) -> bool;
+  inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
 
  private:
   std::shared_ptr<Instance> instance_;
-  std::vector<size_t> routes_;
+  PatchableVector<size_t> routes_;
   std::vector<size_t> unassigned_customers_;
 };
 

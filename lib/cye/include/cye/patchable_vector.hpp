@@ -27,6 +27,8 @@ class Patch {
     changes_.emplace_back(ind, value);
   }
 
+  [[nodiscard]] inline auto size() const { return changes_.size(); }
+
   friend PatchableVector<T>;
 
  private:
@@ -49,6 +51,14 @@ class PatchableVector {
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
   inline auto base() { return std::span(base_); }
+  [[nodiscard]] inline auto size() const {
+    auto size = base_.size();
+    for (const auto &patch : patches_) {
+      size += patch.size();
+    }
+
+    return size;
+  }
 
   template <typename V>
   class Iterator {
@@ -231,12 +241,12 @@ class PatchableVector {
 
   static_assert(std::bidirectional_iterator<Iterator<T>>);
 
-  auto begin() -> Iterator<T> {
+  [[nodiscard]] auto begin() -> Iterator<T> {
     return Iterator<T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ), std::vector<bool>(patches_.size(), false),
                        std::vector<size_t>(patches_.size(), 0UZ), &base_, &patches_);
   }
 
-  auto end() -> Iterator<T> {
+  [[nodiscard]] auto end() -> Iterator<T> {
     auto indices = std::vector<size_t>(patches_.size(), 0UZ);
     auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
 
@@ -250,13 +260,13 @@ class PatchableVector {
                        std::move(change_indices_), &base_, &patches_);
   }
 
-  auto begin() const -> Iterator<const T> {
+  [[nodiscard]] auto begin() const -> Iterator<const T> {
     return Iterator<const T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ),
                              std::vector<bool>(patches_.size(), false), std::vector<size_t>(patches_.size(), 0UZ),
                              &base_, &patches_);
   }
 
-  auto end() const -> Iterator<const T> {
+  [[nodiscard]] auto end() const -> Iterator<const T> {
     auto indices = std::vector<size_t>(patches_.size(), 0UZ);
     auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
 
@@ -269,6 +279,9 @@ class PatchableVector {
     return Iterator<const T>(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
                              std::move(change_indices_), &base_, &patches_);
   }
+
+  [[nodiscard]] auto rbegin() -> Iterator<T> { return --end(); }
+  [[nodiscard]] auto rbegin() const -> Iterator<const T> { return --end(); }
 
   auto squash() {
     auto new_base = std::vector<T>();

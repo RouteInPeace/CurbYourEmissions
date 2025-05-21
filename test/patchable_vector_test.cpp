@@ -446,5 +446,8 @@ TEST(PatchableVector, DecrementStress) {
       EXPECT_EQ(*prev_it, *copy);
       prev_it = it;
     }
+
+    EXPECT_EQ(prev_it, --patchable_vec.end());
+    EXPECT_EQ(*prev_it, *(--patchable_vec.end()));
   }
 }

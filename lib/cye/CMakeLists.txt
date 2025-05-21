@@ -18,7 +18,6 @@ set(PROJECT_SOURCES
     src/destruction_nn.cpp
     src/repair.cpp
     src/destroy.cpp
-    src/patchable_vector.cpp
 )
 
 
