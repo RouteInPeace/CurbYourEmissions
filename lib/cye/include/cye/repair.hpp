@@ -11,8 +11,8 @@
 
 namespace cye {
 
-auto repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution;
-auto repair_cargo_violations_trivially(Solution &&solution) -> Solution;
+auto patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void;
+auto patch_cargo_trivially(Solution &solution) -> void;
 
 auto repair_energy_violations_trivially(Solution &&solution) -> Solution;
 

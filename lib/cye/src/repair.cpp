@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
+#include "cye/patchable_vector.hpp"
 
 struct CargoDPCell {
   CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
@@ -17,9 +18,10 @@ struct CargoDPCell {
   bool inserted;
 };
 
-auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cnt) -> Solution {
+auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
+  auto visited_node_cnt = solution.visited_node_cnt();
   auto &instance = solution.instance();
-  auto dp = std::vector(bin_cnt, std::vector(solution.visited_node_cnt(), CargoDPCell()));
+  auto dp = std::vector(bin_cnt, std::vector(visited_node_cnt, CargoDPCell()));
 
   // Amount of cargo per bin
   auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
@@ -30,14 +32,18 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
   dp[bin_cnt - 1][0].dist = 0;
 
   // Iterate over nodes in routes
-  for (auto j = 1UZ; j < solution.visited_node_cnt(); ++j) {
-    // The distance between the curent ad previous node
-    auto distance = instance.distance(solution.node_id(j - 1), solution.node_id(j));
-    // The distance if we go from the previous node to the depo and back to the current node
-    auto distance_with_depot = instance.distance(solution.node_id(j - 1), instance.depot_id()) +
-                               instance.distance(instance.depot_id(), solution.node_id(j));
+  auto previous_node_id = *solution.routes().begin();
+  auto j = 1UZ;
+  for (auto it = ++solution.routes().begin(); it != solution.routes().end(); ++it) {
+    auto current_node_id = *it;
 
-    auto demand = instance.demand(solution.node_id(j));
+    // The distance between the curent ad previous node
+    auto distance = instance.distance(previous_node_id, current_node_id);
+    // The distance if we go from the previous node to the depo and back to the current node
+    auto distance_with_depot = instance.distance(previous_node_id, instance.depot_id()) +
+                               instance.distance(instance.depot_id(), current_node_id);
+
+    auto demand = instance.demand(current_node_id);
     auto demand_quant = static_cast<unsigned>(std::ceil(demand / cargo_quant));
 
     // For every cargo quantization
@@ -56,6 +62,9 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
         dp[i][j].inserted = false;
       }
     }
+
+    ++j;
+    previous_node_id = current_node_id;
   }
 
   // Backward pass
@@ -64,43 +73,46 @@ auto cye::repair_cargo_violations_optimally(Solution &&solution, unsigned bin_cn
   auto ind = 0u;
   auto min_cost = std::numeric_limits<float>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
-    if (dp[i][solution.visited_node_cnt() - 1].dist < min_cost) {
-      min_cost = dp[i][solution.visited_node_cnt() - 1].dist;
+    if (dp[i][visited_node_cnt - 1].dist < min_cost) {
+      min_cost = dp[i][visited_node_cnt - 1].dist;
       ind = i;
     }
   }
 
   // Trace back through the table
-  auto insertion_places = std::vector<size_t>();
-  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
+  auto patch = Patch<size_t>();
+  auto offset = 0UZ;
+  for (auto j = 1UZ; j < visited_node_cnt; ++j) {
     // Check if we detoured to the depot
     if (dp[ind][j].inserted) {
-      insertion_places.push_back(j);
+      patch.add_change(j + offset, instance.depot_id());
+      ++offset;
     }
     ind = dp[ind][j].prev;
   }
 
-  // Insert depot into the solution
-  for (auto ind : insertion_places) {
-    solution.insert_customer(ind, instance.depot_id());
-  }
-
-  return solution;
+  solution.routes().add_patch(std::move(patch));
 }
 
-auto cye::repair_cargo_violations_trivially(Solution &&solution) -> Solution {
+auto cye::patch_cargo_trivially(Solution &solution) -> void {
   auto &instance = solution.instance();
   auto cargo_capacity = instance.cargo_capacity();
 
-  for (auto i = 0UZ; i < solution.visited_node_cnt(); ++i) {
-    cargo_capacity -= instance.demand(solution.node_id(i));
+  auto patch = Patch<size_t>();
+  auto offset = 0UZ;
+  auto i = 0UZ;
+  for (auto node_id : solution.routes()) {
+    cargo_capacity -= instance.demand(node_id);
     if (cargo_capacity < 0) {
-      solution.insert_customer(i, instance.depot_id());
-      cargo_capacity = instance.cargo_capacity() - instance.demand(solution.node_id(i));
+      patch.add_change(i + offset, instance.depot_id());
+      ++offset;
+      cargo_capacity = instance.cargo_capacity() - instance.demand(node_id);
     }
+
+    ++i;
   }
 
-  return solution;
+  solution.routes().add_patch(std::move(patch));
 }
 
 auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
