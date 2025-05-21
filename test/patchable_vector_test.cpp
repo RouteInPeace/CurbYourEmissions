@@ -2,7 +2,6 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <cstddef>
-#include <print>
 #include <random>
 #include <ranges>
 #include <utility>
@@ -50,6 +49,24 @@ TEST(PatchableVector, NoPatches) {
   EXPECT_EQ(result, expected);
 }
 
+TEST(PatchableVector, PostfixIncrement) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+
+  auto it = vec.begin();
+  EXPECT_EQ(*(it++), 0);
+  EXPECT_EQ(*it, 1);
+}
+
+TEST(PatchableVector, PostfixDecrement) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+
+  auto it = vec.begin();
+  ++it;
+  EXPECT_EQ(*(it--), 1);
+  EXPECT_EQ(*it, 0);
+}
+
+
 TEST(PatchableVector, SimplePatch) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
   auto patch = cye::Patch<size_t>();
@@ -58,6 +75,23 @@ TEST(PatchableVector, SimplePatch) {
 
   auto result = std::vector<size_t>();
   for (auto it = vec.begin(); it != vec.end(); ++it) {
+    result.push_back(*it);
+  }
+
+  auto expected = std::vector<size_t>{0, 10, 1, 2, 3, 4, 5};
+  EXPECT_EQ(result, expected);
+}
+
+TEST(PatchableVector, ConstIterator) {
+  auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
+  auto patch = cye::Patch<size_t>();
+  patch.add_change(1, 10);
+  vec.add_patch(std::move(patch));
+
+  const auto &ref = vec;
+
+  auto result = std::vector<size_t>();
+  for (auto it = ref.begin(); it != ref.end(); ++it) {
     result.push_back(*it);
   }
 
@@ -138,8 +172,6 @@ TEST(PatchableVector, OnePatchStress) {
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
     for (auto i = 0UZ; i < element_cnt; ++i) elements.push_back(dist(gen));
-    // for (auto x : elements) std::cout << x << ' ';
-    // std::cout << '\n';
 
     auto copy = elements;
     auto patchable_vec = cye::PatchableVector<size_t>(std::move(copy));
@@ -154,7 +186,6 @@ TEST(PatchableVector, OnePatchStress) {
 
     std::ranges::sort(changes);
     for (auto [ind, value] : changes | std::views::reverse) {
-      // std::cout << ind << ' ' << value << '\n';
       elements.insert(elements.begin() + ind, value);
     }
 
@@ -168,8 +199,6 @@ TEST(PatchableVector, OnePatchStress) {
     for (auto it = patchable_vec.begin(); it != patchable_vec.end(); ++it) {
       result.push_back(*it);
     }
-
-    // std::cout << "\n\n";
 
     EXPECT_EQ(result, elements);
   }
@@ -190,7 +219,6 @@ TEST(PatchableVector, TwoPatches) {
 
   auto result = std::vector<size_t>();
   for (auto it = vec.begin(); it != vec.end(); ++it) {
-    // std::cout << *it << '\n';
     result.push_back(*it);
   }
 
@@ -209,8 +237,6 @@ TEST(PatchableVector, MultiplePatchStress) {
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
     for (auto i = 0UZ; i < element_cnt; ++i) elements.push_back(dist(gen));
-    // for (auto x : elements) std::cout << x << ' ';
-    // std::cout << '\n';
 
     auto copy = elements;
     auto patchable_vec = cye::PatchableVector<size_t>(std::move(copy));
@@ -227,10 +253,8 @@ TEST(PatchableVector, MultiplePatchStress) {
 
       std::ranges::sort(changes);
       for (auto [ind, value] : changes | std::views::reverse) {
-        // std::print("({}, {}) ", ind, value);
         elements.insert(elements.begin() + ind, value);
       }
-      // std::cout << '\n';
 
       auto patch = cye::Patch<size_t>();
       for (auto [ind, value] : changes) {
@@ -245,7 +269,6 @@ TEST(PatchableVector, MultiplePatchStress) {
       EXPECT_EQ(result, elements);
     }
 
-    // std::cout << "\n\n";
   }
 }
 
@@ -320,7 +343,6 @@ TEST(PatchableVector, DecrementWithOnePatch) {
 
   auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    // std::cout << *it << '\n';
     auto copy = it;
     --copy;
     EXPECT_EQ(prev_it, copy);
@@ -347,7 +369,6 @@ TEST(PatchableVector, DecrementWithTwoPatch) {
 
   auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    // std::cout << *it << '\n';
     auto copy = it;
     --copy;
     EXPECT_EQ(prev_it, copy);
@@ -371,7 +392,6 @@ TEST(PatchableVector, DecrementWithTwoPatch2) {
 
   auto prev_it = vec.begin();
   for (auto it = ++vec.begin(); it != vec.end(); ++it) {
-    // std::cout << *it << '\n';
     auto copy = it;
     --copy;
     EXPECT_EQ(prev_it, copy);
@@ -388,7 +408,6 @@ TEST(PatchableVector, DecrementStress) {
   auto patch_cnt_dist = std::uniform_int_distribution(0UZ, 5UZ);
 
   for (auto iter = 0UZ; iter < 1000UZ; ++iter) {
-    // std::cout << iter << '\n';
 
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
@@ -421,13 +440,11 @@ TEST(PatchableVector, DecrementStress) {
 
     auto prev_it = patchable_vec.begin();
     for (auto it = ++patchable_vec.begin(); it != patchable_vec.end(); ++it) {
-      // std::cout << *it << '\n';
       auto copy = it;
       --copy;
       EXPECT_EQ(prev_it, copy);
       EXPECT_EQ(*prev_it, *copy);
       prev_it = it;
     }
-    // std::cout << "\n\n";
   }
 }
