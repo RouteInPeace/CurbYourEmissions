@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <iostream>
 #include <memory>
 #include <ranges>
 #include <vector>
@@ -26,8 +25,8 @@ class EVRPIndividual {
     routes.push_back(instance_->depot_id());
 
     auto solution = cye::Solution(instance_, std::move(routes));
-    solution = cye::repair_cargo_violations_trivially(std::move(solution));
-    solution = cye::repair_energy_violations_trivially(std::move(solution));
+    cye::patch_cargo_trivially(solution);
+    cye::patch_energy_trivially(solution);
 
     assert(solution.is_valid());
     fitness_ = solution.get_cost();

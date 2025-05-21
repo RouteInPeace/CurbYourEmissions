@@ -34,7 +34,9 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
 
   auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
 
-  auto solution = repair_cargo_violations_optimally(Solution(instance, std::move(routes)),
-                                                    static_cast<unsigned>(instance->cargo_capacity()) + 1u);
-  return optimal_energy_repair.repair(std::move(solution), 1001u);
+  auto solution = Solution(instance, std::move(routes));
+  patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+  optimal_energy_repair.patch(solution, 1001u);
+
+  return solution;
 }

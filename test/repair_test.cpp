@@ -26,7 +26,8 @@ TEST(Repair, FixCargoViolationsTrivially) {
 
       auto copy = routes;
 
-      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
+      auto solution = cye::Solution(instance, std::move(copy));
+      cye::patch_cargo_trivially(solution);
       EXPECT_TRUE(solution.is_cargo_valid());
     }
   }
@@ -53,9 +54,11 @@ TEST(Repair, FixCargoViolationsOptimally) {
       auto copy = routes;
       auto copy2 = routes;
 
-      auto solution_opt = cye::repair_cargo_violations_optimally(
-          cye::Solution(instance, std::move(copy)), static_cast<unsigned>(instance->cargo_capacity()) + 1u);
-      auto solution_tr = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy2)));
+      auto solution_opt = cye::Solution(instance, std::move(copy));
+      auto solution_tr = cye::Solution(instance, std::move(copy2));
+      cye::patch_cargo_optimally(solution_tr, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+      cye::patch_cargo_trivially(solution_tr);
+
       EXPECT_TRUE(solution_opt.is_cargo_valid());
       EXPECT_TRUE(solution_tr.is_cargo_valid());
 
@@ -84,9 +87,10 @@ TEST(Repair, FixEnergyViolationsTrivially) {
 
       auto copy = routes;
 
-      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
-      auto solution2 = cye::repair_energy_violations_trivially(std::move(solution));
-      EXPECT_TRUE(solution2.is_valid());
+      auto solution = cye::Solution(instance, std::move(copy));
+      cye::patch_cargo_trivially(solution);
+      cye::patch_energy_trivially(solution);
+      EXPECT_TRUE(solution.is_valid());
     }
   }
 }
@@ -112,11 +116,13 @@ TEST(Repair, FixEnergyViolationsOptimally) {
 
       auto copy = routes;
 
-      auto solution = cye::repair_cargo_violations_trivially(cye::Solution(instance, std::move(copy)));
-      auto solution_copy = solution;
+      auto solution_tr = cye::Solution(instance, std::move(copy));
+      cye::patch_cargo_trivially(solution_tr);
+      auto solution_opt = solution_tr;
 
-      auto solution_tr = cye::repair_energy_violations_trivially(std::move(solution));
-      auto solution_opt = optimal_energy_repair.repair(std::move(solution_copy), 101u);
+      cye::patch_energy_trivially(solution_tr);
+      optimal_energy_repair.patch(solution_opt, 101u);
+
       EXPECT_TRUE(solution_opt.is_valid());
       EXPECT_TRUE(solution_tr.is_valid());
       EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.02f);
