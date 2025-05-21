@@ -1,8 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <initializer_list>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -45,6 +47,7 @@ class PatchableVector {
   inline auto add_patch(Patch<T> &&patch) { patches_.push_back(std::move(patch)); }
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
+  inline auto base() { return std::span(base_); }
 
   class Iterator {
    public:
@@ -167,6 +170,19 @@ class PatchableVector {
 
     return Iterator(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
                     std::move(change_indices_), base_, patches_);
+  }
+
+  auto squash() {
+    auto new_base = std::vector<T>();
+    new_base.reserve(base_.size());
+
+    auto end_it = end();
+    for (auto it = begin(); it != end_it; ++it) {
+      new_base.push_back(std::move(*it));
+    }
+
+    base_ = std::move(new_base);
+    patches_.clear();
   }
 
  private:
