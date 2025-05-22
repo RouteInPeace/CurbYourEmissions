@@ -27,7 +27,7 @@ auto main() -> int {
   config.acceptance_criterion = std::make_unique<alns::HillClimbingCriterion>();
   config.operator_selection = std::make_unique<alns::RandomOperatorSelection>();
   config.destroy_operators = {[](cye::Solution &&solution, alns::RandomEngine &gen) {
-    return cye::random_destroy(std::move(solution), gen, 0.1);
+    return cye::random_destroy(std::move(solution), gen, 0.8);
   }};
   config.repair_operators = {
       [](cye::Solution &&solution, alns::RandomEngine &gen) { return cye::regret_repair(std::move(solution), gen, 2); },

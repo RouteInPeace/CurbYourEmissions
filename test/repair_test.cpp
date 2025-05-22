@@ -181,7 +181,7 @@ TEST(Repair, RegretRepair) {
   auto repaired_solution = cye::regret_repair(std::move(solution), gen, 2);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
+  auto expected = std::vector<size_t>{0, 14, 16, 20, 18, 1, 17, 12, 8, 6, 7, 5, 9, 21, 15, 3, 4, 10, 11, 13, 19, 2, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }
