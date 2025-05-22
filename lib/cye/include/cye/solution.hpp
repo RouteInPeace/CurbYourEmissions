@@ -14,12 +14,14 @@ class Solution {
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
            std::vector<size_t> &&unassigned_customers);
 
+  inline auto add_patch(Patch<size_t> &&patch) { routes_.add_patch(std::move(patch)); }
+
   [[nodiscard]] inline auto &instance() const { return *instance_; }
   [[nodiscard]] inline auto instance_ptr() const { return instance_; }
 
   [[nodiscard]] inline auto &routes() const { return routes_; }
   [[nodiscard]] inline auto &routes() { return routes_; }
-  [[nodiscard]] inline auto &unassigned_customers() const { return unassigned_customers_; }
+  [[nodiscard]] inline auto &unassigned_customers() { return unassigned_customers_; }
   [[nodiscard]] inline auto visited_node_cnt() const { return routes_.size(); }
 
   [[nodiscard]] auto is_cargo_valid() const -> bool;
