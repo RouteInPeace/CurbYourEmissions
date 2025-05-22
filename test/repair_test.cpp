@@ -136,85 +136,52 @@ TEST(Repair, PatchEnergyOptimally) {
 }
 
 TEST(Repair, GreedyRepair) {
-  std::mt19937 gen(0);
+  std::mt19937 gen(8);
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto initial_solution = cye::nearest_neighbor(instance);
-
-  std::cout << "initial\n";
-  for (auto id : initial_solution.routes()) {
-    std::cout << id << " ";
-  }
-  std::cout << "\n";
-
-  auto solution = cye::random_destroy(std::move(initial_solution), gen, 0.5);
-
-  std::vector<size_t> expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
-  auto result = std::ranges::to<std::vector<size_t>>(solution.routes());
-  ASSERT_EQ(result, expected);
+  std::vector<size_t> initial = {0, 14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 0};
+  auto solution = cye::Solution(instance, std::move(initial), {8, 10, 17});
 
   auto repaired_solution = cye::greedy_repair(std::move(solution), gen);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
+  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }
 
 TEST(Repair, GreedyRepairBestFirst) {
-  std::mt19937 gen(0);
+  std::mt19937 gen(8);
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto initial_solution = cye::nearest_neighbor(instance);
-
-  std::cout << "initial\n";
-  for (auto id : initial_solution.routes()) {
-    std::cout << id << " ";
-  }
-  std::cout << "\n";
-
-  auto solution = cye::random_destroy(std::move(initial_solution), gen, 0.5);
-
-  std::vector<size_t> expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
-  auto result = std::ranges::to<std::vector<size_t>>(solution.routes());
-  ASSERT_EQ(result, expected);
+  std::vector<size_t> initial = {0, 14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 0};
+  auto solution = cye::Solution(instance, std::move(initial), {8, 10, 17});
 
   auto repaired_solution = cye::greedy_repair_best_first(std::move(solution), gen);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
+  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }
 
 TEST(Repair, RegretRepair) {
-  std::mt19937 gen(0);
+  std::mt19937 gen(8);
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto initial_solution = cye::nearest_neighbor(instance);
-
-  std::cout << "initial\n";
-  for (auto id : initial_solution.routes()) {
-    std::cout << id << " ";
-  }
-  std::cout << "\n";
-
-  auto solution = cye::random_destroy(std::move(initial_solution), gen, 0.5);
-
-  std::vector<size_t> expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
-  auto result = std::ranges::to<std::vector<size_t>>(solution.routes());
-  ASSERT_EQ(result, expected);
+  std::vector<size_t> initial = {0, 14, 16, 20, 18, 1, 12, 6, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 0};
+  auto solution = cye::Solution(instance, std::move(initial), {8, 10, 17});
 
   auto repaired_solution = cye::regret_repair(std::move(solution), gen, 2);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  expected = {0, 9, 7, 6, 3, 5, 8, 19, 17, 18, 16, 20, 13, 1, 14, 15, 10, 4, 2, 0};
+  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }
