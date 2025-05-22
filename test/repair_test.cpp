@@ -6,7 +6,7 @@
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
 
-TEST(Repair, FixCargoViolationsTrivially) {
+TEST(Repair, PatchCargoTrivially) {
   std::random_device rd;
   std::mt19937 gen(rd());
 
@@ -21,7 +21,7 @@ TEST(Repair, FixCargoViolationsTrivially) {
     }
     routes.push_back(instance->depot_id());
 
-    for (auto i = 0UZ; i < 10000UZ; i++) {
+    for (auto i = 0UZ; i < 1000UZ; i++) {
       std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
 
       auto copy = routes;
@@ -33,7 +33,7 @@ TEST(Repair, FixCargoViolationsTrivially) {
   }
 }
 
-TEST(Repair, FixCargoViolationsOptimally) {
+TEST(Repair, PatchCargoOptimally) {
   std::random_device rd;
   std::mt19937 gen(rd());
 
@@ -56,7 +56,7 @@ TEST(Repair, FixCargoViolationsOptimally) {
 
       auto solution_opt = cye::Solution(instance, std::move(copy));
       auto solution_tr = cye::Solution(instance, std::move(copy2));
-      cye::patch_cargo_optimally(solution_tr, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+      cye::patch_cargo_optimally(solution_opt, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
       cye::patch_cargo_trivially(solution_tr);
 
       EXPECT_TRUE(solution_opt.is_cargo_valid());

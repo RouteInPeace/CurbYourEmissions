@@ -17,15 +17,13 @@ class PatchableVector;
 template <typename T>
 class Patch {
  public:
-  inline auto add_change(size_t ind, T &&value) {
-    assert(changes_.size() == 0 || changes_.back().ind <= ind);
-    changes_.emplace_back(ind, std::move(value));
-  }
+  inline auto add_change(size_t ind, T &&value) { changes_.emplace_back(ind, std::move(value)); }
 
-  inline auto add_change(size_t ind, T const &value) {
-    assert(changes_.size() == 0 || changes_.back().ind <= ind);
-    changes_.emplace_back(ind, value);
-  }
+  inline auto add_change(size_t ind, T const &value) { changes_.emplace_back(ind, value); }
+
+  inline auto reverse() { std::ranges::reverse(changes_); }
+
+  inline auto sort() { std::ranges::stable_sort(changes_); }
 
   [[nodiscard]] inline auto size() const { return changes_.size(); }
 
@@ -47,7 +45,16 @@ class PatchableVector {
   PatchableVector(std::initializer_list<T> init) : base_(init) {}
   PatchableVector(std::vector<T> &&base) : base_(std::move(base)) {}
 
-  inline auto add_patch(Patch<T> &&patch) { patches_.push_back(std::move(patch)); }
+  inline auto add_patch(Patch<T> &&patch) {
+#ifndef NDEBUG
+    for (auto i = 1UZ; i < patch.changes_.size(); ++i) {
+      assert(patch.changes_[i - 1].ind <= patch.changes_[i].ind);
+    }
+#endif
+
+    patches_.push_back(std::move(patch));
+  }
+
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
   inline auto base() { return std::span(base_); }

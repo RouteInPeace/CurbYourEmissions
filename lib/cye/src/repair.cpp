@@ -82,16 +82,15 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
 
   // Trace back through the table
   auto patch = Patch<size_t>();
-  auto offset = 0UZ;
-  for (auto j = 1UZ; j < visited_node_cnt; ++j) {
+  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
     // Check if we detoured to the depot
     if (dp[ind][j].inserted) {
-      patch.add_change(j + offset, instance.depot_id());
-      ++offset;
+      patch.add_change(j, instance.depot_id());
     }
     ind = dp[ind][j].prev;
   }
 
+  patch.reverse();
   solution.routes().add_patch(std::move(patch));
 }
 
@@ -100,13 +99,11 @@ auto cye::patch_cargo_trivially(Solution &solution) -> void {
   auto cargo_capacity = instance.cargo_capacity();
 
   auto patch = Patch<size_t>();
-  auto offset = 0UZ;
   auto i = 0UZ;
   for (auto node_id : solution.routes()) {
     cargo_capacity -= instance.demand(node_id);
     if (cargo_capacity < 0) {
-      patch.add_change(i + offset, instance.depot_id());
-      ++offset;
+      patch.add_change(i, instance.depot_id());
       cargo_capacity = instance.cargo_capacity() - instance.demand(node_id);
     }
 
@@ -420,18 +417,18 @@ struct Insertion {
 };
 
 auto get_customers_with_endpoints(cye::Solution const &solution) -> cye::Solution {
-    auto customers = std::vector<size_t>();
-    auto &instance = solution.instance();
-    customers.reserve(instance.customer_cnt() + 2);
-    customers.emplace_back(instance.depot_id());
-    for (auto id : solution.routes()) {
-      if (instance.is_customer(id)) {
-        customers.emplace_back(id);
-      }
+  auto customers = std::vector<size_t>();
+  auto &instance = solution.instance();
+  customers.reserve(instance.customer_cnt() + 2);
+  customers.emplace_back(instance.depot_id());
+  for (auto id : solution.routes()) {
+    if (instance.is_customer(id)) {
+      customers.emplace_back(id);
     }
-    customers.emplace_back(instance.depot_id());
-    return cye::Solution(solution.instance_ptr(), std::move(customers));
   }
+  customers.emplace_back(instance.depot_id());
+  return cye::Solution(solution.instance_ptr(), std::move(customers));
+}
 
 auto reorder_solution(cye::Solution &solution) -> cye::Solution {
   auto new_solution = get_customers_with_endpoints(solution);
