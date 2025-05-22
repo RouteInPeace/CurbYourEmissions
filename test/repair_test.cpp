@@ -90,6 +90,7 @@ TEST(Repair, PatchEnergyTrivially) {
       auto solution = cye::Solution(instance, std::move(copy));
       cye::patch_cargo_trivially(solution);
       cye::patch_energy_trivially(solution);
+
       EXPECT_TRUE(solution.is_valid());
     }
   }
@@ -129,3 +130,4 @@ TEST(Repair, PatchEnergyOptimally) {
     }
   }
 }
+

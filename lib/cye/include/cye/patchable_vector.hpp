@@ -17,6 +17,11 @@ class PatchableVector;
 template <typename T>
 class Patch {
  public:
+  struct Change {
+    size_t ind;
+    T value;
+  };
+
   inline auto add_change(size_t ind, T &&value) { changes_.emplace_back(ind, std::move(value)); }
 
   inline auto add_change(size_t ind, T const &value) { changes_.emplace_back(ind, value); }
@@ -27,15 +32,13 @@ class Patch {
 
   [[nodiscard]] inline auto size() const { return changes_.size(); }
 
+  [[nodiscard]] inline auto back() const { return changes_.back(); }
+  [[nodiscard]] inline auto empty() const { return changes_.empty(); }
+
   friend PatchableVector<T>;
 
  private:
-  struct Change_ {
-    size_t ind;
-    T value;
-  };
-
-  std::vector<Change_> changes_;
+  std::vector<Change> changes_;
 };
 
 template <typename T>

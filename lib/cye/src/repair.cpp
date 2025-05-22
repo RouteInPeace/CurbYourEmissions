@@ -145,7 +145,7 @@ auto cye::patch_energy_trivially(Solution &solution) -> void {
   auto previous_node_id = *solution.routes().begin();
   auto patch = Patch<size_t>();
   auto i = 1UZ;
-  for (auto it = ++solution.routes().begin(); it != solution.routes().end(); ++it) {
+  for (auto it = ++solution.routes().begin(); it != solution.routes().end();) {
     auto current_node_id = *it;
 
     if (energy < instance.energy_required(previous_node_id, current_node_id)) {
@@ -154,25 +154,31 @@ auto cye::patch_energy_trivially(Solution &solution) -> void {
         i -= 1;
         --it;
         current_node_id = previous_node_id;
-        auto tmp_it = it;
-        previous_node_id = *(--tmp_it);
-        assert(i > 0);
+        
+        if(!patch.empty() && i == patch.back().ind) {
+          previous_node_id = patch.back().value;
+        } else {
+          auto tmp_it = it;
+          previous_node_id = *(--tmp_it);
+        }
+
         energy += instance.energy_required(previous_node_id, current_node_id);
         charging_station_id = find_charging_station(instance, previous_node_id, current_node_id, energy);
       }
 
       patch.add_change(i, *charging_station_id);
       energy = instance.battery_capacity();
+      previous_node_id = *charging_station_id;
     } else {
       if (current_node_id == instance.depot_id()) {
         energy = instance.battery_capacity();
       } else {
         energy -= instance.energy_required(previous_node_id, current_node_id);
       }
+      ++i;
+      ++it;
+      previous_node_id = current_node_id;
     }
-
-    ++i;
-    previous_node_id = current_node_id;
   }
 
   solution.routes().add_patch(std::move(patch));
