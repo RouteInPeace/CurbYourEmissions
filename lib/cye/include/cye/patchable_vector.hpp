@@ -47,8 +47,10 @@ class PatchableVector {
 
   inline auto add_patch(Patch<T> &&patch) {
 #ifndef NDEBUG
+    auto s = size();
     for (auto i = 1UZ; i < patch.changes_.size(); ++i) {
       assert(patch.changes_[i - 1].ind <= patch.changes_[i].ind);
+      assert(patch.changes_[i].ind <= s);
     }
 #endif
 

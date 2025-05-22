@@ -144,7 +144,6 @@ auto cye::patch_energy_trivially(Solution &solution) -> void {
   auto energy = instance.battery_capacity();
   auto previous_node_id = *solution.routes().begin();
   auto patch = Patch<size_t>();
-  auto offset = 0UZ;
   auto i = 1UZ;
   for (auto it = ++solution.routes().begin(); it != solution.routes().end(); ++it) {
     auto current_node_id = *it;
@@ -162,8 +161,7 @@ auto cye::patch_energy_trivially(Solution &solution) -> void {
         charging_station_id = find_charging_station(instance, previous_node_id, current_node_id, energy);
       }
 
-      patch.add_change(i + offset, *charging_station_id);
-      ++offset;
+      patch.add_change(i, *charging_station_id);
       energy = instance.battery_capacity();
     } else {
       if (current_node_id == instance.depot_id()) {
@@ -375,8 +373,7 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
 
   // Trace back through the table
   auto patch = Patch<size_t>();
-  auto offset = 0UZ;
-  for (auto j = 1UZ; j < visited_node_cnt; ++j) {
+  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
     if (dp[ind][j].entry_ind != no_cs) {
       auto entry_node_id = dp[ind][j].entry_ind == 0 ? instance_->depot_id()
                                                      : instance_->charging_station_ids()[dp[ind][j].entry_ind - 1];
@@ -384,26 +381,23 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
           dp[ind][j].exit_ind == 0 ? instance_->depot_id() : instance_->charging_station_ids()[dp[ind][j].exit_ind - 1];
 
       if (entry_node_id == exit_node_id) {
-        patch.add_change(j + offset, entry_node_id);
-        ++offset;
+        patch.add_change(j, entry_node_id);
       } else {
-        patch.add_change(j + offset, exit_node_id);
-        ++offset;
+        patch.add_change(j, exit_node_id);
 
         auto [cs_ids, _] = *find_between_(entry_node_id, exit_node_id);
         for (auto cs_id : cs_ids) {
-          patch.add_change(j + offset, cs_id);
-          ++offset;
+          patch.add_change(j, cs_id);
         }
 
-        patch.add_change(j + offset, entry_node_id);
-        ++offset;
+        patch.add_change(j, entry_node_id);
       }
     }
 
     ind = dp[ind][j].prev;
   }
 
+  patch.reverse();
   solution.routes().add_patch(std::move(patch));
 }
 

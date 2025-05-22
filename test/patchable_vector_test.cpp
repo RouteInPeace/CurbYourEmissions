@@ -176,7 +176,7 @@ TEST(PatchableVector, OnePatchStress) {
     auto copy = elements;
     auto patchable_vec = cye::PatchableVector<size_t>(std::move(copy));
 
-    auto insertion_dist = std::uniform_int_distribution(0UZ, element_cnt - 1UZ);
+    auto insertion_dist = std::uniform_int_distribution(0UZ, element_cnt);
     std::vector<std::pair<size_t, size_t>> changes;
     auto change_cnt = dist(gen);
 
@@ -243,7 +243,7 @@ TEST(PatchableVector, MultiplePatchStress) {
 
     auto patch_cnt = patch_cnt_dist(gen);
     for (auto p = 0UZ; p < patch_cnt; ++p) {
-      auto insertion_dist = std::uniform_int_distribution(0UZ, elements.size() - 1UZ);
+      auto insertion_dist = std::uniform_int_distribution(0UZ, elements.size());
       std::vector<std::pair<size_t, size_t>> changes;
       auto change_cnt = dist(gen);
 
@@ -418,7 +418,7 @@ TEST(PatchableVector, DecrementStress) {
 
     auto patch_cnt = patch_cnt_dist(gen);
     for (auto p = 0UZ; p < patch_cnt; ++p) {
-      auto insertion_dist = std::uniform_int_distribution(0UZ, elements.size() - 1UZ);
+      auto insertion_dist = std::uniform_int_distribution(0UZ, elements.size());
       std::vector<std::pair<size_t, size_t>> changes;
       auto change_cnt = dist(gen);
 
