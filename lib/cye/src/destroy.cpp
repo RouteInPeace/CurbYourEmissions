@@ -1,33 +1,32 @@
 #include "cye/destroy.hpp"
 
-#include <set>
+#include <random>
+#include "cye/solution.hpp"
 
 namespace cye {
 
-Solution random_destroy(Solution &&solution, alns::RandomEngine &gen) {
+Solution random_destroy(Solution &&solution, alns::RandomEngine &gen, double max_destroy_rate) {
   auto &instance = solution.instance();
 
-  std::uniform_int_distribution<int> dist(0, instance.customer_cnt() - 1);
-  int n_to_remove = dist(gen);
-  std::set<size_t> removed_ids;
+  auto dist = std::uniform_real_distribution(0.0, 1.0);
+  auto destroy_rate_dist = std::uniform_real_distribution(0.0, max_destroy_rate);
+  auto destroy_rate = destroy_rate_dist(gen);
 
-  auto customer_ids = std::ranges::to<std::vector<size_t>>(instance.customer_ids());
-  std::vector<size_t> unassigned;
-  std::sample(customer_ids.begin(), customer_ids.end(), std::back_inserter(unassigned), n_to_remove, gen);
-
-  removed_ids.insert(unassigned.begin(), unassigned.end());
-
-  auto &routes = solution.routes();
   std::vector<size_t> new_routes;
-  for (auto id : routes) {
-    if (removed_ids.find(id) == removed_ids.end()) {
-      new_routes.push_back(id);
+  std::vector<size_t> unassigned;
+  new_routes.push_back(instance.depot_id());
+  for (auto node_id : solution.routes()) {
+    if (instance.is_customer(node_id)) {
+      if (dist(gen) < destroy_rate) {
+        unassigned.push_back(node_id);
+      } else {
+        new_routes.push_back(node_id);
+      }
     }
   }
-  std::shuffle(unassigned.begin(), unassigned.end(), gen);
-  auto destroyed_solution =
-      cye::Solution(std::make_shared<Instance>(instance), std::move(new_routes), std::move(unassigned));
-  return destroyed_solution;
+  new_routes.push_back(instance.depot_id());
+
+  return cye::Solution(solution.instance_ptr(), std::move(new_routes), std::move(unassigned));
 }
 
 }  // namespace cye

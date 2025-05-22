@@ -17,25 +17,28 @@ class PatchableVector;
 template <typename T>
 class Patch {
  public:
-  inline auto add_change(size_t ind, T &&value) {
-    assert(changes_.size() == 0 || changes_.back().ind <= ind);
-    changes_.emplace_back(ind, std::move(value));
-  }
-
-  inline auto add_change(size_t ind, T const &value) {
-    assert(changes_.size() == 0 || changes_.back().ind <= ind);
-    changes_.emplace_back(ind, value);
-  }
-
-  friend PatchableVector<T>;
-
- private:
-  struct Change_ {
+  struct Change {
     size_t ind;
     T value;
   };
 
-  std::vector<Change_> changes_;
+  inline auto add_change(size_t ind, T &&value) { changes_.emplace_back(ind, std::move(value)); }
+
+  inline auto add_change(size_t ind, T const &value) { changes_.emplace_back(ind, value); }
+
+  inline auto reverse() { std::ranges::reverse(changes_); }
+
+  inline auto sort() { std::ranges::stable_sort(changes_); }
+
+  [[nodiscard]] inline auto size() const { return changes_.size(); }
+
+  [[nodiscard]] inline auto back() const { return changes_.back(); }
+  [[nodiscard]] inline auto empty() const { return changes_.empty(); }
+
+  friend PatchableVector<T>;
+
+ private:
+  std::vector<Change> changes_;
 };
 
 template <typename T>
@@ -45,10 +48,29 @@ class PatchableVector {
   PatchableVector(std::initializer_list<T> init) : base_(init) {}
   PatchableVector(std::vector<T> &&base) : base_(std::move(base)) {}
 
-  inline auto add_patch(Patch<T> &&patch) { patches_.push_back(std::move(patch)); }
+  inline auto add_patch(Patch<T> &&patch) {
+#ifndef NDEBUG
+    auto s = size();
+    for (auto i = 1UZ; i < patch.changes_.size(); ++i) {
+      assert(patch.changes_[i - 1].ind <= patch.changes_[i].ind);
+      assert(patch.changes_[i].ind <= s);
+    }
+#endif
+
+    patches_.push_back(std::move(patch));
+  }
+
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
   inline auto base() { return std::span(base_); }
+  [[nodiscard]] inline auto size() const {
+    auto size = base_.size();
+    for (const auto &patch : patches_) {
+      size += patch.size();
+    }
+
+    return size;
+  }
 
   template <typename V>
   class Iterator {
@@ -231,12 +253,12 @@ class PatchableVector {
 
   static_assert(std::bidirectional_iterator<Iterator<T>>);
 
-  auto begin() -> Iterator<T> {
+  [[nodiscard]] auto begin() -> Iterator<T> {
     return Iterator<T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ), std::vector<bool>(patches_.size(), false),
                        std::vector<size_t>(patches_.size(), 0UZ), &base_, &patches_);
   }
 
-  auto end() -> Iterator<T> {
+  [[nodiscard]] auto end() -> Iterator<T> {
     auto indices = std::vector<size_t>(patches_.size(), 0UZ);
     auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
 
@@ -250,13 +272,13 @@ class PatchableVector {
                        std::move(change_indices_), &base_, &patches_);
   }
 
-  auto begin() const -> Iterator<const T> {
+  [[nodiscard]] auto begin() const -> Iterator<const T> {
     return Iterator<const T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ),
                              std::vector<bool>(patches_.size(), false), std::vector<size_t>(patches_.size(), 0UZ),
                              &base_, &patches_);
   }
 
-  auto end() const -> Iterator<const T> {
+  [[nodiscard]] auto end() const -> Iterator<const T> {
     auto indices = std::vector<size_t>(patches_.size(), 0UZ);
     auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
 
@@ -269,6 +291,9 @@ class PatchableVector {
     return Iterator<const T>(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
                              std::move(change_indices_), &base_, &patches_);
   }
+
+  [[nodiscard]] auto rbegin() -> Iterator<T> { return --end(); }
+  [[nodiscard]] auto rbegin() const -> Iterator<const T> { return --end(); }
 
   auto squash() {
     auto new_base = std::vector<T>();
