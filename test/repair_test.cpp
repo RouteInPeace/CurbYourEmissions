@@ -136,7 +136,7 @@ TEST(Repair, PatchEnergyOptimally) {
 }
 
 TEST(Repair, GreedyRepair) {
-  std::mt19937 gen(8);
+  std::mt19937 gen(16);
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
