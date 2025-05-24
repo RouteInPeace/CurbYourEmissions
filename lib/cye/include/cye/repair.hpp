@@ -5,7 +5,7 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include "alns/random_engine.hpp"
+#include "meta/common.hpp"
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
 
@@ -16,9 +16,9 @@ auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 auto patch_endpoint_depots(Solution &solution) -> void;
 
-Solution greedy_repair(Solution &&solution, alns::RandomEngine &gen);
-Solution greedy_repair_best_first(Solution &&solution, alns::RandomEngine &gen);
-Solution regret_repair(Solution &&solution, alns::RandomEngine &gen, size_t k);
+Solution greedy_repair(Solution &&solution, meta::RandomEngine &gen);
+Solution greedy_repair_best_first(Solution &&solution, meta::RandomEngine &gen);
+Solution regret_repair(Solution &&solution, meta::RandomEngine &gen, size_t k);
 
 class OptimalEnergyRepair {
  public:

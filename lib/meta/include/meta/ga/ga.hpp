@@ -11,7 +11,7 @@
 #include "mutation.hpp"
 #include "selection.hpp"
 
-namespace meta {
+namespace meta::ga {
 
 template <Individual I>
 class GeneticAlgorithm {

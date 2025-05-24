@@ -1,9 +1,10 @@
 #pragma once
 
 #include <random>
-#include "common.hpp"
+#include "meta/ga/common.hpp"
+#include "meta/common.hpp"
 
-namespace meta {
+namespace meta::ga {
 
 template <Individual I>
 class MutationOperator {

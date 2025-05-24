@@ -1,20 +1,28 @@
 set(PROJECT_HEADERS 
-    include/meta/crossover.hpp
-    include/meta/ga.hpp
     include/meta/common.hpp
-    include/meta/mutation.hpp
-    include/meta/selection.hpp
-    include/meta/simulated_annealing.hpp
+
+    include/meta/ga/crossover.hpp
+    include/meta/ga/ga.hpp
+    include/meta/ga/common.hpp
+    include/meta/ga/mutation.hpp
+    include/meta/ga/selection.hpp
+
+    include/meta/sa/simulated_annealing.hpp
+
+    include/meta/alns/alns.hpp
+    include/meta/alns/operator_selection.hpp
+    include/meta/alns/acceptance_criterion.hpp
 )
 
-add_library(meta_lib INTERFACE)
+set(PROJECT_SOURCES 
+    src/alns/acceptance_criterion.cpp
+)
 
-target_compile_features(meta_lib INTERFACE cxx_std_23)
-
-target_compile_options(meta_lib INTERFACE -Wall -Wextra -Wpedantic)
-
+add_library(meta_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
+target_compile_options(meta_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
+target_link_libraries(meta_lib PUBLIC rapidjson)
 target_include_directories(meta_lib 
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> 
 )

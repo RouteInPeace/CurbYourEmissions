@@ -1,17 +1,15 @@
 #pragma once
 
 #include <functional>
-#include <iostream>
 #include <memory>
 #include <print>
-#include <random>
 #include <vector>
 
 #include "acceptance_criterion.hpp"
 #include "operator_selection.hpp"
-#include "random_engine.hpp"
+#include "meta/common.hpp"
 
-namespace alns {
+namespace meta::alns {
 
 template <typename Solution>
 struct Config {

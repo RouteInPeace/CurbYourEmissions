@@ -9,10 +9,10 @@
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
-#include "meta/crossover.hpp"
-#include "meta/ga.hpp"
-#include "meta/mutation.hpp"
-#include "meta/selection.hpp"
+#include "meta/ga/crossover.hpp"
+#include "meta/ga/ga.hpp"
+#include "meta/ga/mutation.hpp"
+#include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
 
 class EVRPIndividual {
@@ -66,11 +66,11 @@ auto main() -> int {
     population.emplace_back(instance, std::move(customers));
   }
 
-  auto crossover_operator = std::make_unique<meta::PMX<EVRPIndividual>>();
-  auto mutation_operator = std::make_unique<meta::TwoOpt<EVRPIndividual>>();
-  auto selection_operator = std::make_unique<meta::KWayTournamentSelectionOperator<EVRPIndividual>>(11);
+  auto crossover_operator = std::make_unique<meta::ga::PMX<EVRPIndividual>>();
+  auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
+  auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(11);
 
-  auto ga = meta::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(crossover_operator),
+  auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(crossover_operator),
                                                    std::move(mutation_operator), std::move(selection_operator),
                                                    max_iter, true);
 
