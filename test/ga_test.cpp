@@ -1,4 +1,4 @@
-#include "meta/ga.hpp"
+#include "meta/ga/ga.hpp"
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <array>
@@ -10,9 +10,9 @@
 #include <string_view>
 #include <utility>
 #include <vector>
-#include "meta/crossover.hpp"
-#include "meta/mutation.hpp"
-#include "meta/selection.hpp"
+#include "meta/ga/crossover.hpp"
+#include "meta/ga/mutation.hpp"
+#include "meta/ga/selection.hpp"
 
 class Dummy {
  public:
@@ -64,7 +64,7 @@ TEST(GA, KWayTournamentSelection) {
   auto re = std::mt19937(rd());
 
   auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
-  auto selection_operator = meta::KWayTournamentSelectionOperator<Dummy>(3);
+  auto selection_operator = meta::ga::KWayTournamentSelectionOperator<Dummy>(3);
 
   auto population = std::vector<Dummy>();
   for (auto i = 0UZ; i < 10000; i++) {
@@ -112,7 +112,7 @@ TEST(GA, PMXCrossoverBasic) {
   auto p2 = StringIndividual("cgeafhbd");
   auto expected = std::string("cghdefba");
 
-  auto crossover = meta::PMX<StringIndividual>();
+  auto crossover = meta::ga::PMX<StringIndividual>();
   auto child = crossover.crossover(re, p1, p2);
   EXPECT_EQ(child.get_genotype(), expected);
 }
@@ -125,7 +125,7 @@ TEST(GA, PMXCrossoverStress) {
   auto p2 = IntIndividual(1000UZ);
   std::ranges::shuffle(p2.get_mutable_genotype(), gen);
 
-  auto crossover = meta::PMX<IntIndividual>();
+  auto crossover = meta::ga::PMX<IntIndividual>();
 
   for (auto i = 0UZ; i < 1000UZ; ++i) {
     auto child = crossover.crossover(gen, p1, p2);
@@ -142,7 +142,7 @@ TEST(GA, TwoOptMutationSimple) {
   auto gen = std::mt19937(0);
 
   auto parent = StringIndividual("abcdefgh");
-  auto mutation = meta::TwoOpt<StringIndividual>();
+  auto mutation = meta::ga::TwoOpt<StringIndividual>();
 
   auto m1 = mutation.mutate(gen, std::move(parent));
   EXPECT_EQ(m1.get_genotype(), std::string("abcdefgh"));
@@ -159,7 +159,7 @@ TEST(GA, TwoOptMutationStress) {
   auto gen = std::mt19937(rd());
 
   auto parent = IntIndividual(1000UZ);
-  auto mutation = meta::TwoOpt<IntIndividual>();
+  auto mutation = meta::ga::TwoOpt<IntIndividual>();
 
   for (auto i = 0UZ; i < 1000UZ; ++i) {
     auto copy = parent;
@@ -198,10 +198,10 @@ TEST(GA, BasicRegression) {
     population.emplace_back(&dataset, dist(re), dist(re), dist(re));
   }
 
-  auto ga = meta::GeneticAlgorithm<QuadraticEquation>(
-      std::move(population), std::make_unique<meta::BLXAlpha<QuadraticEquation>>(0.f),
-      std::make_unique<meta::GaussianMutation<QuadraticEquation>>(0.02),
-      std::make_unique<meta::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
+  auto ga = meta::ga::GeneticAlgorithm<QuadraticEquation>(
+      std::move(population), std::make_unique<meta::ga::BLXAlpha<QuadraticEquation>>(0.f),
+      std::make_unique<meta::ga::GaussianMutation<QuadraticEquation>>(0.02),
+      std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
 
   ga.optimize(re);
   auto &best = ga.best_individual();

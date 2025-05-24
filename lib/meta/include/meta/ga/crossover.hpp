@@ -5,8 +5,9 @@
 #include <ranges>
 #include <unordered_map>
 #include "common.hpp"
+#include "meta/common.hpp"
 
-namespace meta {
+namespace meta::ga {
 
 template <Individual I>
 class CrossoverOperator {

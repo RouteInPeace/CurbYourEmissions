@@ -478,7 +478,7 @@ auto find_all_insertions(cye::Solution &solution, size_t unassigned_id) -> std::
 
 }  // namespace
 
-cye::Solution cye::greedy_repair(Solution &&solution, alns::RandomEngine &gen) {
+cye::Solution cye::greedy_repair(Solution &&solution, meta::RandomEngine &gen) {
   auto &unassigned_ids = solution.unassigned_customers();
   std::ranges::shuffle(unassigned_ids, gen);
 
@@ -493,7 +493,7 @@ cye::Solution cye::greedy_repair(Solution &&solution, alns::RandomEngine &gen) {
   return solution;
 }
 
-cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::RandomEngine & /* gen */) {
+cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, meta::RandomEngine & /* gen */) {
   std::unordered_set<size_t> unassigned_ids{solution.unassigned_customers().begin(),
                                             solution.unassigned_customers().end()};
 
@@ -518,7 +518,7 @@ cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, alns::Rand
   return solution;
 }
 
-cye::Solution cye::regret_repair(cye::Solution &&solution, alns::RandomEngine &gen, size_t k) {
+cye::Solution cye::regret_repair(cye::Solution &&solution, meta::RandomEngine &gen, size_t k) {
   assert(k >= 2);
   std::uniform_int_distribution dist(2UZ, k);
   auto k_regret = dist(gen);

@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <tuple>
 
-#include "random_engine.hpp"
+#include "meta/common.hpp"
 
-namespace alns {
+namespace meta::alns {
 
 class OperatorSelection {
  public:

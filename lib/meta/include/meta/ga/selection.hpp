@@ -5,9 +5,10 @@
 #include <set>
 #include <span>
 #include <tuple>
-#include "common.hpp"
+#include "meta/common.hpp"
+#include "meta/ga/common.hpp"
 
-namespace meta {
+namespace meta::ga {
 
 template <typename I>
 class SelectionOperator {

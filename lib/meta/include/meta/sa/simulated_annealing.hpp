@@ -3,8 +3,10 @@
 #include <functional>
 #include <optional>
 #include <print>
-#include "common.hpp"
-namespace meta {
+#include <random>
+#include "meta/common.hpp"
+
+namespace meta::sa {
 
 template <typename Solution>
 struct Config {
@@ -70,4 +72,4 @@ auto optimize(RandomEngine &gen, Config<Solution> const &config) -> Solution {
   return best_solution;
 }
 
-}  // namespace meta
+}  // namespace meta::sa

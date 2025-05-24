@@ -23,7 +23,7 @@ set(PROJECT_SOURCES
 
 add_library(${PROJECT_NAME}_lib STATIC ${PROJECT_SOURCES} ${PROJECT_HEADERS})
 target_compile_options(${PROJECT_NAME}_lib PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-target_link_libraries(${PROJECT_NAME}_lib PRIVATE Eigen3::Eigen serial_lib alns_lib)
+target_link_libraries(${PROJECT_NAME}_lib PRIVATE Eigen3::Eigen serial_lib meta_lib)
 target_include_directories(${PROJECT_NAME}_lib 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include
             ${CMAKE_SOURCE_DIR}/lib/serial/include 

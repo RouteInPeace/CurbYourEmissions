@@ -5,7 +5,7 @@
 
 namespace cye {
 
-Solution random_destroy(Solution &&solution, alns::RandomEngine &gen, double max_destroy_rate) {
+Solution random_destroy(Solution &&solution, meta::RandomEngine &gen, double max_destroy_rate) {
   auto &instance = solution.instance();
 
   auto dist = std::uniform_real_distribution(0.0, 1.0);
