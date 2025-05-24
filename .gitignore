@@ -1,4 +1,5 @@
-.vscode
-build
-.cache
-.venv
+.vscode/
+build/
+.cache/
+.venv/
+perf.*
