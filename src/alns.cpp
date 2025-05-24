@@ -26,13 +26,19 @@ auto main() -> int {
   meta::alns::Config<cye::Solution> config(cye::nearest_neighbor(instance));
   config.acceptance_criterion = std::make_unique<meta::alns::HillClimbingCriterion>();
   config.operator_selection = std::make_unique<meta::alns::RandomOperatorSelection>();
-  config.destroy_operators = {[](cye::Solution &&solution, meta::RandomEngine &gen) {
-    return cye::random_destroy(std::move(solution), gen, 0.8);
-  }};
+  config.destroy_operators = {
+    [](cye::Solution &&solution, meta::RandomEngine &gen) {
+      return cye::random_destroy(std::move(solution), gen, 0.8);
+    }
+  //,[](cye::Solution &&solution, meta::RandomEngine &gen) {
+  //  return cye::random_range_destroy(std::move(solution), gen, 0.8);
+  //}
+  };
   config.repair_operators = {
       [](cye::Solution &&solution, meta::RandomEngine &gen) { return cye::regret_repair(std::move(solution), gen, 2); },
+      cye::greedy_repair_best_first
   };
-  config.max_iterations = 10000;
+  config.max_iterations = 50000;
   config.verbose = true;
 
   auto solution = meta::alns::optimize(config, gen);
