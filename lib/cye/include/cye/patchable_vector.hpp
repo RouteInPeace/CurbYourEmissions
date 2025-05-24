@@ -63,6 +63,7 @@ class PatchableVector {
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
   inline auto base() { return std::span(base_); }
+  inline auto base() const { return std::span(base_); }
   [[nodiscard]] auto size() const {
     auto size = base_.size();
     for (const auto &patch : patches_) {

@@ -5,14 +5,17 @@
 #include <vector>
 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes)
-    : instance_(instance), routes_(std::move(routes)) {}
+    : instance_(instance), routes_(std::move(routes)), cost_valid_(false) {}
 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, PatchableVector<size_t> &&routes)
-    : instance_(instance), routes_(routes) {}
+    : instance_(instance), routes_(routes), cost_valid_(false) {}
 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
                         std::vector<size_t> &&unassigned_customers)
-    : instance_(instance), routes_(std::move(routes)), unassigned_customers_(std::move(unassigned_customers)) {}
+    : instance_(instance),
+      routes_(std::move(routes)),
+      unassigned_customers_(std::move(unassigned_customers)),
+      cost_valid_(false) {}
 
 auto cye::Solution::is_cargo_valid() const -> bool {
   auto cargo = instance_->cargo_capacity();
@@ -83,13 +86,21 @@ auto cye::Solution::is_valid() const -> bool {
   return is_energy_and_cargo_valid();
 }
 
-auto cye::Solution::get_cost() const -> double {
-  auto cost = 0.0;
+auto cye::Solution::cost() -> float {
+  if (!cost_valid_) {
+    update_cost_();
+  }
+
+  return cost_;
+}
+
+auto cye::Solution::update_cost_() -> void {
+  cost_ = 0.f;
   auto previous_node_id = *routes_.begin();
   for (auto it = ++routes_.begin(); it != routes_.end(); ++it) {
     auto current_node_id = *it;
-    cost += instance_->distance(previous_node_id, current_node_id);
+    cost_ += instance_->distance(previous_node_id, current_node_id);
     previous_node_id = current_node_id;
   }
-  return cost;
+  cost_valid_ = true;
 }

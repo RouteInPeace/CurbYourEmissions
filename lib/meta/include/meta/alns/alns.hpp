@@ -35,13 +35,13 @@ auto optimize(Config<Solution> const &config, RandomEngine &gen) -> Solution {
   for (size_t i = 0; i < config.max_iterations; ++i) {
     auto [destroy_operator_id, repair_operator_id] = config.operator_selection->select_operators(gen);
 
-    auto old_cost = current_solution.get_cost();
+    auto old_cost = current_solution.cost();
 
     auto destroyed_solution = config.destroy_operators[destroy_operator_id](std::move(current_solution), gen);
     auto repaired_solution = config.repair_operators[repair_operator_id](std::move(destroyed_solution), gen);
 
-    auto new_cost = repaired_solution.get_cost();
-    auto best_cost = best_solution.get_cost();
+    auto new_cost = repaired_solution.cost();
+    auto best_cost = best_solution.cost();
 
     if (config.acceptance_criterion->accept(new_cost, old_cost, best_cost, gen)) {
       if (new_cost < best_cost) {
@@ -52,8 +52,8 @@ auto optimize(Config<Solution> const &config, RandomEngine &gen) -> Solution {
     config.operator_selection->update(new_cost, old_cost, best_cost);
 
     if (config.verbose && i % 100 == 0) {
-      std::println("Iteration: {}, Current cost: {}, Best const: {}", i, current_solution.get_cost(),
-                   best_solution.get_cost());
+      std::println("Iteration: {}, Current cost: {}, Best const: {}", i, current_solution.cost(),
+                   best_solution.cost());
     }
   }
 

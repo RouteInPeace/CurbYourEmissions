@@ -34,6 +34,8 @@ class Instance {
   [[nodiscard]] inline auto is_customer(size_t ind) const { return ind > 0 && ind <= customer_cnt_; }
 
  private:
+  auto update_distance_cache_() -> void;
+
   std::string name_;
   float optimal_value_;
   size_t minimum_route_cnt_;
@@ -44,6 +46,7 @@ class Instance {
   size_t charging_station_cnt_;
 
   std::vector<Node> nodes_;
+  std::vector<float> distance_cache_;
 };
 
 template <serial::Value V>
@@ -59,6 +62,7 @@ Instance::Instance(V &&value)
       nodes_(value["nodes"].template get<std::vector<Node>>()) {
   std::ranges::sort(nodes_,
                     [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
+  update_distance_cache_();
 }
 
 }  // namespace cye

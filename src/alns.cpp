@@ -36,7 +36,7 @@ auto main() -> int {
   config.verbose = true;
 
   auto solution = meta::alns::optimize(config, gen);
-  std::cout << "Best cost: " << solution.get_cost() << '\n';
+  std::cout << "Best cost: " << solution.cost() << '\n';
 
   return 0;
 }

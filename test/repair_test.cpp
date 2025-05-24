@@ -66,7 +66,7 @@ TEST(Repair, PatchCargoOptimally) {
       EXPECT_TRUE(solution_opt.is_cargo_valid());
       EXPECT_TRUE(solution_tr.is_cargo_valid());
 
-      EXPECT_LE(solution_opt.get_cost(), solution_tr.get_cost());
+      EXPECT_LE(solution_opt.cost(), solution_tr.cost());
     }
   }
 }
