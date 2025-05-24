@@ -129,7 +129,7 @@ auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_
     if (station_id == node1_id || station_id == node2_id) continue;
     if (remaining_battery < instance.energy_required(node1_id, station_id)) continue;
 
-    auto distance = instance.distance(node1_id, station_id) + instance.distance(station_id, node2_id);
+    auto distance =  + instance.distance(station_id, node2_id);
     if (distance < min_distance) {
       min_distance = distance;
       best_station_id = station_id;
@@ -426,7 +426,7 @@ auto insert_customer(cye::Solution &solution, size_t insertion_ind, size_t custo
   auto patch = cye::Patch<size_t>{};
   patch.add_change(insertion_ind, customer_id);
   solution.add_patch(std::move(patch));
-  solution.routes().squash();
+  solution.squash();
 }
 
 auto find_best_insertion(cye::Solution &solution, size_t unassigned_id) -> std::pair<size_t, float> {
@@ -439,13 +439,13 @@ auto find_best_insertion(cye::Solution &solution, size_t unassigned_id) -> std::
     solution.add_patch(std::move(patch));
     reorder_solution(solution);
 
-    auto cost = solution.get_cost();
+    auto cost = solution.cost();
     if (cost < best_cost) {
       best_cost = cost;
       best_ind = j;
     }
 
-    solution.routes().clear_patches();
+    solution.clear_patches();
   }
 
   return {best_ind, best_cost};
@@ -468,9 +468,9 @@ auto find_all_insertions(cye::Solution &solution, size_t unassigned_id) -> std::
     solution.add_patch(std::move(patch));
     reorder_solution(solution);
 
-    auto cost = solution.get_cost();
+    auto cost = solution.cost();
     insertions.emplace_back(j, unassigned_id, cost);
-    solution.routes().clear_patches();
+    solution.clear_patches();
   }
 
   return insertions;

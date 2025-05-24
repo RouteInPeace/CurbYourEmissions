@@ -1,12 +1,5 @@
-
-#include <algorithm>
-#include <cassert>
-#include <cstddef>
-#include <iostream>
-#include <memory>
-#include <ranges>
-#include <vector>
-
+#include <benchmark/benchmark.h>
+#include <random>
 #include "meta/alns/acceptance_criterion.hpp"
 #include "meta/alns/alns.hpp"
 #include "cye/destroy.hpp"
@@ -16,9 +9,10 @@
 #include "cye/solution.hpp"
 #include "serial/json_archive.hpp"
 
-auto main() -> int {
-  auto rd = std::random_device();
-  auto gen = std::mt19937(rd());
+// Current best on dataset/json/E-n22-k4.json 135 ms
+
+static void BM_Alns(benchmark::State &state) {
+  auto gen = std::mt19937(0);
 
   auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
@@ -32,11 +26,13 @@ auto main() -> int {
   config.repair_operators = {
       [](cye::Solution &&solution, meta::RandomEngine &gen) { return cye::regret_repair(std::move(solution), gen, 2); },
   };
-  config.max_iterations = 10000;
-  config.verbose = true;
+  config.max_iterations = 100;
+  config.verbose = false;
 
-  auto solution = meta::alns::optimize(config, gen);
-  std::cout << "Best cost: " << solution.cost() << '\n';
-
-  return 0;
+  for (auto _ : state) {
+    auto solution = meta::alns::optimize(config, gen);
+    benchmark::DoNotOptimize(solution);
+  }
 }
+
+BENCHMARK(BM_Alns)->Unit(benchmark::kMillisecond);;

@@ -63,6 +63,7 @@ class PatchableVector {
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
   inline auto base() { return std::span(base_); }
+  inline auto base() const { return std::span(base_); }
   [[nodiscard]] auto size() const {
     auto size = base_.size();
     for (const auto &patch : patches_) {
@@ -90,10 +91,16 @@ class PatchableVector {
         typename std::conditional<std::is_const_v<V>, const std::vector<Patch<std::remove_const_t<V>>> *,
                                   std::vector<Patch<std::remove_const_t<V>>> *>::type;
 
+    struct PatchInfo {
+      size_t index;         // The curent index on each level.
+      size_t change_index;  // Index of the next change to apply in a patch
+      bool started;  // Did we start iteration on that level? This is needed when the patch inserts at position 0.
+    };
+
     Iterator();
 
-    Iterator(size_t base_ind, bool started_base, std::vector<size_t> &&indices, std::vector<bool> &&started,
-             std::vector<size_t> &&change_indices, BaseVecPtr base, PatchVecPtr patches);
+    Iterator(size_t base_ind, bool started_base, std::vector<PatchInfo> &&patch_info, BaseVecPtr base,
+             PatchVecPtr patches);
 
     auto operator*() const -> reference { return *current_value_; }
     auto operator->() const -> pointer { return current_value_; }
@@ -114,12 +121,12 @@ class PatchableVector {
     friend auto operator==(Sentinel, const Iterator &a) { return a.current_value_ == nullptr; }
 
    private:
-    auto patch_size_(size_t i) const { return (*patches_)[i].changes_.size(); }
-    auto reached_end_of_patch_(size_t i) const { return change_indices_[i] >= patch_size_(i); }
-    auto &change_(size_t i) const { return (*patches_)[i].changes_[change_indices_[i]]; }
-    auto &prev_change_(size_t i) const { return (*patches_)[i].changes_[change_indices_[i] - 1UZ]; }
-    auto predecessor_ind_(size_t i) { return i == 0 ? base_ind_ : indices_[i - 1UZ]; }
-    auto predecessor_started_(size_t i) -> bool { return i == 0 ? started_base_ : started_[i - 1UZ]; }
+    inline auto patch_size_(size_t i) const { return (*patches_)[i].changes_.size(); }
+    inline auto reached_end_of_patch_(size_t i) const { return patch_info_[i].change_index >= patch_size_(i); }
+    inline auto &change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index]; }
+    inline auto &prev_change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index - 1UZ]; }
+    inline auto predecessor_ind_(size_t i) { return i == 0 ? base_ind_ : patch_info_[i - 1UZ].index; }
+    inline auto predecessor_started_(size_t i) -> bool { return i == 0 ? started_base_ : patch_info_[i - 1UZ].started; }
     auto find_prev_value_() -> pointer;
 
     V *current_value_;
@@ -127,10 +134,7 @@ class PatchableVector {
     size_t base_ind_;
     bool started_base_;
 
-    std::vector<size_t> indices_;  // The curent index on each level.
-    std::vector<bool>
-        started_;  // Did we start iteration on that level? This is needed when the patch inserts at position 0.
-    std::vector<size_t> change_indices_;  // Index of the next change to apply in a patch
+    std::vector<PatchInfo> patch_info_;
 
     BaseVecPtr base_;
     PatchVecPtr patches_;
@@ -142,13 +146,16 @@ class PatchableVector {
   static_assert(std::sentinel_for<Sentinel, Iterator<const T>>);
 
   [[nodiscard]] auto begin() -> Iterator<T> {
-    return Iterator<T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ), std::vector<bool>(patches_.size(), false),
-                       std::vector<size_t>(patches_.size(), 0UZ), &base_, &patches_);
+    return Iterator<T>(
+        0UZ, false,
+        std::vector<typename Iterator<T>::PatchInfo>(patches_.size(), typename Iterator<T>::PatchInfo{0, 0, false}),
+        &base_, &patches_);
   }
 
   [[nodiscard]] auto begin() const -> Iterator<const T> {
-    return Iterator<const T>(0UZ, false, std::vector<size_t>(patches_.size(), 0UZ),
-                             std::vector<bool>(patches_.size(), false), std::vector<size_t>(patches_.size(), 0UZ),
+    return Iterator<const T>(0UZ, false,
+                             std::vector<typename Iterator<const T>::PatchInfo>(
+                                 patches_.size(), typename Iterator<const T>::PatchInfo{0, 0, false}),
                              &base_, &patches_);
   }
 
@@ -156,30 +163,28 @@ class PatchableVector {
   [[nodiscard]] auto end() const -> Sentinel { return {}; }
 
   [[nodiscard]] auto rbegin() -> Iterator<T> {
-    auto indices = std::vector<size_t>(patches_.size(), 0UZ);
-    auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
+    auto patch_info = std::vector<typename Iterator<const T>::PatchInfo>(patches_.size());
 
     for (auto i = 0UZ; i < patches_.size(); ++i) {
-      indices[i] = i == 0 ? base_.size() : indices[i - 1];
-      indices[i] += patches_[i].changes_.size();
-      change_indices_[i] = patches_[i].changes_.size();
+      patch_info[i].index = i == 0 ? base_.size() : patch_info[i - 1].index;
+      patch_info[i].index+= patches_[i].changes_.size();
+      patch_info[i].change_index = patches_[i].changes_.size();
+      patch_info[i].started = true;
     }
 
-    return --Iterator<T>(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
-                         std::move(change_indices_), &base_, &patches_);
+    return --Iterator<const T>(base_.size(), true, std::move(patch_info), &base_, &patches_);
   }
   [[nodiscard]] auto rbegin() const -> Iterator<const T> {
-    auto indices = std::vector<size_t>(patches_.size(), 0UZ);
-    auto change_indices_ = std::vector<size_t>(patches_.size(), 0UZ);
+    auto patch_info = std::vector<typename Iterator<const T>::PatchInfo>(patches_.size());
 
     for (auto i = 0UZ; i < patches_.size(); ++i) {
-      indices[i] = i == 0 ? base_.size() : indices[i - 1];
-      indices[i] += patches_[i].changes_.size();
-      change_indices_[i] = patches_[i].changes_.size();
+      patch_info[i].index = i == 0 ? base_.size() : patch_info[i - 1].index;
+      patch_info[i].index+= patches_[i].changes_.size();
+      patch_info[i].change_index = patches_[i].changes_.size();
+      patch_info[i].started = true;
     }
 
-    return --Iterator<const T>(base_.size(), true, std::move(indices), std::vector<bool>(patches_.size(), true),
-                               std::move(change_indices_), &base_, &patches_);
+    return --Iterator<const T>(base_.size(), true, std::move(patch_info), &base_, &patches_);
   }
 
   auto squash() {
@@ -211,27 +216,24 @@ PatchableVector<T>::Iterator<V>::Iterator()
 
 template <typename T>
 template <typename V>
-PatchableVector<T>::Iterator<V>::Iterator(size_t base_ind, bool started_base, std::vector<size_t> &&indices,
-                                          std::vector<bool> &&started, std::vector<size_t> &&change_indices,
+PatchableVector<T>::Iterator<V>::Iterator(size_t base_ind, bool started_base, std::vector<PatchInfo> &&patch_info,
                                           BaseVecPtr base, PatchVecPtr patches)
     : current_value_(nullptr),
       base_ind_(base_ind),
       started_base_(started_base),
-      indices_(std::move(indices)),
-      started_(std::move(started)),
-      change_indices_(std::move(change_indices)),
+      patch_info_(patch_info),
       base_(base),
       patches_(patches) {
   if (patches->size() > 0) {
     for (auto i = patches_->size(); i-- > 0;) {
-      started_[i] = true;
-      if (change_indices_[i] > 0 && prev_change_(i).ind == indices_[i]) {
+      patch_info_[i].started = true;
+      if (patch_info_[i].change_index > 0 && prev_change_(i).ind == patch_info_[i].index) {
         current_value_ = &prev_change_(i).value;
         return;
       }
-      if (!reached_end_of_patch_(i) && change_(i).ind == indices_[i]) {
+      if (!reached_end_of_patch_(i) && change_(i).ind == patch_info_[i].index) {
         current_value_ = &change_(i).value;
-        change_indices_[i]++;
+        patch_info_[i].change_index++;
         return;
       }
     }
@@ -250,15 +252,15 @@ template <typename V>
 auto PatchableVector<T>::Iterator<V>::operator++() -> Iterator<V> & {
   if (patches_->size() > 0) {
     for (auto i = patches_->size(); i-- > 0;) {
-      if (!started_[i]) {
-        started_[i] = true;
+      if (!patch_info_[i].started) {
+        patch_info_[i].started = true;
       } else {
-        indices_[i]++;
+        patch_info_[i].index++;
       }
       if (!reached_end_of_patch_(i) &&
           (change_(i).ind == 0 || (predecessor_started_(i) && change_(i).ind - 1UZ == predecessor_ind_(i)))) {
         current_value_ = &change_(i).value;
-        change_indices_[i]++;
+        patch_info_[i].change_index++;
         return *this;
       }
     }
@@ -283,12 +285,12 @@ template <typename V>
 auto PatchableVector<T>::Iterator<V>::operator--() -> Iterator<V> & {
   if (patches_->size() > 0) {
     for (auto i = patches_->size(); i-- > 0;) {
-      if (indices_[i] == 0) {
+      if (patch_info_[i].index == 0) {
         started_base_ = false;
         for (auto j = i + 1UZ; j-- > 0;) {
-          started_[j] = false;
-          if (change_indices_[j] > 0) {
-            change_indices_[j]--;
+          patch_info_[j].started = false;
+          if (patch_info_[j].change_index > 0) {
+            patch_info_[j].change_index--;
             current_value_ = find_prev_value_();
             return *this;
           }
@@ -296,14 +298,14 @@ auto PatchableVector<T>::Iterator<V>::operator--() -> Iterator<V> & {
         break;
       }
 
-      indices_[i]--;
+      patch_info_[i].index--;
 
-      if (change_indices_[i] > 0 && &prev_change_(i).value == current_value_) {
+      if (patch_info_[i].change_index > 0 && &prev_change_(i).value == current_value_) {
         if (prev_change_(i).ind == 0) {
           started_base_ = false;
-          for (auto j = 0UZ; j < i; ++j) started_[j] = false;
+          for (auto j = 0UZ; j < i; ++j) patch_info_[j].started = false;
         }
-        change_indices_[i]--;
+        patch_info_[i].change_index--;
         current_value_ = find_prev_value_();
         return *this;
       }
@@ -341,7 +343,8 @@ template <typename T>
 template <typename V>
 auto PatchableVector<T>::Iterator<V>::find_prev_value_() -> pointer {
   for (auto i = patches_->size(); i-- > 0;) {
-    if (!predecessor_started_(i) || (change_indices_[i] > 0 && predecessor_ind_(i) + 1UZ == prev_change_(i).ind)) {
+    if (!predecessor_started_(i) ||
+        (patch_info_[i].change_index > 0 && predecessor_ind_(i) + 1UZ == prev_change_(i).ind)) {
       return &prev_change_(i).value;
     }
   }

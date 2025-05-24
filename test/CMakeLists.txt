@@ -19,6 +19,7 @@ add_executable(${PROJECT_NAME}_test
   ga_test.cpp
   repair_test.cpp
   patchable_vector_test.cpp
+  instance_test.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

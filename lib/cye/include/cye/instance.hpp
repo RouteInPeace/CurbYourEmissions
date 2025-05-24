@@ -22,7 +22,15 @@ class Instance {
   [[nodiscard]] constexpr inline auto depot_id() const -> size_t { return 0UZ; }
   [[nodiscard]] inline auto cargo_capacity() const { return cargo_capacity_; }
   [[nodiscard]] inline auto battery_capacity() const { return battery_capacity_; }
-  [[nodiscard]] auto distance(size_t node1_id, size_t node2_id) const -> float;
+  [[nodiscard]] inline auto distance(size_t node1_id, size_t node2_id) const -> float {
+    if (node1_id == node2_id) [[unlikely]] {
+      return 0.f;
+    }
+    if (node1_id > node2_id) std::swap(node1_id, node2_id);
+
+    auto ind = node2_id * (node2_id + 1) / 2 + node1_id;
+    return distance_cache_[ind];
+  }
   [[nodiscard]] inline auto energy_required(size_t node1_id, size_t node2_id) const {
     return energy_consumption_ * distance(node1_id, node2_id);
   }
@@ -34,6 +42,8 @@ class Instance {
   [[nodiscard]] inline auto is_customer(size_t ind) const { return ind > 0 && ind <= customer_cnt_; }
 
  private:
+  auto update_distance_cache_() -> void;
+
   std::string name_;
   float optimal_value_;
   size_t minimum_route_cnt_;
@@ -44,6 +54,7 @@ class Instance {
   size_t charging_station_cnt_;
 
   std::vector<Node> nodes_;
+  std::vector<float> distance_cache_;
 };
 
 template <serial::Value V>
@@ -59,6 +70,7 @@ Instance::Instance(V &&value)
       nodes_(value["nodes"].template get<std::vector<Node>>()) {
   std::ranges::sort(nodes_,
                     [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
+  update_distance_cache_();
 }
 
 }  // namespace cye

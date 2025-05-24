@@ -29,7 +29,7 @@ class EVRPIndividual {
     cye::patch_energy_trivially(solution);
 
     assert(solution.is_valid());
-    fitness_ = solution.get_cost();
+    fitness_ = solution.cost();
   }
 
   EVRPIndividual(std::shared_ptr<cye::Instance> instance, std::vector<size_t> &&customers)
