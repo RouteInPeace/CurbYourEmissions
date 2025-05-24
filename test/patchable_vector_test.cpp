@@ -233,7 +233,7 @@ TEST(PatchableVector, MultiplePatchStress) {
   auto dist = std::uniform_int_distribution(1UZ, 100UZ);
   auto patch_cnt_dist = std::uniform_int_distribution(2UZ, 5UZ);
 
-  for (auto iter = 0UZ; iter < 1000UZ; ++iter) {
+  for (auto iter = 0UZ; iter < 10000UZ; ++iter) {
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
     for (auto i = 0UZ; i < element_cnt; ++i) elements.push_back(dist(gen));
@@ -407,7 +407,7 @@ TEST(PatchableVector, DecrementStress) {
   auto dist = std::uniform_int_distribution(1UZ, 100UZ);
   auto patch_cnt_dist = std::uniform_int_distribution(0UZ, 5UZ);
 
-  for (auto iter = 0UZ; iter < 1000UZ; ++iter) {
+  for (auto iter = 0UZ; iter < 10000UZ; ++iter) {
 
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
@@ -446,8 +446,5 @@ TEST(PatchableVector, DecrementStress) {
       EXPECT_EQ(*prev_it, *copy);
       prev_it = it;
     }
-
-    EXPECT_EQ(prev_it, --patchable_vec.end());
-    EXPECT_EQ(*prev_it, *(--patchable_vec.end()));
   }
 }

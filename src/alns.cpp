@@ -31,8 +31,8 @@ auto main() -> int {
   }};
   config.repair_operators = {
       [](cye::Solution &&solution, alns::RandomEngine &gen) { return cye::regret_repair(std::move(solution), gen, 2); },
-      cye::greedy_repair_best_first};
-  config.max_iterations = 100000;
+  };
+  config.max_iterations = 1000;
   config.verbose = true;
 
   auto solution = alns::optimize(config, gen);

@@ -14,7 +14,6 @@ Solution random_destroy(Solution &&solution, alns::RandomEngine &gen, double max
 
   std::vector<size_t> new_routes;
   std::vector<size_t> unassigned;
-  new_routes.push_back(instance.depot_id());
   for (auto node_id : solution.routes()) {
     if (instance.is_customer(node_id)) {
       if (dist(gen) < destroy_rate) {
@@ -24,7 +23,6 @@ Solution random_destroy(Solution &&solution, alns::RandomEngine &gen, double max
       }
     }
   }
-  new_routes.push_back(instance.depot_id());
 
   return cye::Solution(solution.instance_ptr(), std::move(new_routes), std::move(unassigned));
 }
