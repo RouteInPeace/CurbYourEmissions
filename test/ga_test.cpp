@@ -19,8 +19,8 @@ class Dummy {
   Dummy(float fitness) : fitness_(fitness) {}
 
   auto fitness() const -> float { return fitness_; };
-  auto get_genotype() const -> std::span<const float> { return genotype_; }
-  auto get_mutable_genotype() -> std::span<float> { return genotype_; }
+  auto genotype() const -> std::span<const float> { return genotype_; }
+  auto genotype() -> std::span<float> { return genotype_; }
   auto update_fitness() -> void {}
 
  private:
@@ -37,8 +37,8 @@ class QuadraticEquation {
 
   auto evaluate(float x) -> float { return genotype_[0] * x * x + genotype_[1] * x + genotype_[2]; }
   auto fitness() const -> float { return fitness_; };
-  auto get_genotype() const -> std::span<const float> { return genotype_; }
-  auto get_mutable_genotype() -> std::span<float> { return genotype_; }
+  auto genotype() const -> std::span<const float> { return genotype_; }
+  auto genotype() -> std::span<float> { return genotype_; }
   auto update_fitness() -> void {
     fitness_ = 0.f;
 
@@ -83,8 +83,8 @@ class StringIndividual {
  public:
   StringIndividual(std::string_view genotype) : genotype_(genotype) {}
 
-  [[nodiscard]] inline auto &get_genotype() const { return genotype_; }
-  [[nodiscard]] inline auto &get_mutable_genotype() { return genotype_; }
+  [[nodiscard]] inline auto &genotype() const { return genotype_; }
+  [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
 
@@ -96,8 +96,8 @@ class IntIndividual {
  public:
   IntIndividual(size_t size) : genotype_(std::views::iota(0UZ, size) | std::ranges::to<std::vector>()) {}
 
-  [[nodiscard]] inline auto &get_genotype() const { return genotype_; }
-  [[nodiscard]] inline auto &get_mutable_genotype() { return genotype_; }
+  [[nodiscard]] inline auto &genotype() const { return genotype_; }
+  [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
 
@@ -114,7 +114,7 @@ TEST(GA, PMXCrossoverBasic) {
 
   auto crossover = meta::ga::PMX<StringIndividual>();
   auto child = crossover.crossover(re, p1, p2);
-  EXPECT_EQ(child.get_genotype(), expected);
+  EXPECT_EQ(child.genotype(), expected);
 }
 
 TEST(GA, PMXCrossoverStress) {
@@ -123,16 +123,49 @@ TEST(GA, PMXCrossoverStress) {
 
   auto p1 = IntIndividual(1000UZ);
   auto p2 = IntIndividual(1000UZ);
-  std::ranges::shuffle(p2.get_mutable_genotype(), gen);
+  std::ranges::shuffle(p2.genotype(), gen);
 
   auto crossover = meta::ga::PMX<IntIndividual>();
 
   for (auto i = 0UZ; i < 1000UZ; ++i) {
     auto child = crossover.crossover(gen, p1, p2);
 
-    std::ranges::sort(child.get_mutable_genotype());
+    std::ranges::sort(child.genotype());
 
-    for (auto [x, y] : std::views::zip(child.get_genotype(), p1.get_genotype())) {
+    for (auto [x, y] : std::views::zip(child.genotype(), p1.genotype())) {
+      EXPECT_EQ(x, y);
+    }
+  }
+}
+
+TEST(GA, OX1CrossoverBasic) {
+  auto re = std::mt19937(40);
+
+  auto p1 = StringIndividual("abcdefgh");
+  auto p2 = StringIndividual("cgeafhbd");
+  auto expected = std::string("cgadefhb");
+
+  auto crossover = meta::ga::OX1<StringIndividual>();
+  auto child = crossover.crossover(re, p1, p2);
+  EXPECT_EQ(child.genotype(), expected);
+}
+
+TEST(GA, OX1CrossoverStress) {
+  auto rd = std::random_device();
+  auto gen = std::mt19937(rd());
+
+  auto p1 = IntIndividual(1000UZ);
+  auto p2 = IntIndividual(1000UZ);
+  std::ranges::shuffle(p2.genotype(), gen);
+
+  auto crossover = meta::ga::OX1<IntIndividual>();
+
+  for (auto i = 0UZ; i < 1000UZ; ++i) {
+    auto child = crossover.crossover(gen, p1, p2);
+
+    std::ranges::sort(child.genotype());
+
+    for (auto [x, y] : std::views::zip(child.genotype(), p1.genotype())) {
       EXPECT_EQ(x, y);
     }
   }
@@ -145,13 +178,13 @@ TEST(GA, TwoOptMutationSimple) {
   auto mutation = meta::ga::TwoOpt<StringIndividual>();
 
   auto m1 = mutation.mutate(gen, std::move(parent));
-  EXPECT_EQ(m1.get_genotype(), std::string("abcdefgh"));
+  EXPECT_EQ(m1.genotype(), std::string("abcdefgh"));
 
   auto m2 = mutation.mutate(gen, std::move(m1));
-  EXPECT_EQ(m2.get_genotype(), std::string("abcdegfh"));
+  EXPECT_EQ(m2.genotype(), std::string("abcdegfh"));
 
   auto m3 = mutation.mutate(gen, std::move(m2));
-  EXPECT_EQ(m3.get_genotype(), std::string("abcdfgeh"));
+  EXPECT_EQ(m3.genotype(), std::string("abcdfgeh"));
 }
 
 TEST(GA, TwoOptMutationStress) {
@@ -165,9 +198,9 @@ TEST(GA, TwoOptMutationStress) {
     auto copy = parent;
     auto child = mutation.mutate(gen, std::move(copy));
 
-    std::ranges::sort(child.get_mutable_genotype());
+    std::ranges::sort(child.genotype());
 
-    for (auto [x, y] : std::views::zip(child.get_genotype(), parent.get_genotype())) {
+    for (auto [x, y] : std::views::zip(child.genotype(), parent.genotype())) {
       EXPECT_EQ(x, y);
     }
   }

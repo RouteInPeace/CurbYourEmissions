@@ -1,11 +1,14 @@
 
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstddef>
+#include <iostream>
 #include <memory>
 #include <ranges>
 #include <vector>
 
+#include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
@@ -18,33 +21,22 @@
 class EVRPIndividual {
  public:
   auto update_fitness() {
-    auto routes = std::vector<size_t>();
-    routes.reserve(customers_.size() + 2);
-    routes.push_back(instance_->depot_id());
-    for (auto c : customers_) routes.push_back(c);
-    routes.push_back(instance_->depot_id());
-
-    auto solution = cye::Solution(instance_, std::move(routes));
-    cye::patch_cargo_trivially(solution);
-    cye::patch_energy_trivially(solution);
-
-    assert(solution.is_valid());
-    fitness_ = solution.cost();
+    solution_.clear_patches();
+    cye::patch_endpoint_depots(solution_);
+    cye::patch_cargo_trivially(solution_);
+    cye::patch_energy_trivially(solution_);
+    assert(solution_.is_valid());
   }
 
-  EVRPIndividual(std::shared_ptr<cye::Instance> instance, std::vector<size_t> &&customers)
-      : instance_(instance), customers_(customers) {
-    update_fitness();
-  }
+  EVRPIndividual(cye::Solution &&solution) : solution_(std::move(solution)) { update_fitness(); }
 
-  auto fitness() const { return fitness_; }
-  auto &get_genotype() const { return customers_; }
-  auto &get_mutable_genotype() { return customers_; }
+  inline auto fitness() const { return solution_.cost(); }
+  inline auto genotype() const { return solution_.base(); }
+  inline auto genotype() { return solution_.base(); }
+  inline auto &solution() const { return solution_; }
 
  private:
-  std::shared_ptr<cye::Instance> instance_;
-  float fitness_;
-  std::vector<size_t> customers_;
+  cye::Solution solution_;
 };
 
 auto main() -> int {
@@ -54,27 +46,37 @@ auto main() -> int {
   auto archive = serial::JSONArchive("dataset/json/E-n101-k8.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto population_size = 100000UZ;
-  auto max_iter = 100000000UZ;
+  auto population_size = 10000UZ;
+  auto max_iter = 30000000UZ;
 
   auto population = std::vector<EVRPIndividual>();
   population.reserve(population_size);
 
-  for (auto i = 0UZ; i < population_size; ++i) {
-    auto customers = instance->customer_ids() | std::ranges::to<std::vector<size_t>>();
-    std::ranges::shuffle(customers, gen);
-    population.emplace_back(instance, std::move(customers));
+  for (auto i = 0UZ; i < population_size / 2; ++i) {
+    population.emplace_back(cye::random_customer_permutation(gen, instance));
+    population.emplace_back(cye::stochastic_nearest_neighbor(gen, instance, 10));
   }
 
-  auto crossover_operator = std::make_unique<meta::ga::PMX<EVRPIndividual>>();
+  auto crossover_operator = std::make_unique<meta::ga::OX1<EVRPIndividual>>();
   auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
-  auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(11);
+  auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
   auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(crossover_operator),
-                                                   std::move(mutation_operator), std::move(selection_operator),
-                                                   max_iter, true);
+                                                       std::move(mutation_operator), std::move(selection_operator),
+                                                       max_iter, true);
 
+  auto start_t = std::chrono::steady_clock::now();
   ga.optimize(gen);
+  auto end_t = std::chrono::steady_clock::now();
+  std::cout << "Time: " << std::chrono::duration_cast<std::chrono::seconds>(end_t - start_t).count() << "s\n";
+
+  auto solution = ga.best_individual().solution();
+  solution.clear_patches();
+  cye::patch_endpoint_depots(solution);
+  cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+  auto energy_repair = cye::OptimalEnergyRepair(instance);
+  energy_repair.patch(solution, 100001);
+  std::cout << "Cost: " << solution.cost() << '\n';
 
   return 0;
 }
