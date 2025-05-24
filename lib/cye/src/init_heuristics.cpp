@@ -10,7 +10,6 @@
 auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   auto remaining_customer_ids = std::ranges::to<std::unordered_set<size_t>>(instance->customer_ids());
   std::vector<size_t> routes;
-  routes.push_back(instance->depot_id());
 
   // Nearest neighbor
   while (!remaining_customer_ids.empty()) {
@@ -18,7 +17,8 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
     auto min_distance = std::numeric_limits<float>::infinity();
 
     for (const auto customer_id : remaining_customer_ids) {
-      auto distance = instance->distance(routes.back(), customer_id);
+      auto previous_node_id = routes.empty() ? instance->depot_id() : routes.back();
+      auto distance = instance->distance(previous_node_id, customer_id);
 
       if (distance < min_distance) {
         min_distance = distance;
@@ -30,11 +30,10 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
     remaining_customer_ids.erase(best_customer_id);
   }
 
-  routes.push_back(instance->depot_id());
-
   auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
 
   auto solution = Solution(instance, std::move(routes));
+  patch_endpoint_depots(solution);
   patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
   optimal_energy_repair.patch(solution, 1001u);
 
