@@ -2,13 +2,13 @@
 #include <cmath>
 #include <vector>
 
-auto cye::Instance::distance(size_t node1_id, size_t node2_id) const -> float {
-  if (node1_id == node2_id) return 0.f;
-  if (node1_id > node2_id) std::swap(node1_id, node2_id);
+// auto cye::Instance::distance(size_t node1_id, size_t node2_id) const -> float {
+//   if (node1_id == node2_id) return 0.f;
+//   if (node1_id > node2_id) std::swap(node1_id, node2_id);
 
-  auto ind = node2_id * (node2_id + 1) / 2 + node1_id;
-  return distance_cache_[ind];
-}
+//   auto ind = node2_id * (node2_id + 1) / 2 + node1_id;
+//   return distance_cache_[ind];
+// }
 
 auto cye::Instance::update_distance_cache_() -> void {
   distance_cache_.resize(nodes_.size() * (nodes_.size() + 1) / 2);

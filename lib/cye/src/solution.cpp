@@ -86,14 +86,6 @@ auto cye::Solution::is_valid() const -> bool {
   return is_energy_and_cargo_valid();
 }
 
-auto cye::Solution::cost() -> float {
-  if (!cost_valid_) {
-    update_cost_();
-  }
-
-  return cost_;
-}
-
 auto cye::Solution::update_cost_() -> void {
   cost_ = 0.f;
   auto previous_node_id = *routes_.begin();

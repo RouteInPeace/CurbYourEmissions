@@ -129,7 +129,7 @@ auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_
     if (station_id == node1_id || station_id == node2_id) continue;
     if (remaining_battery < instance.energy_required(node1_id, station_id)) continue;
 
-    auto distance = instance.distance(node1_id, station_id) + instance.distance(station_id, node2_id);
+    auto distance =  + instance.distance(station_id, node2_id);
     if (distance < min_distance) {
       min_distance = distance;
       best_station_id = station_id;

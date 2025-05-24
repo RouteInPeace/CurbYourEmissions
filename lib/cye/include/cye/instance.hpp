@@ -22,7 +22,15 @@ class Instance {
   [[nodiscard]] constexpr inline auto depot_id() const -> size_t { return 0UZ; }
   [[nodiscard]] inline auto cargo_capacity() const { return cargo_capacity_; }
   [[nodiscard]] inline auto battery_capacity() const { return battery_capacity_; }
-  [[nodiscard]] auto distance(size_t node1_id, size_t node2_id) const -> float;
+  [[nodiscard]] inline auto distance(size_t node1_id, size_t node2_id) const -> float {
+    if (node1_id == node2_id) [[unlikely]] {
+      return 0.f;
+    }
+    if (node1_id > node2_id) std::swap(node1_id, node2_id);
+
+    auto ind = node2_id * (node2_id + 1) / 2 + node1_id;
+    return distance_cache_[ind];
+  }
   [[nodiscard]] inline auto energy_required(size_t node1_id, size_t node2_id) const {
     return energy_consumption_ * distance(node1_id, node2_id);
   }

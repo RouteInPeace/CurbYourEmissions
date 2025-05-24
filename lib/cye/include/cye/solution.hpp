@@ -35,7 +35,12 @@ class Solution {
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
-  [[nodiscard]] auto cost() -> float;
+  [[nodiscard]] inline auto cost() -> float {
+    if (!cost_valid_) {
+      update_cost_();
+    }
+    return cost_;
+  }
 
   inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
 

@@ -32,7 +32,7 @@ auto main() -> int {
   config.repair_operators = {
       [](cye::Solution &&solution, meta::RandomEngine &gen) { return cye::regret_repair(std::move(solution), gen, 2); },
   };
-  config.max_iterations = 1000;
+  config.max_iterations = 10000;
   config.verbose = true;
 
   auto solution = meta::alns::optimize(config, gen);

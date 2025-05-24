@@ -121,12 +121,12 @@ class PatchableVector {
     friend auto operator==(Sentinel, const Iterator &a) { return a.current_value_ == nullptr; }
 
    private:
-    auto patch_size_(size_t i) const { return (*patches_)[i].changes_.size(); }
-    auto reached_end_of_patch_(size_t i) const { return patch_info_[i].change_index >= patch_size_(i); }
-    auto &change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index]; }
-    auto &prev_change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index - 1UZ]; }
-    auto predecessor_ind_(size_t i) { return i == 0 ? base_ind_ : patch_info_[i - 1UZ].index; }
-    auto predecessor_started_(size_t i) -> bool { return i == 0 ? started_base_ : patch_info_[i - 1UZ].started; }
+    inline auto patch_size_(size_t i) const { return (*patches_)[i].changes_.size(); }
+    inline auto reached_end_of_patch_(size_t i) const { return patch_info_[i].change_index >= patch_size_(i); }
+    inline auto &change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index]; }
+    inline auto &prev_change_(size_t i) const { return (*patches_)[i].changes_[patch_info_[i].change_index - 1UZ]; }
+    inline auto predecessor_ind_(size_t i) { return i == 0 ? base_ind_ : patch_info_[i - 1UZ].index; }
+    inline auto predecessor_started_(size_t i) -> bool { return i == 0 ? started_base_ : patch_info_[i - 1UZ].started; }
     auto find_prev_value_() -> pointer;
 
     V *current_value_;
