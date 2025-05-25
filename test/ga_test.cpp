@@ -232,9 +232,11 @@ TEST(GA, BasicRegression) {
   }
 
   auto ga = meta::ga::GeneticAlgorithm<QuadraticEquation>(
-      std::move(population), std::make_unique<meta::ga::BLXAlpha<QuadraticEquation>>(0.f),
-      std::make_unique<meta::ga::GaussianMutation<QuadraticEquation>>(0.02),
-      std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000, false);
+      std::move(population), std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000,
+      false);
+
+  ga.add_crossover_operator(std::make_unique<meta::ga::BLXAlpha<QuadraticEquation>>(0.f));
+  ga.add_mutation_operator(std::make_unique<meta::ga::GaussianMutation<QuadraticEquation>>(0.02));
 
   ga.optimize(re);
   auto &best = ga.best_individual();

@@ -46,8 +46,8 @@ auto main() -> int {
   auto archive = serial::JSONArchive("dataset/json/E-n101-k8.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto population_size = 10000UZ;
-  auto max_iter = 30000000UZ;
+  auto population_size = 20000UZ;
+  auto max_iter = 100000000UZ;
 
   auto population = std::vector<EVRPIndividual>();
   population.reserve(population_size);
@@ -57,13 +57,14 @@ auto main() -> int {
     population.emplace_back(cye::stochastic_nearest_neighbor(gen, instance, 10));
   }
 
-  auto crossover_operator = std::make_unique<meta::ga::OX1<EVRPIndividual>>();
-  auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
-  auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(crossover_operator),
-                                                       std::move(mutation_operator), std::move(selection_operator),
-                                                       max_iter, true);
+  auto ga =
+      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), max_iter, true);
+  ga.add_crossover_operator(std::make_unique<meta::ga::OX1<EVRPIndividual>>());
+  ga.add_crossover_operator(std::make_unique<meta::ga::PMX<EVRPIndividual>>());
+  ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>());
+  ga.add_mutation_operator(std::make_unique<meta::ga::Swap<EVRPIndividual>>());
 
   auto start_t = std::chrono::steady_clock::now();
   ga.optimize(gen);

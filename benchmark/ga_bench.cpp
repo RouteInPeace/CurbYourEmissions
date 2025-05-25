@@ -49,9 +49,11 @@ static void BM_GA(benchmark::State &state) {
   auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
-  auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(crossover_operator),
-                                                       std::move(mutation_operator), std::move(selection_operator),
-                                                       max_iter, false);
+  auto ga =
+      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), max_iter, false);
+
+  ga.add_crossover_operator(std::make_unique<meta::ga::OX1<EVRPIndividual>>());
+  ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>());
 
   for (auto _ : state) {
     ga.optimize(gen);
