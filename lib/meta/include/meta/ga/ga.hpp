@@ -24,6 +24,7 @@ class GeneticAlgorithm {
   auto optimize(RandomEngine &re) -> void;
 
   [[nodiscard]] inline auto &population() const { return population_; }
+  [[nodiscard]] inline auto &population() { return population_; }
   [[nodiscard]] auto best_individual() const -> I const &;
 
   inline auto add_crossover_operator(std::unique_ptr<CrossoverOperator<I>> crossover_operator) -> void {
