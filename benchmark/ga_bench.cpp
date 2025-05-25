@@ -1,10 +1,12 @@
 #include <benchmark/benchmark.h>
 #include <iostream>
 #include <random>
+#include <utility>
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
+#include "meta/common.hpp"
 #include "meta/ga/ga.hpp"
 #include "serial/json_archive.hpp"
 
@@ -49,10 +51,10 @@ static void BM_GA(benchmark::State &state) {
   auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
-  
-
-  auto ga =
-      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), [](meta::ga::GeneticAlgorithm<EVRPIndividual> &, bool){}, max_iter, false);
+  auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(
+      std::move(population), std::move(selection_operator),
+      [](meta::RandomEngine &, std::vector<EVRPIndividual> &, float best) { return std::make_pair(100000000UZ, best); },
+      max_iter, false);
 
   ga.add_crossover_operator(std::make_unique<meta::ga::OX1<EVRPIndividual>>());
   ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>());

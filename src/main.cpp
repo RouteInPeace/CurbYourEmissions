@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <random>
 #include <ranges>
@@ -14,6 +15,7 @@
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
+#include "meta/common.hpp"
 #include "meta/ga/crossover.hpp"
 #include "meta/ga/ga.hpp"
 #include "meta/ga/mutation.hpp"
@@ -98,11 +100,70 @@ class NeighborSwap : public meta::ga::MutationOperator<EVRPIndividual> {
   size_t k_;
 };
 
+class EVRPStallHandler {
+ public:
+  auto operator()(meta::RandomEngine &gen, std::vector<EVRPIndividual> &population, float best_fitness)
+      -> std::pair<size_t, float> {
+    if (state_ == State_::Begin) [[unlikely]] {
+      state_ = State_::Trivial;
+      return std::make_pair(2'000'000UZ, best_fitness);
+    } else if (state_ == State_::Trivial) {
+      std::cout << "Population is trivial, switching to optimal...\n";
+      auto new_best_fitness = std::numeric_limits<float>::infinity();
+      for (auto &individual : population) {
+        individual.switch_to_optimal();
+        individual.update_fitness();
+        new_best_fitness = std::min(new_best_fitness, individual.fitness());
+      }
+
+      prev_best_fitness_ = new_best_fitness;
+      state_ = State_::Optimal;
+      return std::make_pair(50'000UZ, new_best_fitness);
+
+    } else if (state_ == State_::Optimal) {
+      if (best_fitness == prev_best_fitness_) {
+        // Purge
+        std::cout << "Purging population...\n";
+        std::sort(population.begin(), population.end(),
+                  [](const EVRPIndividual &a, const EVRPIndividual &b) { return a.fitness() < b.fitness(); });
+        for (auto i = 1UZ; i < population.size(); ++i) {
+          std::shuffle(population[i].genotype().begin(), population[i].genotype().begin(), gen);
+        }
+      } else {
+        std::cout << "Switch back to trivial...\n";
+      }
+
+      auto new_best_fitness = std::numeric_limits<float>::infinity();
+      for (auto &individual : population) {
+        individual.switch_to_trivial();
+        individual.update_fitness();
+        new_best_fitness = std::min(new_best_fitness, individual.fitness());
+      }
+
+      state_ = State_::Trivial;
+      return std::make_pair(1'000'000UZ, new_best_fitness);
+    }
+
+    assert(false);
+    return std::make_pair(1'000'000UZ, best_fitness);
+  }
+
+ private:
+  enum class State_ {
+    Begin,
+    Trivial,
+    Optimal,
+  };
+
+  State_ state_ = State_::Begin;
+  float prev_best_fitness_;
+};
+
 auto main() -> int {
   auto rd = std::random_device();
   auto gen = std::mt19937(rd());
 
-  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
   auto population_size = 5000UZ;
@@ -119,46 +180,8 @@ auto main() -> int {
 
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
-  auto purge_function = [&](meta::ga::GeneticAlgorithm<EVRPIndividual> &ga, bool reset) {
-    auto &population = ga.population();
-    if (reset) {
-      if ( population.begin()->is_trivial()) return;
-      std::cout << "Switch back to trivial...\n";
-      sleep(1);
-      for (auto &individual : population) {
-        individual.switch_to_trivial();
-        individual.update_fitness();
-      }
-      return;
-    }
-
-    if ((*population.begin()).is_trivial()) {
-      std::cout << "Population is trivial, switching to optimal...\n";
-      sleep(1);
-      for (auto &individual : population) {
-        individual.switch_to_optimal();
-        individual.update_fitness();
-      }
-      return;
-    }
-
-    std::cout << "Purging population...\n";
-    sleep(1);
-    std::sort(population.begin(), population.end(),
-              [](const EVRPIndividual &a, const EVRPIndividual &b) { return a.fitness() < b.fitness(); });
-    population.erase(population.begin() + 10, population.end());
-    for (auto i = 1UZ; i < population_size; ++i) {
-      population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
-    }
-
-    for (auto &individual : population) {
-      individual.switch_to_trivial();
-      individual.update_fitness();
-    }
-  };
-
-  auto ga =
-      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), std::move(purge_function), max_iter, true);
+  auto ga = meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator),
+                                                       EVRPStallHandler(), max_iter, true);
   ga.add_crossover_operator(std::make_unique<meta::ga::OX1<EVRPIndividual>>());
   // ga.add_crossover_operator(std::make_unique<meta::ga::PMX<EVRPIndividual>>());
   ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>());

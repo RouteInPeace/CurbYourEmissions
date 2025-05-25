@@ -37,7 +37,7 @@ inline auto create_geometric_schedule(double initial_temp, double final_temp, do
 template <typename Solution>
 auto optimize(RandomEngine &gen, Config<Solution> const &config) -> Solution {
   auto current_solution = std::move(config.initial_solution);
-  double current_cost = current_solution.get_cost();
+  double current_cost = current_solution.cost();
 
   auto best_solution = current_solution;
   auto best_cost = current_cost;
@@ -52,7 +52,7 @@ auto optimize(RandomEngine &gen, Config<Solution> const &config) -> Solution {
     auto temp = *temp_opt;
 
     auto new_solution = config.get_neighbour(gen, current_solution);
-    auto new_solution_cost = new_solution.get_cost();
+    auto new_solution_cost = new_solution.cost();
     double cost_diff = new_solution_cost - current_cost;
 
     if (cost_diff < 0 || dist(gen) < exp(-cost_diff / temp)) {
@@ -64,7 +64,7 @@ auto optimize(RandomEngine &gen, Config<Solution> const &config) -> Solution {
       }
     }
 
-    if (iter % 10 == 0) {
+    if (iter % 10000 == 0) {
       std::println("Iter: {}, Current cost: {}, Best cost: {}, Temp: {}", iter, current_cost, best_cost, temp);
     }
   }

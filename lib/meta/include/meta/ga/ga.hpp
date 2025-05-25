@@ -19,10 +19,10 @@ namespace meta::ga {
 template <Individual I>
 class GeneticAlgorithm {
  public:
-  using PurgeFunction = std::function<void(GeneticAlgorithm<I>&, bool)>;
+  using StallHandler = std::function<std::pair<size_t, float>(RandomEngine &, std::vector<I> &, float)>;
 
-  GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator, PurgeFunction purge_function,
-                   size_t max_iterations, bool verbose);
+  GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator,
+                   StallHandler stall_handler, size_t max_iterations, bool verbose);
 
   auto optimize(RandomEngine &re) -> void;
 
@@ -42,19 +42,20 @@ class GeneticAlgorithm {
   std::vector<std::unique_ptr<CrossoverOperator<I>>> crossover_operators_;
   std::vector<std::unique_ptr<MutationOperator<I>>> mutation_operators_;
   std::unique_ptr<SelectionOperator<I>> selection_operator_;
-  PurgeFunction purge_function_;
-  size_t last_best_counter_{0UZ};
+  StallHandler stall_handler_;
+  size_t last_improvement_;
   size_t max_iterations_;
   bool verbose_;
 };
 
 template <Individual I>
 GeneticAlgorithm<I>::GeneticAlgorithm(std::vector<I> &&population,
-                                      std::unique_ptr<SelectionOperator<I>> selection_operator, PurgeFunction purge_function, size_t max_iterations, 
-                                      bool verbose)
+                                      std::unique_ptr<SelectionOperator<I>> selection_operator,
+                                      StallHandler stall_handler, size_t max_iterations, bool verbose)
     : population_(std::move(population)),
       selection_operator_(std::move(selection_operator)),
-      purge_function_(std::move(purge_function)),
+      stall_handler_(std::move(stall_handler)),
+      last_improvement_(0),
       max_iterations_(max_iterations),
       verbose_(verbose) {}
 
@@ -74,12 +75,15 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
     }
   }
 
+  last_improvement_ = 0;
+  auto [stall_threshold, _] = stall_handler_(gen, population_, best_fitness);
+
   auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
   auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
 
   for (auto iter = 0UZ; iter < max_iterations_; ++iter) {
-    auto mutation_operator_ind = mutation_selection_dist(gen);
     auto crossover_operator_ind = crossover_selection_dist(gen);
+    auto mutation_operator_ind = mutation_selection_dist(gen);
 
     auto [p1, p2, r] = selection_operator_->select(gen, population_);
     auto child = crossover_operators_[crossover_operator_ind]->crossover(gen, population_[p1], population_[p2]);
@@ -87,18 +91,16 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
     mutant.update_fitness();
     if (mutant.fitness() < best_fitness) {
       best_fitness = mutant.fitness();
-      last_best_counter_ = 0UZ;
-      purge_function_(*this, true);
+      last_improvement_ = iter;
     }
-    if (last_best_counter_ == 2'000'000UZ) {
-      purge_function_(*this, false);
-    }
-    if (last_best_counter_ > 2'000'000UZ && last_best_counter_ % 100'00UZ == 0) {
-      purge_function_(*this, false);
-    }
-
     population_[r] = std::move(mutant);
-    last_best_counter_++;
+
+    if (iter - last_improvement_ == stall_threshold) {
+      auto ret = stall_handler_(gen, population_, stall_threshold);
+      stall_threshold = ret.first;
+      best_fitness = ret.second;
+      last_improvement_ = iter;
+    }
 
     if (verbose_ && iter % 100 == 0) {
       std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
