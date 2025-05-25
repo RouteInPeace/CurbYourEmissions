@@ -1,12 +1,12 @@
 #include <benchmark/benchmark.h>
 #include <random>
-#include "meta/alns/acceptance_criterion.hpp"
-#include "meta/alns/alns.hpp"
 #include "cye/destroy.hpp"
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
+#include "meta/alns/acceptance_criterion.hpp"
+#include "meta/alns/alns.hpp"
 #include "serial/json_archive.hpp"
 
 // Current best on dataset/json/E-n22-k4.json 135 ms
@@ -35,4 +35,4 @@ static void BM_Alns(benchmark::State &state) {
   }
 }
 
-BENCHMARK(BM_Alns)->Unit(benchmark::kMillisecond);;
+BENCHMARK(BM_Alns)->Unit(benchmark::kMillisecond);
