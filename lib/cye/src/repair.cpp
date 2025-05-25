@@ -1,4 +1,5 @@
 #include "cye/repair.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstddef>
@@ -11,6 +12,7 @@
 #include <vector>
 #include "cye/patchable_vector.hpp"
 #include "cye/solution.hpp"
+#include "meta/common.hpp"
 
 struct CargoDPCell {
   CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
@@ -408,19 +410,21 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
   solution.add_patch(std::move(patch));
 }
 
-namespace {
-
-auto reorder_solution(cye::Solution &solution) -> void {
+auto cye::reorder_solution_trivially(cye::Solution &solution) -> void {
   cye::patch_endpoint_depots(solution);
   cye::patch_cargo_trivially(solution);
   cye::patch_energy_trivially(solution);
 }
 
-auto reorder_solution_optimally(cye::Solution &solution) -> void {
+auto cye::reorder_solution_optimally(cye::Solution &solution, size_t bins) -> void {
   cye::patch_endpoint_depots(solution);
   cye::patch_cargo_optimally(solution, static_cast<unsigned>(solution.instance().cargo_capacity()) + 1U);
-  cye::patch_energy_trivially(solution);
+  //cye::patch_energy_trivially(solution);
+  auto energy_repair = cye::OptimalEnergyRepair(solution.instance_ptr());
+  energy_repair.patch(solution, bins);
 }
+
+namespace {
 
 auto insert_customer(cye::Solution &solution, size_t insertion_ind, size_t customer_id) -> void {
   auto patch = cye::Patch<size_t>{};
@@ -437,13 +441,21 @@ auto find_best_insertion(cye::Solution &solution, size_t unassigned_id) -> std::
     auto patch = cye::Patch<size_t>{};
     patch.add_change(j, unassigned_id);
     solution.add_patch(std::move(patch));
-    reorder_solution(solution);
+    reorder_solution_trivially(solution);
 
     auto cost = solution.cost();
     if (cost < best_cost) {
       best_cost = cost;
       best_ind = j;
     }
+    // if (cost < best_cost * 1.05) {
+    //   solution.clear_patches();
+    //   cye::reorder_solution_optimally(solution);
+    //   if (solution.cost() < best_cost) {
+    //     best_cost = solution.cost();
+    //     best_ind = j;
+    //   }
+    // }
 
     solution.clear_patches();
   }
@@ -466,7 +478,7 @@ auto find_all_insertions(cye::Solution &solution, size_t unassigned_id) -> std::
     auto patch = cye::Patch<size_t>{};
     patch.add_change(j, unassigned_id);
     solution.add_patch(std::move(patch));
-    reorder_solution(solution);
+    reorder_solution_trivially(solution);
 
     auto cost = solution.cost();
     insertions.emplace_back(j, unassigned_id, cost);
@@ -477,6 +489,31 @@ auto find_all_insertions(cye::Solution &solution, size_t unassigned_id) -> std::
 }
 
 }  // namespace
+
+cye::Solution cye::random_repair(Solution &&solution, meta::RandomEngine &gen) {
+  auto &unassigned_ids = solution.unassigned_customers();
+  
+  std::uniform_int_distribution<> dist(1UZ, solution.visited_node_cnt());
+  std::vector<std::pair<size_t, size_t>> unassigned_ids_with_indices;
+  unassigned_ids_with_indices.reserve(unassigned_ids.size());
+  for (auto unassigned_id : unassigned_ids) {
+    auto index = dist(gen);
+    unassigned_ids_with_indices.emplace_back(index, unassigned_id);
+  }
+  std::sort(unassigned_ids_with_indices.begin(), unassigned_ids_with_indices.end(),
+            [](const auto &a, const auto &b) { return a.first < b.first; });
+
+  auto patch = cye::Patch<size_t>{};
+  for (auto [index, unassigned_id] : unassigned_ids_with_indices) {
+    patch.add_change(index, unassigned_id);
+  }
+  solution.add_patch(std::move(patch));
+  solution.squash();
+
+  solution.clear_unassigned_customers();
+  reorder_solution_trivially(solution);
+  return solution;
+}
 
 cye::Solution cye::greedy_repair(Solution &&solution, meta::RandomEngine &gen) {
   auto &unassigned_ids = solution.unassigned_customers();
@@ -489,7 +526,7 @@ cye::Solution cye::greedy_repair(Solution &&solution, meta::RandomEngine &gen) {
   }
 
   solution.clear_unassigned_customers();
-  reorder_solution(solution);
+  reorder_solution_optimally(solution);
   return solution;
 }
 
@@ -514,7 +551,7 @@ cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, meta::Rand
     insert_customer(solution, best_of_the_best_ind, best_unassigned_id);
   }
   solution.clear_unassigned_customers();
-  reorder_solution(solution);
+  reorder_solution_optimally(solution);
   return solution;
 }
 
@@ -549,7 +586,7 @@ cye::Solution cye::regret_repair(cye::Solution &&solution, meta::RandomEngine &g
     insert_customer(solution, best_insertion.ind, best_insertion.customer_id);
   }
   solution.clear_unassigned_customers();
-  reorder_solution(solution);
+  reorder_solution_optimally(solution);
   return solution;
 }
 

@@ -16,6 +16,10 @@ auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 auto patch_endpoint_depots(Solution &solution) -> void;
 
+auto reorder_solution_trivially(cye::Solution &solution) -> void;
+auto reorder_solution_optimally(cye::Solution &solution, size_t bins = 100) -> void;
+
+Solution random_repair(Solution &&solution, meta::RandomEngine &gen);
 Solution greedy_repair(Solution &&solution, meta::RandomEngine &gen);
 Solution greedy_repair_best_first(Solution &&solution, meta::RandomEngine &gen);
 Solution regret_repair(Solution &&solution, meta::RandomEngine &gen, size_t k);
