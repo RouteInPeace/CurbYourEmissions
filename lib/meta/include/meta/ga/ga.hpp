@@ -84,7 +84,7 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
 
     population_[r] = std::move(mutant);
 
-    if (verbose_ && iter % 100000 == 0) {
+    if (verbose_ && iter % 100 == 0) {
       std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
     }
   }
