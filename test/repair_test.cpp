@@ -5,8 +5,6 @@
 #include <random>
 #include <utility>
 #include <vector>
-#include "cye/destroy.hpp"
-#include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
 
@@ -125,12 +123,12 @@ TEST(Repair, PatchEnergyOptimally) {
       cye::patch_cargo_trivially(solution_tr);
       auto solution_opt = solution_tr;
 
-      // cye::patch_energy_trivially(solution_tr);
+      cye::patch_energy_trivially(solution_tr);
       optimal_energy_repair.patch(solution_opt, 101u);
 
       EXPECT_TRUE(solution_opt.is_valid());
-      // EXPECT_TRUE(solution_tr.is_valid());
-      // EXPECT_LE(solution_opt.get_cost() / solution_tr.get_cost(), 1.02f);
+      EXPECT_TRUE(solution_tr.is_valid());
+      EXPECT_LE(solution_opt.cost() / solution_tr.cost(), 1.02f);
     }
   }
 }
@@ -147,7 +145,7 @@ TEST(Repair, GreedyRepair) {
   auto repaired_solution = cye::greedy_repair(std::move(solution), gen);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
+  auto expected = std::vector<size_t>{0, 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }
@@ -164,7 +162,7 @@ TEST(Repair, GreedyRepairBestFirst) {
   auto repaired_solution = cye::greedy_repair_best_first(std::move(solution), gen);
   EXPECT_TRUE(repaired_solution.is_valid());
 
-  auto expected = std::vector<size_t>{0,  14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
+  auto expected = std::vector<size_t>{0, 14, 16, 20, 18, 1, 12, 6, 8, 10, 7, 5, 9, 21, 15, 3, 4, 11, 13, 19, 2, 17, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
 }

@@ -4,6 +4,7 @@
 #include <random>
 #include <ranges>
 #include <unordered_map>
+#include <unordered_set>
 #include "common.hpp"
 #include "meta/common.hpp"
 
@@ -45,6 +46,15 @@ class PMX : public CrossoverOperator<I> {
   std::unordered_map<GeneT<I>, GeneT<I>> mapping_;
 };
 
+template <Individual I>
+class OX1 : public CrossoverOperator<I> {
+ public:
+  [[nodiscard]] auto crossover(RandomEngine &re, I const &p1, I const &p2) -> I override;
+
+ private:
+  std::unordered_set<GeneT<I>> used_;
+};
+
 /* ------------------------------------- Implementation ------------------------------------- */
 
 template <Individual I>
@@ -53,9 +63,9 @@ template <Individual I>
   auto dist = std::uniform_real_distribution<float>(-alpha_, 1.0 + alpha_);
   auto child = p1;
 
-  auto &&p1_genotype = p1.get_genotype();
-  auto &&p2_genotype = p2.get_genotype();
-  auto &&child_genotype = child.get_mutable_genotype();
+  auto &&p1_genotype = p1.genotype();
+  auto &&p2_genotype = p2.genotype();
+  auto &&child_genotype = child.genotype();
 
   for (const auto &[ga, gb, gr] : std::views::zip(p1_genotype, p2_genotype, child_genotype)) {
     gr = ga + dist(re) * (gb - ga);
@@ -68,9 +78,9 @@ template <Individual I>
 auto PMX<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
   auto child = p1;
 
-  auto &&p1_genotype = p1.get_genotype();
-  auto &&p2_genotype = p2.get_genotype();
-  auto &&child_genotype = child.get_mutable_genotype();
+  auto &&p1_genotype = p1.genotype();
+  auto &&p2_genotype = p2.genotype();
+  auto &&child_genotype = child.genotype();
 
   assert(p1_genotype.size() == p2_genotype.size());
 
@@ -99,6 +109,47 @@ auto PMX<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
     }
 
     child_genotype[k] = gene;
+  }
+
+  return child;
+}
+
+template <Individual I>
+auto OX1<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
+  auto child = p1;
+
+  auto &&p1_genotype = p1.genotype();
+  auto &&p2_genotype = p2.genotype();
+  auto &&child_genotype = child.genotype();
+
+  assert(p1_genotype.size() == p2_genotype.size());
+
+  auto dist = std::uniform_int_distribution(0UZ, p1_genotype.size() - 1UZ);
+  auto i = dist(re);
+  auto j = dist(re);
+  if (i > j) std::swap(i, j);
+
+  assert(i <= j);
+
+  used_.clear();
+  for (auto k = i; k <= j; ++k) {
+    used_.emplace(p1_genotype[k]);
+  }
+
+  auto l = 0UZ;
+  for (auto k = 0UZ; k < p1_genotype.size(); ++k) {
+    // Skip the copied section
+    if (k == i) {
+      k = j;
+      continue;
+    }
+
+    while(used_.contains(p2_genotype[l])) {
+      ++l;
+    }
+
+    child_genotype[k] = p2_genotype[l];
+    ++l;
   }
 
   return child;

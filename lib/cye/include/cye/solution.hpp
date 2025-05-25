@@ -25,6 +25,9 @@ class Solution {
     cost_valid_ = false;
   }
 
+  [[nodiscard]] inline auto base() { return routes_.base(); }
+  [[nodiscard]] inline auto base() const { return routes_.base(); }
+
   [[nodiscard]] inline auto &instance() const { return *instance_; }
   [[nodiscard]] inline auto instance_ptr() const { return instance_; }
 
@@ -35,7 +38,7 @@ class Solution {
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
-  [[nodiscard]] inline auto cost() -> float {
+  [[nodiscard]] inline auto cost() const -> float {
     if (!cost_valid_) {
       update_cost_();
     }
@@ -45,13 +48,13 @@ class Solution {
   inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
 
  private:
-  auto update_cost_() -> void;
+  auto update_cost_() const -> void;
 
   std::shared_ptr<Instance> instance_;
   PatchableVector<size_t> routes_;
   std::vector<size_t> unassigned_customers_;
-  float cost_;
-  bool cost_valid_;
+  mutable float cost_;
+  mutable bool cost_valid_;
 };
 
 }  // namespace cye

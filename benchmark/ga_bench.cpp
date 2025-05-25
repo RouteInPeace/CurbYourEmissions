@@ -1,21 +1,11 @@
-
-#include <algorithm>
-#include <cassert>
-#include <chrono>
-#include <cstddef>
+#include <benchmark/benchmark.h>
 #include <iostream>
-#include <memory>
-#include <ranges>
-#include <vector>
-
+#include <random>
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
-#include "meta/ga/crossover.hpp"
 #include "meta/ga/ga.hpp"
-#include "meta/ga/mutation.hpp"
-#include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
 
 class EVRPIndividual {
@@ -39,45 +29,37 @@ class EVRPIndividual {
   cye::Solution solution_;
 };
 
-auto main() -> int {
-  auto rd = std::random_device();
-  auto gen = std::mt19937(rd());
+static void BM_GA(benchmark::State &state) {
+  auto gen = std::mt19937(0);
 
   auto archive = serial::JSONArchive("dataset/json/E-n101-k8.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto population_size = 20000UZ;
-  auto max_iter = 100000000UZ;
+  auto population_size = 10000UZ;
+  auto max_iter = 10000UZ;
 
   auto population = std::vector<EVRPIndividual>();
   population.reserve(population_size);
 
-  for (auto i = 0UZ; i < population_size / 2; ++i) {
+  for (auto i = 0UZ; i < population_size; ++i) {
     population.emplace_back(cye::random_customer_permutation(gen, instance));
-    population.emplace_back(cye::stochastic_nearest_neighbor(gen, instance, 10));
   }
 
+  auto crossover_operator = std::make_unique<meta::ga::OX1<EVRPIndividual>>();
+  auto mutation_operator = std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>();
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<EVRPIndividual>>(5);
 
   auto ga =
-      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), max_iter, true);
+      meta::ga::GeneticAlgorithm<EVRPIndividual>(std::move(population), std::move(selection_operator), max_iter, false);
+
   ga.add_crossover_operator(std::make_unique<meta::ga::OX1<EVRPIndividual>>());
-  ga.add_crossover_operator(std::make_unique<meta::ga::PMX<EVRPIndividual>>());
   ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<EVRPIndividual>>());
-  ga.add_mutation_operator(std::make_unique<meta::ga::Swap<EVRPIndividual>>());
 
-  auto start_t = std::chrono::steady_clock::now();
-  ga.optimize(gen);
-  auto end_t = std::chrono::steady_clock::now();
-  std::cout << "Time: " << std::chrono::duration_cast<std::chrono::seconds>(end_t - start_t).count() << "s\n";
-
-  auto solution = ga.best_individual().solution();
-  solution.clear_patches();
-  cye::patch_endpoint_depots(solution);
-  cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
-  auto energy_repair = cye::OptimalEnergyRepair(instance);
-  energy_repair.patch(solution, 100001);
-  std::cout << "Cost: " << solution.cost() << '\n';
-
-  return 0;
+  for (auto _ : state) {
+    ga.optimize(gen);
+    auto individual = ga.best_individual();
+    benchmark::DoNotOptimize(individual);
+  }
 }
+
+BENCHMARK(BM_GA)->Unit(benchmark::kMillisecond);

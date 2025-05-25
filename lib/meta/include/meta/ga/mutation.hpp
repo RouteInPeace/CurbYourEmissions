@@ -1,8 +1,8 @@
 #pragma once
 
 #include <random>
-#include "meta/ga/common.hpp"
 #include "meta/common.hpp"
+#include "meta/ga/common.hpp"
 
 namespace meta::ga {
 
@@ -39,6 +39,12 @@ class TwoOpt : public MutationOperator<I> {
   [[nodiscard]] auto mutate(RandomEngine &gen, I &&individual) -> I override;
 };
 
+template <Individual I>
+class Swap : public MutationOperator<I> {
+ public:
+  [[nodiscard]] auto mutate(RandomEngine &gen, I &&individual) -> I override;
+};
+
 /* ------------------------------------- Implementation ------------------------------------- */
 
 template <Individual I>
@@ -46,7 +52,7 @@ template <Individual I>
 [[nodiscard]] auto GaussianMutation<I>::mutate(RandomEngine &re, I &&individual) -> I {
   auto dist = std::normal_distribution<float>(0.0, sigma_);
 
-  for (auto &g : individual.get_mutable_genotype()) {
+  for (auto &g : individual.genotype()) {
     g += dist(re);
   }
 
@@ -55,7 +61,7 @@ template <Individual I>
 
 template <Individual I>
 auto TwoOpt<I>::mutate(RandomEngine &gen, I &&individual) -> I {
-  auto &&genotype = individual.get_mutable_genotype();
+  auto &&genotype = individual.genotype();
 
   auto dist = std::uniform_int_distribution(0UZ, genotype.size() - 1UZ);
   auto i = dist(gen);
@@ -70,4 +76,17 @@ auto TwoOpt<I>::mutate(RandomEngine &gen, I &&individual) -> I {
   return individual;
 }
 
-}  // namespace meta
+template <Individual I>
+auto Swap<I>::mutate(RandomEngine &gen, I &&individual) -> I {
+  auto &&genotype = individual.genotype();
+
+  auto dist = std::uniform_int_distribution(0UZ, genotype.size() - 1UZ);
+  auto i = dist(gen);
+  auto j = dist(gen);
+
+  std::swap(genotype[i], genotype[j]);
+
+  return individual;
+}
+
+}  // namespace meta::ga

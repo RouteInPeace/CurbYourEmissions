@@ -129,7 +129,7 @@ auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_
     if (station_id == node1_id || station_id == node2_id) continue;
     if (remaining_battery < instance.energy_required(node1_id, station_id)) continue;
 
-    auto distance =  + instance.distance(station_id, node2_id);
+    auto distance = instance.distance(node1_id, station_id) + instance.distance(station_id, node2_id);
     if (distance < min_distance) {
       min_distance = distance;
       best_station_id = station_id;
@@ -308,7 +308,6 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
       for (auto k = 0UZ; k < cs_cnt; ++k) {
         auto entry_node_id = k == 0 ? instance_->depot_id() : instance_->charging_station_ids()[k - 1];
 
-        // TODO: handle this edge case better
         if (entry_node_id == previous_node_id) {
           continue;
         }
@@ -324,8 +323,8 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
         for (auto l = 0UZ; l < cs_cnt; ++l) {
           auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
 
-          // TODO: handle this edge case better
-          if (exit_node_id == current_node_id) {
+          // Not really necessary, but it cleans up the table
+          if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
             continue;
           }
 
@@ -350,11 +349,12 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
       auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
 
       // If we go straight from the node j-1 to j and end up with a remaining battery i
-      if (i + energy_quant < bin_cnt && dp[i][j].dist > dp[i + energy_quant][j - 1].dist + distance) {
-        dp[i][j].dist = dp[i + energy_quant][j - 1].dist + distance;
-        dp[i][j].prev = i + energy_quant;
-        dp[i][j].entry_ind = no_cs;
-        dp[i][j].exit_ind = no_cs;
+      auto bin_after = instance.is_charging_station(current_node_id) ? bin_cnt - 1 : i;
+      if (i + energy_quant < bin_cnt && dp[bin_after][j].dist > dp[i + energy_quant][j - 1].dist + distance) {
+        dp[bin_after][j].dist = dp[i + energy_quant][j - 1].dist + distance;
+        dp[bin_after][j].prev = i + energy_quant;
+        dp[bin_after][j].entry_ind = no_cs;
+        dp[bin_after][j].exit_ind = no_cs;
       }
     }
 

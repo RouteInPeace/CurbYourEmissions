@@ -62,8 +62,8 @@ class PatchableVector {
 
   inline auto clear_patches() { patches_.clear(); }
   inline auto pop_patch() { patches_.pop_back(); }
-  inline auto base() { return std::span(base_); }
-  inline auto base() const { return std::span(base_); }
+  inline auto base() -> std::span<T> { return std::span(base_); }
+  inline auto base() const -> std::span<const T> { return std::span(base_); }
   [[nodiscard]] auto size() const {
     auto size = base_.size();
     for (const auto &patch : patches_) {
@@ -167,7 +167,7 @@ class PatchableVector {
 
     for (auto i = 0UZ; i < patches_.size(); ++i) {
       patch_info[i].index = i == 0 ? base_.size() : patch_info[i - 1].index;
-      patch_info[i].index+= patches_[i].changes_.size();
+      patch_info[i].index += patches_[i].changes_.size();
       patch_info[i].change_index = patches_[i].changes_.size();
       patch_info[i].started = true;
     }
@@ -179,7 +179,7 @@ class PatchableVector {
 
     for (auto i = 0UZ; i < patches_.size(); ++i) {
       patch_info[i].index = i == 0 ? base_.size() : patch_info[i - 1].index;
-      patch_info[i].index+= patches_[i].changes_.size();
+      patch_info[i].index += patches_[i].changes_.size();
       patch_info[i].change_index = patches_[i].changes_.size();
       patch_info[i].started = true;
     }

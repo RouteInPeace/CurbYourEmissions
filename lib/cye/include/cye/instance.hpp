@@ -40,6 +40,7 @@ class Instance {
   [[nodiscard]] inline auto demand(size_t ind) const { return nodes_[ind].demand; }
   [[nodiscard]] inline auto charging_station_cnt() const { return charging_station_cnt_; }
   [[nodiscard]] inline auto is_customer(size_t ind) const { return ind > 0 && ind <= customer_cnt_; }
+  [[nodiscard]] inline auto is_charging_station(size_t ind) const { return ind == 0 || ind > customer_cnt_; }
 
  private:
   auto update_distance_cache_() -> void;
