@@ -232,7 +232,7 @@ TEST(GA, BasicRegression) {
   }
 
   auto ga = meta::ga::GeneticAlgorithm<QuadraticEquation>(
-      std::move(population), std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000,
+      std::move(population), std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), [](meta::ga::GeneticAlgorithm<QuadraticEquation> &, bool){}, 200000,
       false);
 
   ga.add_crossover_operator(std::make_unique<meta::ga::BLXAlpha<QuadraticEquation>>(0.f));

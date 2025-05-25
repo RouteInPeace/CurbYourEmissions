@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <print>
@@ -18,7 +19,9 @@ namespace meta::ga {
 template <Individual I>
 class GeneticAlgorithm {
  public:
-  GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator,
+  using PurgeFunction = std::function<void(GeneticAlgorithm<I>&, bool)>;
+
+  GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator, PurgeFunction purge_function,
                    size_t max_iterations, bool verbose);
 
   auto optimize(RandomEngine &re) -> void;
@@ -39,16 +42,19 @@ class GeneticAlgorithm {
   std::vector<std::unique_ptr<CrossoverOperator<I>>> crossover_operators_;
   std::vector<std::unique_ptr<MutationOperator<I>>> mutation_operators_;
   std::unique_ptr<SelectionOperator<I>> selection_operator_;
+  PurgeFunction purge_function_;
+  size_t last_best_counter_{0UZ};
   size_t max_iterations_;
   bool verbose_;
 };
 
 template <Individual I>
 GeneticAlgorithm<I>::GeneticAlgorithm(std::vector<I> &&population,
-                                      std::unique_ptr<SelectionOperator<I>> selection_operator, size_t max_iterations,
+                                      std::unique_ptr<SelectionOperator<I>> selection_operator, PurgeFunction purge_function, size_t max_iterations, 
                                       bool verbose)
     : population_(std::move(population)),
       selection_operator_(std::move(selection_operator)),
+      purge_function_(std::move(purge_function)),
       max_iterations_(max_iterations),
       verbose_(verbose) {}
 
@@ -81,9 +87,18 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
     mutant.update_fitness();
     if (mutant.fitness() < best_fitness) {
       best_fitness = mutant.fitness();
+      last_best_counter_ = 0UZ;
+      purge_function_(*this, true);
+    }
+    if (last_best_counter_ == 2'000'000UZ) {
+      purge_function_(*this, false);
+    }
+    if (last_best_counter_ > 2'000'000UZ && last_best_counter_ % 100'00UZ == 0) {
+      purge_function_(*this, false);
     }
 
     population_[r] = std::move(mutant);
+    last_best_counter_++;
 
     if (verbose_ && iter % 100 == 0) {
       std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
