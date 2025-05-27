@@ -96,7 +96,7 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
     population_[r] = std::move(mutant);
 
     if (iter - last_improvement_ == stall_threshold) {
-      auto ret = stall_handler_(gen, population_, stall_threshold);
+      auto ret = stall_handler_(gen, population_, best_fitness);
       stall_threshold = ret.first;
       best_fitness = ret.second;
       last_improvement_ = iter;

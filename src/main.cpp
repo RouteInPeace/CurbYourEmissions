@@ -106,7 +106,7 @@ class EVRPStallHandler {
       -> std::pair<size_t, float> {
     if (state_ == State_::Begin) [[unlikely]] {
       state_ = State_::Trivial;
-      return std::make_pair(2'000'000UZ, best_fitness);
+      return std::make_pair(1'000'000UZ, best_fitness);
     } else if (state_ == State_::Trivial) {
       std::cout << "Population is trivial, switching to optimal...\n";
       auto new_best_fitness = std::numeric_limits<float>::infinity();
@@ -118,7 +118,7 @@ class EVRPStallHandler {
 
       prev_best_fitness_ = new_best_fitness;
       state_ = State_::Optimal;
-      return std::make_pair(50'000UZ, new_best_fitness);
+      return std::make_pair(10'000UZ, new_best_fitness);
 
     } else if (state_ == State_::Optimal) {
       if (best_fitness == prev_best_fitness_) {
@@ -163,10 +163,10 @@ auto main() -> int {
   auto rd = std::random_device();
   auto gen = std::mt19937(rd());
 
-  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n51-k5.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
-  auto population_size = 5000UZ;
+  auto population_size = 2000UZ;
   auto max_iter = 1'000'000'000UZ;
 
   auto population = std::vector<EVRPIndividual>();
