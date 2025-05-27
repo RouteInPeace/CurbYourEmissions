@@ -20,8 +20,14 @@ class Solution {
   }
 
   inline auto squash() { routes_.squash(); }
+
   inline auto clear_patches() {
     routes_.clear_patches();
+    cost_valid_ = false;
+  }
+
+  inline auto pop_patch() {
+    routes_.pop_patch();
     cost_valid_ = false;
   }
 

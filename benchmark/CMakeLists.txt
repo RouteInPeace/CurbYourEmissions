@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}_bench
   patchable_vector_bench.cpp
   alns_bench.cpp
   ga_bench.cpp
+  patching_bench.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_bench PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

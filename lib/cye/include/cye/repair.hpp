@@ -5,13 +5,17 @@
 #include <queue>
 #include <unordered_map>
 #include <vector>
-#include "meta/common.hpp"
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
+#include "meta/common.hpp"
 
 namespace cye {
-
 auto patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void;
+
+inline auto patch_cargo_optimally(Solution &solution) -> void {
+  patch_cargo_optimally(solution, static_cast<unsigned>(solution.instance().cargo_capacity()) + 1u);
+}
+
 auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 auto patch_endpoint_depots(Solution &solution) -> void;
@@ -20,10 +24,24 @@ Solution greedy_repair(Solution &&solution, meta::RandomEngine &gen);
 Solution greedy_repair_best_first(Solution &&solution, meta::RandomEngine &gen);
 Solution regret_repair(Solution &&solution, meta::RandomEngine &gen, size_t k);
 
+struct DPCell {
+  DPCell()
+      : dist(std::numeric_limits<float>::infinity()),
+        prev(0),
+        entry_ind(std::numeric_limits<uint16_t>::max()),
+        exit_ind(std::numeric_limits<uint16_t>::max()) {}
+
+  float dist;
+  unsigned prev;
+  uint16_t entry_ind;
+  uint16_t exit_ind;
+};
+
 class OptimalEnergyRepair {
  public:
   OptimalEnergyRepair(std::shared_ptr<Instance> instance);
   auto patch(Solution &solution, unsigned bin_cnt) -> void;
+  auto fill_dp(Solution &solution, unsigned bin_cnt) -> std::vector<std::vector<DPCell>>;
 
  private:
   auto compute_cs_dist_mat_() -> void;

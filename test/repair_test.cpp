@@ -2,9 +2,12 @@
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <cstddef>
+#include <limits>
+#include <print>
 #include <random>
 #include <utility>
 #include <vector>
+#include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "cye/solution.hpp"
 
@@ -182,4 +185,105 @@ TEST(Repair, RegretRepair) {
   auto expected = std::vector<size_t>{0, 14, 16, 20, 18, 1, 17, 12, 8, 6, 7, 5, 9, 21, 15, 3, 4, 10, 11, 13, 19, 2, 0};
   auto repaired = std::ranges::to<std::vector<size_t>>(repaired_solution.routes().base());
   ASSERT_EQ(repaired, expected);
+}
+
+TEST(Repair, DPSparsity) {
+  auto archive = serial::JSONArchive("dataset/json/X-n916-k207.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto solution = cye::nearest_neighbor(instance);
+  solution.pop_patch();
+
+  // for (auto x : solution.routes()) {
+  //   std::cout << x << ' ';
+  // }
+  // std::cout << '\n';
+
+  auto energy_repair = cye::OptimalEnergyRepair(instance);
+
+  auto bin_cnt = 10001u;
+  auto dp = energy_repair.fill_dp(solution, bin_cnt);
+
+  auto heuristic_bound = std::vector<std::pair<unsigned, float>>();
+  heuristic_bound.emplace_back(bin_cnt - 1u, 0.f);
+  {
+    auto copy = solution;
+    cye::patch_energy_trivially(copy);
+    auto dist = 0.f;
+    auto energy = instance->battery_capacity();
+    auto energy_per_bin = instance->battery_capacity() / static_cast<float>(bin_cnt - 1);
+    auto previous_node_id = *copy.routes().begin();
+    auto original_it = ++solution.routes().begin();
+
+    for (auto it = ++copy.routes().begin(); it != copy.routes().end(); ++it) {
+      auto current_node_id = *it;
+      dist += instance->distance(previous_node_id, current_node_id);
+      energy -= instance->energy_required(previous_node_id, current_node_id);
+
+      if (instance->is_charging_station(current_node_id)) {
+        energy = instance->battery_capacity();
+      }
+
+      if (current_node_id == *original_it) {
+        auto energy_quant = static_cast<unsigned>(std::ceil(energy / energy_per_bin));
+        heuristic_bound.emplace_back(energy_quant, dist);
+        ++original_it;
+      }
+
+      previous_node_id = current_node_id;
+    }
+  }
+
+  // for (auto [bin, dist] : heuristic_bound) {
+  //   std::print("({:2},{:5.1f}) ", bin, dist);
+  // }
+  // std::cout << heuristic_bound.size() << ' ' << solution.visited_node_cnt() << '\n';
+  // std::cout << "\n\n\n";
+
+  // for (auto i = 0UZ; i < bin_cnt; ++i) {
+  //   for (auto j = 0UZ; j < solution.visited_node_cnt(); ++j) {
+  //     std::print("{:6.1f} ", dp[i][j].dist);
+  //   }
+  //   std::cout << '\n';
+  // }
+
+  // std::cout << "\n\n\n\n";
+  auto inf = std::numeric_limits<float>::infinity();
+  for (auto j = 0UZ; j < solution.visited_node_cnt(); ++j) {
+    for (auto i = 0UZ; i < bin_cnt; ++i) {
+      if (dp[i][j].dist != inf) {
+        auto dominated = false;
+        for (auto k = 0UZ; k < bin_cnt; ++k) {
+          if (dp[k][j].dist != inf && i != k && k >= i && dp[k][j].dist <= dp[i][j].dist) {
+            dominated = true;
+            break;
+          }
+        }
+        if (dominated) {
+          dp[i][j].dist = inf;
+        }
+      }
+    }
+  }
+
+  // for (auto i = 0UZ; i < bin_cnt; ++i) {
+  //   for (auto j = 0UZ; j < solution.visited_node_cnt(); ++j) {
+  //     std::print("{:6.1f} ", dp[i][j].dist);
+  //   }
+  //   std::cout << '\n';
+  // }
+
+  auto total_cnt = 0UZ;
+  auto full_cnt = 0UZ;
+  for (auto i = 0UZ; i < bin_cnt; ++i) {
+    for (auto j = 0UZ; j < solution.visited_node_cnt(); ++j) {
+      if (dp[i][j].dist != inf) {
+        full_cnt++;
+      }
+      total_cnt++;
+    }
+  }
+
+  std::cout << full_cnt << ' ' << total_cnt << ' '
+            << static_cast<double>(full_cnt) / static_cast<double>(total_cnt) * 100.0 << "%\n";
 }
