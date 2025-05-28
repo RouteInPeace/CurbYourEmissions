@@ -22,6 +22,7 @@ class Dummy {
   auto genotype() const -> std::span<const float> { return genotype_; }
   auto genotype() -> std::span<float> { return genotype_; }
   auto update_fitness() -> void {}
+  auto hash() const { return 0UZ; }
 
  private:
   std::array<float, 5> genotype_;
@@ -56,6 +57,7 @@ class StringIndividual {
   [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:
   std::string genotype_;
@@ -69,6 +71,7 @@ class IntIndividual {
   [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:
   std::vector<size_t> genotype_;

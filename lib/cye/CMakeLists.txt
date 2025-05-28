@@ -8,6 +8,7 @@ set(PROJECT_HEADERS
     include/cye/repair.hpp
     include/cye/destroy.hpp
     include/cye/patchable_vector.hpp
+    include/cye/individual.hpp
 )
 
 set(PROJECT_SOURCES 
@@ -18,6 +19,7 @@ set(PROJECT_SOURCES
     #src/destruction_nn.cpp
     src/repair.cpp
     src/destroy.cpp
+    src/individual.cpp
 )
 
 

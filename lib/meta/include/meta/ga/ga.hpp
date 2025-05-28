@@ -8,6 +8,7 @@
 #include <print>
 #include <random>
 #include <stdexcept>
+#include <unordered_set>
 #include <vector>
 #include "crossover.hpp"
 #include "meta/common.hpp"
@@ -38,7 +39,9 @@ class GeneticAlgorithm {
   }
 
  private:
+  static constexpr auto cmp_ = [](size_t x) { return x; };
   std::vector<I> population_;
+  std::unordered_set<size_t, decltype(cmp_)> exists_;
   std::vector<std::unique_ptr<CrossoverOperator<I>>> crossover_operators_;
   std::vector<std::unique_ptr<MutationOperator<I>>> mutation_operators_;
   std::unique_ptr<SelectionOperator<I>> selection_operator_;
@@ -70,6 +73,7 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
 
   auto best_fitness = std::numeric_limits<float>::infinity();
   for (const auto &individual : population_) {
+    exists_.insert(individual.hash());
     if (individual.fitness() < best_fitness) {
       best_fitness = individual.fitness();
     }
@@ -93,7 +97,12 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
       best_fitness = mutant.fitness();
       last_improvement_ = iter;
     }
-    population_[r] = std::move(mutant);
+
+    if (!exists_.contains(mutant.hash())) {
+      exists_.insert(mutant.hash());
+      exists_.erase(population_[r].hash());
+      population_[r] = std::move(mutant);
+    }
 
     if (iter - last_improvement_ == stall_threshold) {
       auto ret = stall_handler_(gen, population_, best_fitness);
