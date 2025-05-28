@@ -38,7 +38,7 @@ class JSONArchive {
     }
 
     template <std::ranges::input_range R>
-      requires(!StringLike<R>)
+      requires(!StringLike<R> && !HasWriteFunction<JSONArchive::Value, R>)
     constexpr auto emplace(std::string_view name, R &&range) -> void {
       using value_type = std::ranges::range_value_t<R>;
 
@@ -59,8 +59,21 @@ class JSONArchive {
       value_->AddMember(rj_name, std::move(array), allocator_);
     }
 
+    template<StringLike T>
+    constexpr auto emplace(std::string_view name, T &&str) -> void {
+      auto rj_name = rapidjson::Value();
+      rj_name.SetString(name.data(), name.length());
+      auto value = rapidjson::Value();
+      if constexpr (std::is_convertible_v<T, const char *>) {
+        value.SetString(str, allocator_);
+      } else {
+        value.SetString(str.data(), str.size(), allocator_);
+      }
+      value_->AddMember(rj_name, value, allocator_);
+    }
+
     template <typename T>
-      requires(!HasWriteFunction<JSONArchive::Value, T> && (StringLike<T> || !std::ranges::input_range<T>))
+      requires(!HasWriteFunction<JSONArchive::Value, T> && !std::ranges::input_range<T>)
     constexpr auto emplace(std::string_view name, T &&v) -> void {
       auto rj_name = rapidjson::Value();
       rj_name.SetString(name.data(), name.length());
@@ -88,6 +101,7 @@ class JSONArchive {
 
   [[nodiscard]] inline auto root() { return Value(&document_, document_.GetAllocator()); }
   [[nodiscard]] auto to_string() const -> std::string;
+  auto save(std::filesystem::path path) const -> void;
 
  private:
   rapidjson::Document document_;
