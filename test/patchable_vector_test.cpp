@@ -66,7 +66,6 @@ TEST(PatchableVector, PostfixDecrement) {
   EXPECT_EQ(*it, 0);
 }
 
-
 TEST(PatchableVector, SimplePatch) {
   auto vec = cye::PatchableVector<size_t>{0, 1, 2, 3, 4, 5};
   auto patch = cye::Patch<size_t>();
@@ -268,7 +267,6 @@ TEST(PatchableVector, MultiplePatchStress) {
       }
       EXPECT_EQ(result, elements);
     }
-
   }
 }
 
@@ -408,7 +406,6 @@ TEST(PatchableVector, DecrementStress) {
   auto patch_cnt_dist = std::uniform_int_distribution(0UZ, 5UZ);
 
   for (auto iter = 0UZ; iter < 10000UZ; ++iter) {
-
     auto elements = std::vector<size_t>();
     auto element_cnt = dist(gen);
     for (auto i = 0UZ; i < element_cnt; ++i) elements.push_back(dist(gen));

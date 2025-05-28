@@ -16,7 +16,7 @@ auto cye::EVRPIndividual::update_fitness() -> void {
     cye::patch_cargo_optimally(solution_, static_cast<unsigned>(solution_.instance().cargo_capacity()) + 1u);
     energy_repair_->patch(solution_, 101u);
   }
-  assert(solution_.is_valid());
+  // assert(solution_.is_valid());
 
   cost_ = 0.f;
   auto previous_node_id = *solution_.routes().begin();

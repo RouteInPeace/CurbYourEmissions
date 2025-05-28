@@ -43,4 +43,4 @@ class RandomOperatorSelection : public OperatorSelection {
   size_t repair_operator_cnt_ = 0;
 };
 
-}  // namespace alns
+}  // namespace meta::alns

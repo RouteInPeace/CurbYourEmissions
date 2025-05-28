@@ -63,4 +63,4 @@ template <Individual I>
   return {set_.begin()->first, std::next(set_.begin())->first, std::prev(set_.end())->first};
 }
 
-}  // namespace meta
+}  // namespace meta::ga

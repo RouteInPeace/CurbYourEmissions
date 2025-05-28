@@ -21,4 +21,4 @@ concept GeneType = requires(I individual) {
 template <Individual I>
 using GeneT = std::ranges::range_value_t<decltype(std::declval<I>().genotype())>;
 
-}  // namespace meta
+}  // namespace meta::ga

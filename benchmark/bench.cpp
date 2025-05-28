@@ -1,0 +1,93 @@
+#include <benchmark/benchmark.h>
+#include <algorithm>
+#include <mutex>
+#include <numeric>
+#include "cye/individual.hpp"
+#include "cye/init_heuristics.hpp"
+#include "cye/instance.hpp"
+#include "cye/mutations.hpp"
+#include "cye/repair.hpp"
+#include "cye/solution.hpp"
+#include "cye/stall_handler.hpp"
+#include "meta/ga/crossover.hpp"
+#include "meta/ga/ga.hpp"
+#include "meta/ga/mutation.hpp"
+#include "meta/ga/selection.hpp"
+#include "serial/json_archive.hpp"
+
+static std::mutex stats_mutex;
+static std::vector<double> global_best_costs;
+
+std::shared_ptr<cye::Instance> load_instance() {
+  auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
+  return std::make_shared<cye::Instance>(archive.root());
+}
+
+static void BM_GA_Optimization(benchmark::State &state) {
+  auto instance = load_instance();
+  auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  auto population_size = 2000UZ;
+
+  std::vector<double> local_best_costs;
+
+  for (auto _ : state) {
+    auto population = std::vector<cye::EVRPIndividual>();
+    population.reserve(population_size);
+    for (size_t i = 0; i < population_size; ++i) {
+      population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
+    }
+
+    auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
+
+    meta::ga::GeneticAlgorithm<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
+                                                       cye::EVRPStallHandler(), 1'000'000'000UZ, true);
+
+    ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
+    ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
+    ga.add_mutation_operator(std::make_unique<cye::NeighborSwap>(3));
+
+    ga.optimize(gen);
+    auto best_individual = ga.best_individual();
+    auto best_cost = best_individual.solution().cost();
+
+    auto solution = best_individual.solution();
+    solution.clear_patches();
+    cye::patch_endpoint_depots(solution);
+    cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+    energy_repair->patch(solution, 100001);
+
+    local_best_costs.push_back(std::min(best_cost, solution.cost()));
+    benchmark::ClobberMemory();
+  }
+
+  {
+    std::lock_guard<std::mutex> lock(stats_mutex);
+    global_best_costs.insert(global_best_costs.end(), local_best_costs.begin(), local_best_costs.end());
+  }
+
+  if (state.thread_index() == 0) {
+    if (!global_best_costs.empty()) {
+      std::sort(global_best_costs.begin(), global_best_costs.end());
+      double sum = std::accumulate(global_best_costs.begin(), global_best_costs.end(), 0.0);
+      double average = sum / global_best_costs.size();
+      double min = *std::min_element(global_best_costs.begin(), global_best_costs.end());
+      double max = *std::max_element(global_best_costs.begin(), global_best_costs.end());
+      double median = global_best_costs.size() % 2 == 0 ? (global_best_costs[global_best_costs.size() / 2 - 1] +
+                                                           global_best_costs[global_best_costs.size() / 2]) /
+                                                              2
+                                                        : global_best_costs[global_best_costs.size() / 2];
+
+      state.counters["average"] = average;
+      state.counters["min"] = min;
+      state.counters["max"] = max;
+      state.counters["median"] = median;
+    }
+
+    global_best_costs.clear();
+  }
+}
+BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(5);
+
+BENCHMARK_MAIN();

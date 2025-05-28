@@ -14,7 +14,7 @@
 auto cye::random_customer_permutation(meta::RandomEngine &gen, std::shared_ptr<Instance> instance) -> Solution {
   auto customers = instance->customer_ids() | std::ranges::to<std::vector<size_t>>();
   std::ranges::shuffle(customers, gen);
-  
+
   auto solution = Solution(instance, std::move(customers));
   patch_endpoint_depots(solution);
   patch_cargo_trivially(solution);
