@@ -59,7 +59,6 @@ static void BM_GA_Optimization(benchmark::State &state) {
     energy_repair->patch(solution, 100001);
 
     local_best_costs.push_back(std::min(best_cost, solution.cost()));
-    benchmark::ClobberMemory();
   }
 
   {

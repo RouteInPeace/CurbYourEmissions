@@ -23,10 +23,7 @@ class EVRPStallHandler {
       prev_best_fitness_ = best_fitness;
 
       if (state_ == State_::Optimal) {
-        for (auto &individual : population) {
-          individual.switch_to_trivial();
-          individual.update_fitness();
-        }
+        return std::make_pair(kOptimal, prev_best_fitness_);
       }
       state_ = State_::Trivial;
       return std::make_pair(kTrivial, prev_best_fitness_);
