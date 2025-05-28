@@ -144,7 +144,7 @@ auto OX1<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
       continue;
     }
 
-    while(used_.contains(p2_genotype[l])) {
+    while (used_.contains(p2_genotype[l])) {
       ++l;
     }
 
@@ -155,4 +155,4 @@ auto OX1<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
   return child;
 }
 
-}  // namespace meta
+}  // namespace meta::ga

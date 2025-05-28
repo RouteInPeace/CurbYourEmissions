@@ -9,6 +9,8 @@ set(PROJECT_HEADERS
     include/cye/destroy.hpp
     include/cye/patchable_vector.hpp
     include/cye/individual.hpp
+    include/cye/mutations.hpp
+    include/cye/stall_handler.hpp
 )
 
 set(PROJECT_SOURCES 

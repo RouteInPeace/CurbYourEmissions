@@ -8,7 +8,6 @@
 #include <print>
 #include <random>
 #include <stdexcept>
-#include <unordered_set>
 #include <vector>
 #include "crossover.hpp"
 #include "meta/common.hpp"
@@ -109,9 +108,14 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
       stall_threshold = ret.first;
       best_fitness = ret.second;
       last_improvement_ = iter;
+
+      if (stall_threshold == 0) {
+        std::println("Stall handler returned zero threshold, stopping optimization.");
+        break;
+      }
     }
 
-    if (verbose_ && iter % 100 == 0) {
+    if (verbose_ && iter % 1000 == 0) {
       std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
     }
   }

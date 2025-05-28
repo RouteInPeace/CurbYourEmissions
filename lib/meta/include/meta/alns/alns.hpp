@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "acceptance_criterion.hpp"
-#include "operator_selection.hpp"
 #include "meta/common.hpp"
+#include "operator_selection.hpp"
 
 namespace meta::alns {
 
@@ -52,12 +52,11 @@ auto optimize(Config<Solution> const &config, RandomEngine &gen) -> Solution {
     config.operator_selection->update(new_cost, old_cost, best_cost);
 
     if (config.verbose && i % 100 == 0) {
-      std::println("Iteration: {}, Current cost: {}, Best const: {}", i, current_solution.cost(),
-                   best_solution.cost());
+      std::println("Iteration: {}, Current cost: {}, Best const: {}", i, current_solution.cost(), best_solution.cost());
     }
   }
 
   return best_solution;
 }
 
-};  // namespace alns
+};  // namespace meta::alns

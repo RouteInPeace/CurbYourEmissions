@@ -24,4 +24,4 @@ class HillClimbingCriterion : public AcceptanceCriterion {
   [[nodiscard]] auto accept(double current, double previous, double best, RandomEngine &gen) -> bool override;
 };
 
-}  // namespace alns
+}  // namespace meta::alns
