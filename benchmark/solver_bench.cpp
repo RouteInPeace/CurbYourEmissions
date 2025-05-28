@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <mutex>
 #include <numeric>
+#include <random>
 #include "cye/individual.hpp"
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
@@ -14,6 +15,54 @@
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
+
+class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
+ public:
+  auto crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1, cye::EVRPIndividual const &p2)
+      -> cye::EVRPIndividual {
+    auto child = p1;
+
+    auto &&p1_genotype = p1.genotype();
+    auto &&p2_genotype = p2.genotype();
+    auto &&child_genotype = child.genotype();
+
+    auto &depot_patch = p1.solution().get_patch(1);
+    auto dist = std::uniform_int_distribution(0UZ, depot_patch.size());
+    auto ind = dist(gen);
+    auto j = ind == depot_patch.size() ? p1_genotype.size() - 1 : depot_patch.changes()[ind].ind - 1;
+    auto i = ind == 0 ? 0 : depot_patch.changes()[ind - 1].ind;
+
+    assert(p1_genotype.size() == p2_genotype.size());
+
+    assert(i <= j);
+
+    used_.clear();
+    for (auto k = i; k <= j; ++k) {
+      used_.emplace(p1_genotype[k]);
+    }
+
+    auto l = 0UZ;
+    for (auto k = 0UZ; k < p1_genotype.size(); ++k) {
+      // Skip the copied section
+      if (k == i) {
+        k = j;
+        continue;
+      }
+
+      while (used_.contains(p2_genotype[l])) {
+        ++l;
+      }
+
+      child_genotype[k] = p2_genotype[l];
+      ++l;
+    }
+
+    return child;
+  }
+
+ private:
+  std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
+};
 
 static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
@@ -44,13 +93,16 @@ static void BM_GA_Optimization(benchmark::State &state) {
     meta::ga::GeneticAlgorithm<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                        cye::EVRPStallHandler(), 1'000'000'000UZ, true);
 
+    ga.add_crossover_operator(std::make_unique<meta::ga::PMX<cye::EVRPIndividual>>());
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
+    ga.add_crossover_operator(std::make_unique<RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
     ga.add_mutation_operator(std::make_unique<cye::NeighborSwap>(3));
+    ga.add_mutation_operator(std::make_unique<meta::ga::Swap<cye::EVRPIndividual>>());
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
-    auto best_cost = best_individual.solution().cost();
+    auto best_cost = best_individual.fitness();
 
     auto solution = best_individual.solution();
     solution.clear_patches();
@@ -87,6 +139,4 @@ static void BM_GA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(5);
-
-BENCHMARK_MAIN();
+BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);

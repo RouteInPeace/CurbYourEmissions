@@ -14,14 +14,8 @@ add_executable(${PROJECT_NAME}_bench
   alns_bench.cpp
   ga_bench.cpp
   patching_bench.cpp
+  solver_bench.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_bench PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
 target_link_libraries(${PROJECT_NAME}_bench PRIVATE ${PROJECT_NAME}_lib benchmark::benchmark serial_lib meta_lib)
-
-add_executable(main_benchmark
-  bench.cpp
-)
-
-target_compile_options(main_benchmark PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-target_link_libraries(main_benchmark PRIVATE ${PROJECT_NAME}_lib benchmark::benchmark serial_lib meta_lib)
