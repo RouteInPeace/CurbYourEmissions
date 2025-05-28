@@ -2,7 +2,13 @@
 
 #include <format>
 #include <stdexcept>
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/writer.h"
 #include "serial/utils.hpp"
+#include "rapidjson/ostreamwrapper.h"
+
+
+serial::JSONArchive::JSONArchive() : document_(rapidjson::kObjectType) {}
 
 serial::JSONArchive::JSONArchive(std::filesystem::path path) {
   auto data = readFile(path);
@@ -11,4 +17,12 @@ serial::JSONArchive::JSONArchive(std::filesystem::path path) {
   }
 
   document_.Parse(data->c_str());
+}
+
+auto serial::JSONArchive::to_string() const -> std::string {
+  std::ostringstream oss;
+  rapidjson::OStreamWrapper osw(oss);
+  rapidjson::Writer<rapidjson::OStreamWrapper> writer(osw);
+  document_.Accept(writer);
+  return oss.str();
 }

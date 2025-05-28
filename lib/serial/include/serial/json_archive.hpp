@@ -4,17 +4,18 @@
 #include <vector>
 #include "archive.hpp"
 #include "rapidjson/document.h"
+#include "rapidjson/rapidjson.h"
 
 namespace serial {
-
 class JSONArchive {
  public:
+  JSONArchive();
   JSONArchive(std::filesystem::path path);
 
   class Value {
    public:
     constexpr auto operator[](std::string_view name) -> Value {
-      return value_->HasMember(name.data()) ? Value(&(*value_)[name.data()]) : nullptr;
+      return value_->HasMember(name.data()) ? Value(&(*value_)[name.data()], allocator_) : Value(nullptr, allocator_);
     };
 
     template <typename T>
@@ -27,14 +28,66 @@ class JSONArchive {
     template <typename T>
     [[nodiscard]] constexpr auto get_or(T) const noexcept -> T;
 
+    constexpr auto emplace(std::string_view name) -> Value {
+      auto rj_name = rapidjson::Value();
+      rj_name.SetString(name.data(), name.length());
+      auto v = rapidjson::Value(rapidjson::kObjectType);
+      value_->AddMember(rj_name, v, allocator_);
+
+      return Value(&(*value_)[name.data()], allocator_);
+    }
+
+    template <std::ranges::input_range R>
+      requires(!StringLike<R>)
+    constexpr auto emplace(std::string_view name, R &&range) -> void {
+      using value_type = std::ranges::range_value_t<R>;
+
+      auto rj_name = rapidjson::Value();
+      rj_name.SetString(name.data(), name.length());
+
+      auto array = rapidjson::Value(rapidjson::kArrayType);
+      for (auto x : range) {
+        if constexpr (HasWriteFunction<Value, value_type>) {
+          auto obj = rapidjson::Value(rapidjson::kObjectType);
+          x.write(Value(&obj, allocator_));
+          array.PushBack(std::move(obj), allocator_);
+        } else {
+          array.PushBack(x, allocator_);
+        }
+      }
+
+      value_->AddMember(rj_name, std::move(array), allocator_);
+    }
+
+    template <typename T>
+      requires(!HasWriteFunction<JSONArchive::Value, T> && (StringLike<T> || !std::ranges::input_range<T>))
+    constexpr auto emplace(std::string_view name, T &&v) -> void {
+      auto rj_name = rapidjson::Value();
+      rj_name.SetString(name.data(), name.length());
+      value_->AddMember(rj_name, std::forward<T>(v), allocator_);
+    }
+
+    template <typename T>
+      requires(HasWriteFunction<JSONArchive::Value, T>)
+    constexpr auto emplace(std::string_view name, T&& t) -> void {
+      auto rj_name = rapidjson::Value();
+      rj_name.SetString(name.data(), name.length());
+      auto obj = rapidjson::Value(rapidjson::kObjectType);
+      t.write(Value(&obj, allocator_));
+      value_->AddMember(rj_name, std::move(obj), allocator_);
+    }
+
     friend class JSONArchive;
 
    private:
-    constexpr Value(rapidjson::Value *value) noexcept : value_(value) {};
+    constexpr Value(rapidjson::Value *value, rapidjson::Document::AllocatorType &allocator) noexcept
+        : value_(value), allocator_(allocator) {};
     rapidjson::Value *value_;
+    rapidjson::Document::AllocatorType &allocator_;
   };
 
-  [[nodiscard]] inline auto root() { return Value(&document_); }
+  [[nodiscard]] inline auto root() { return Value(&document_, document_.GetAllocator()); }
+  [[nodiscard]] auto to_string() const -> std::string;
 
  private:
   rapidjson::Document document_;
@@ -111,11 +164,11 @@ constexpr auto JSONArchive::Value::get() const -> T {
 
   if constexpr (HasGet<Value, ElementType>) {
     for (auto &x : array) {
-      vec.push_back(Value(&x).get<ElementType>());
+      vec.push_back(Value(&x, allocator_).get<ElementType>());
     }
   } else {
     for (auto &x : array) {
-      vec.push_back(ElementType(Value(&x)));
+      vec.push_back(ElementType(Value(&x, allocator_)));
     }
   }
 
