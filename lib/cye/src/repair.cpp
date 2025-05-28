@@ -268,20 +268,7 @@ auto cye::OptimalEnergyRepair::find_between_(size_t start_node_id, size_t goal_n
   return {{ret, visited_[goal_node_id].g}};
 }
 
-struct DPCell {
-  DPCell()
-      : dist(std::numeric_limits<float>::infinity()),
-        prev(0),
-        entry_ind(std::numeric_limits<uint16_t>::max()),
-        exit_ind(std::numeric_limits<uint16_t>::max()) {}
-
-  float dist;
-  unsigned prev;
-  uint16_t entry_ind;
-  uint16_t exit_ind;
-};
-
-auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> void {
+auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> std::vector<std::vector<DPCell>> {
   auto visited_node_cnt = solution.visited_node_cnt();
   auto &instance = solution.instance();
 
@@ -361,6 +348,14 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
     previous_node_id = current_node_id;
     ++j;
   }
+
+  return dp;
+}
+
+auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> void {
+  auto dp = fill_dp(solution, bin_cnt);
+  auto visited_node_cnt = solution.visited_node_cnt();
+  auto no_cs = std::numeric_limits<uint16_t>::max();
 
   // Backward pass
 

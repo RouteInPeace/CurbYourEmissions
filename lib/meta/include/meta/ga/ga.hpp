@@ -2,11 +2,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <functional>
 #include <limits>
 #include <memory>
 #include <print>
 #include <random>
 #include <stdexcept>
+#include <unordered_set>
 #include <vector>
 #include "crossover.hpp"
 #include "meta/common.hpp"
@@ -18,12 +20,15 @@ namespace meta::ga {
 template <Individual I>
 class GeneticAlgorithm {
  public:
+  using StallHandler = std::function<std::pair<size_t, float>(RandomEngine &, std::vector<I> &, float)>;
+
   GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator,
-                   size_t max_iterations, bool verbose);
+                   StallHandler stall_handler, size_t max_iterations, bool verbose);
 
   auto optimize(RandomEngine &re) -> void;
 
   [[nodiscard]] inline auto &population() const { return population_; }
+  [[nodiscard]] inline auto &population() { return population_; }
   [[nodiscard]] auto best_individual() const -> I const &;
 
   inline auto add_crossover_operator(std::unique_ptr<CrossoverOperator<I>> crossover_operator) -> void {
@@ -34,20 +39,26 @@ class GeneticAlgorithm {
   }
 
  private:
+  static constexpr auto cmp_ = [](size_t x) { return x; };
   std::vector<I> population_;
+  std::unordered_set<size_t, decltype(cmp_)> exists_;
   std::vector<std::unique_ptr<CrossoverOperator<I>>> crossover_operators_;
   std::vector<std::unique_ptr<MutationOperator<I>>> mutation_operators_;
   std::unique_ptr<SelectionOperator<I>> selection_operator_;
+  StallHandler stall_handler_;
+  size_t last_improvement_;
   size_t max_iterations_;
   bool verbose_;
 };
 
 template <Individual I>
 GeneticAlgorithm<I>::GeneticAlgorithm(std::vector<I> &&population,
-                                      std::unique_ptr<SelectionOperator<I>> selection_operator, size_t max_iterations,
-                                      bool verbose)
+                                      std::unique_ptr<SelectionOperator<I>> selection_operator,
+                                      StallHandler stall_handler, size_t max_iterations, bool verbose)
     : population_(std::move(population)),
       selection_operator_(std::move(selection_operator)),
+      stall_handler_(std::move(stall_handler)),
+      last_improvement_(0),
       max_iterations_(max_iterations),
       verbose_(verbose) {}
 
@@ -62,17 +73,21 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
 
   auto best_fitness = std::numeric_limits<float>::infinity();
   for (const auto &individual : population_) {
+    exists_.insert(individual.hash());
     if (individual.fitness() < best_fitness) {
       best_fitness = individual.fitness();
     }
   }
 
+  last_improvement_ = 0;
+  auto [stall_threshold, _] = stall_handler_(gen, population_, best_fitness);
+
   auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
   auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
 
   for (auto iter = 0UZ; iter < max_iterations_; ++iter) {
-    auto mutation_operator_ind = mutation_selection_dist(gen);
     auto crossover_operator_ind = crossover_selection_dist(gen);
+    auto mutation_operator_ind = mutation_selection_dist(gen);
 
     auto [p1, p2, r] = selection_operator_->select(gen, population_);
     auto child = crossover_operators_[crossover_operator_ind]->crossover(gen, population_[p1], population_[p2]);
@@ -80,11 +95,23 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
     mutant.update_fitness();
     if (mutant.fitness() < best_fitness) {
       best_fitness = mutant.fitness();
+      last_improvement_ = iter;
     }
 
-    population_[r] = std::move(mutant);
+    if (!exists_.contains(mutant.hash())) {
+      exists_.insert(mutant.hash());
+      exists_.erase(population_[r].hash());
+      population_[r] = std::move(mutant);
+    }
 
-    if (verbose_ && iter % 100000 == 0) {
+    if (iter - last_improvement_ == stall_threshold) {
+      auto ret = stall_handler_(gen, population_, best_fitness);
+      stall_threshold = ret.first;
+      best_fitness = ret.second;
+      last_improvement_ = iter;
+    }
+
+    if (verbose_ && iter % 100 == 0) {
       std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
     }
   }

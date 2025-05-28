@@ -14,16 +14,13 @@ class Solution {
   Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
            std::vector<size_t> &&unassigned_customers);
 
-  inline auto add_patch(Patch<size_t> &&patch) {
-    routes_.add_patch(std::move(patch));
-    cost_valid_ = false;
-  }
+  inline auto add_patch(Patch<size_t> &&patch) { routes_.add_patch(std::move(patch)); }
 
   inline auto squash() { routes_.squash(); }
-  inline auto clear_patches() {
-    routes_.clear_patches();
-    cost_valid_ = false;
-  }
+
+  inline auto clear_patches() { routes_.clear_patches(); }
+
+  inline auto pop_patch() { routes_.pop_patch(); }
 
   [[nodiscard]] inline auto base() { return routes_.base(); }
   [[nodiscard]] inline auto base() const { return routes_.base(); }
@@ -38,23 +35,14 @@ class Solution {
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
-  [[nodiscard]] inline auto cost() const -> float {
-    if (!cost_valid_) {
-      update_cost_();
-    }
-    return cost_;
-  }
+  [[nodiscard]] auto cost() const -> float;
 
   inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
 
  private:
-  auto update_cost_() const -> void;
-
   std::shared_ptr<Instance> instance_;
   PatchableVector<size_t> routes_;
   std::vector<size_t> unassigned_customers_;
-  mutable float cost_;
-  mutable bool cost_valid_;
 };
 
 }  // namespace cye

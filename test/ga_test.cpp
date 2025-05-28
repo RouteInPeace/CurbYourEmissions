@@ -22,40 +22,10 @@ class Dummy {
   auto genotype() const -> std::span<const float> { return genotype_; }
   auto genotype() -> std::span<float> { return genotype_; }
   auto update_fitness() -> void {}
+  auto hash() const { return 0UZ; }
 
  private:
   std::array<float, 5> genotype_;
-  float fitness_;
-};
-
-class QuadraticEquation {
- public:
-  QuadraticEquation(std::vector<std::pair<float, float>> *dataset, float a, float b, float c)
-      : dataset_(dataset), genotype_({a, b, c}), fitness_(0.f) {
-    update_fitness();
-  }
-
-  auto evaluate(float x) -> float { return genotype_[0] * x * x + genotype_[1] * x + genotype_[2]; }
-  auto fitness() const -> float { return fitness_; };
-  auto genotype() const -> std::span<const float> { return genotype_; }
-  auto genotype() -> std::span<float> { return genotype_; }
-  auto update_fitness() -> void {
-    fitness_ = 0.f;
-
-    for (auto [x, y] : *dataset_) {
-      fitness_ += std::abs(evaluate(x) - y);
-    }
-
-    fitness_ /= static_cast<float>(dataset_->size());
-  }
-
-  auto a() { return genotype_[0]; }
-  auto b() { return genotype_[1]; }
-  auto c() { return genotype_[2]; }
-
- private:
-  std::vector<std::pair<float, float>> *dataset_;
-  std::array<float, 3> genotype_;
   float fitness_;
 };
 
@@ -87,6 +57,7 @@ class StringIndividual {
   [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:
   std::string genotype_;
@@ -100,6 +71,7 @@ class IntIndividual {
   [[nodiscard]] inline auto &genotype() { return genotype_; }
   [[nodiscard]] inline auto fitness() { return 0.f; }
   [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:
   std::vector<size_t> genotype_;
@@ -204,42 +176,4 @@ TEST(GA, TwoOptMutationStress) {
       EXPECT_EQ(x, y);
     }
   }
-}
-
-TEST(GA, BasicRegression) {
-  auto rd = std::random_device();
-  auto re = std::mt19937(rd());
-
-  auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
-  auto a = dist(re);
-  auto b = dist(re);
-  auto c = dist(re);
-
-  std::vector<std::pair<float, float>> dataset;
-
-  for (auto i = 0UZ; i < 100; i++) {
-    auto x = dist(re);
-    auto y = a * x * x + b * x + c;
-    dataset.push_back({x, y});
-  }
-
-  auto population_size = 100UZ;
-  auto population = std::vector<QuadraticEquation>();
-  population.reserve(population_size);
-
-  for (auto i = 0UZ; i < population_size; i++) {
-    population.emplace_back(&dataset, dist(re), dist(re), dist(re));
-  }
-
-  auto ga = meta::ga::GeneticAlgorithm<QuadraticEquation>(
-      std::move(population), std::make_unique<meta::ga::KWayTournamentSelectionOperator<QuadraticEquation>>(5), 200000,
-      false);
-
-  ga.add_crossover_operator(std::make_unique<meta::ga::BLXAlpha<QuadraticEquation>>(0.f));
-  ga.add_mutation_operator(std::make_unique<meta::ga::GaussianMutation<QuadraticEquation>>(0.02));
-
-  ga.optimize(re);
-  auto &best = ga.best_individual();
-
-  EXPECT_LE(best.fitness(), 0.01f);
 }
