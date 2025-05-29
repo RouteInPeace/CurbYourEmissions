@@ -31,7 +31,7 @@ auto main() -> int {
   auto rd = std::random_device();
   auto gen = std::mt19937(rd());
 
-  auto archive = serial::JSONArchive("dataset/json/E-n51-k5.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
   auto population_size = 2000UZ;
@@ -63,7 +63,9 @@ auto main() -> int {
   std::cout << "Time: " << std::chrono::duration_cast<std::chrono::seconds>(end_t - start_t).count() << "s\n";
 
   auto output_archive = serial::JSONArchive();
-  output_archive.root().emplace("solution", ga.best_individual().solution());
+  auto root = output_archive.root();
+  root.emplace("instance", *instance);
+  root.emplace("solution", ga.best_individual().solution());
   output_archive.save("solution.json");
 
   return 0;

@@ -16,6 +16,9 @@ struct Node {
   template <serial::Value V>
   Node(V &&value);
 
+  template <serial::Value V>
+  auto write(V value) const -> void;
+
   NodeType type;
   float x;
   float y;
@@ -28,6 +31,24 @@ Node::Node(V &&value)
       x(value["x"].template get<float>()),
       y(value["y"].template get<float>()),
       demand(value["demand"].template get_or<float>(0.f)) {}
+
+template <serial::Value V>
+auto Node::write(V v) const -> void {
+  v.emplace("x", x);
+  v.emplace("y", y);
+  v.emplace("demand", demand);
+  switch (type) {
+    case NodeType::Depot:
+      v.emplace("type", "depot");
+      break;
+    case NodeType::Customer:
+      v.emplace("type", "customer");
+      break;
+    case NodeType::ChargingStation:
+      v.emplace("type", "chargingStation");
+      break;
+  }
+}
 
 }  // namespace cye
 
