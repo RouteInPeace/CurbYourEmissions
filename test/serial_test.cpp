@@ -3,7 +3,18 @@
 #include <vector>
 #include "serial/json_archive.hpp"
 
-TEST(Serial, BasicTypes) {
+struct Vec2f {
+  float x;
+  float y;
+
+  template <serial::Value V>
+  auto write(V v) const {
+    v.emplace("x", x);
+    v.emplace("y", y);
+  }
+};
+
+TEST(Serial, ReadBasicTypes) {
   auto archive = serial::JSONArchive("test/data/test.json");
   auto root = archive.root();
 
@@ -12,6 +23,20 @@ TEST(Serial, BasicTypes) {
   EXPECT_EQ(root["float"].get<float>(), 1);
   EXPECT_EQ(root["string"].get<std::string_view>(), std::string_view("string"));
   EXPECT_EQ(root["simpleArray"].get<std::vector<int>>(), (std::vector<int>{1, 2, 3}));
+}
+
+TEST(Serial, WriteBasicTypes) {
+  auto archive = serial::JSONArchive();
+  auto root = archive.root();
+
+  root.emplace("int", 1);
+  root.emplace("float", 1.f);
+  root.emplace("string", "string");
+  root.emplace("array", std::vector{1, 2, 3, 4, 5});
+  root.emplace("Vec2f", Vec2f{1.f, 2.f});
+  root.emplace("ArrayOfVec2fs", std::vector{Vec2f{1.f, 2.f}, Vec2f{1.f, 2.f}, Vec2f{1.f, 2.f}});
+
+  std::cout << archive.to_string() << '\n';
 }
 
 TEST(Serial, NonExistingValue) {

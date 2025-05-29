@@ -4,6 +4,7 @@
 #include <vector>
 #include "cye/patchable_vector.hpp"
 #include "instance.hpp"
+#include "serial/archive.hpp"
 
 namespace cye {
 
@@ -38,6 +39,12 @@ class Solution {
   [[nodiscard]] auto cost() const -> float;
 
   inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
+
+  template <serial::Value V>
+  auto write(V v) const -> void {
+    v.emplace("instanceName", instance_->name());
+    v.emplace("routes", routes_);
+  }
 
  private:
   std::shared_ptr<Instance> instance_;

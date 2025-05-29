@@ -14,6 +14,9 @@ class Instance {
   template <serial::Value V>
   Instance(V &&value);
 
+  template <serial::Value V>
+  auto write(V value) const -> void;
+
   [[nodiscard]] auto &nodes() const { return nodes_; }
   [[nodiscard]] auto &node(size_t ind) const { return nodes_[ind]; }
   [[nodiscard]] auto node_cnt() const { return nodes_.size(); }
@@ -41,6 +44,7 @@ class Instance {
   [[nodiscard]] inline auto charging_station_cnt() const { return charging_station_cnt_; }
   [[nodiscard]] inline auto is_customer(size_t ind) const { return ind > 0 && ind <= customer_cnt_; }
   [[nodiscard]] inline auto is_charging_station(size_t ind) const { return ind == 0 || ind > customer_cnt_; }
+  [[nodiscard]] inline auto &name() { return name_; }
 
  private:
   auto update_distance_cache_() -> void;
@@ -72,6 +76,19 @@ Instance::Instance(V &&value)
   std::ranges::sort(nodes_,
                     [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
   update_distance_cache_();
+}
+
+template <serial::Value V>
+auto Instance::write(V v) const -> void {
+  v.emplace("name", name_);
+  v.emplace("optimalValue", optimal_value_);
+  v.emplace("minimumRouteCnt", minimum_route_cnt_);
+  v.emplace("customerCnt", customer_cnt_);
+  v.emplace("chargingStationCnt", charging_station_cnt_);
+  v.emplace("cargoCapacity", cargo_capacity_);
+  v.emplace("batteryCapacity", battery_capacity_);
+  v.emplace("energyConsumption", energy_consumption_);
+  v.emplace("nodes", nodes_);
 }
 
 }  // namespace cye
