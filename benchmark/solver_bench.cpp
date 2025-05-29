@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <algorithm>
+#include <memory>
 #include <mutex>
 #include <numeric>
 #include <random>
@@ -15,6 +16,68 @@
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
+
+static std::mutex stats_mutex;
+static std::vector<double> global_best_costs;
+
+class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
+ public:
+  SwapSearch(std::shared_ptr<cye::OptimalEnergyRepair> energy_repair, std::shared_ptr<cye::Instance> instance)
+      : energy_repair_(energy_repair), instance_(instance) {}
+
+  [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
+      -> cye::EVRPIndividual override {
+    auto &solution = individual.solution();
+    auto base = solution.base();
+    solution.clear_patches();
+    cye::patch_endpoint_depots(solution);
+    cye::patch_cargo_optimally(solution);
+
+    const auto &cargo_patch = solution.get_patch(1);
+
+    for (auto i = 0UZ; i <= cargo_patch.size(); i++) {
+      auto route_begin = i == 0 ? 0 : cargo_patch.changes()[i - 1].ind;
+      auto route_end = i == cargo_patch.size() ? base.size() - 1 : cargo_patch.changes()[i].ind - 1;
+
+      auto stop = false;
+      while (!stop) {
+        stop = true;
+        for (auto l = route_begin; l < route_end; l++) {
+          for (auto k = l + 1; k <= route_end; k++) {
+            auto prev_dist = neighbor_dist_(base, l) + neighbor_dist_(base, k);
+            std::swap(base[l], base[k]);
+            auto new_dist = neighbor_dist_(base, l) + neighbor_dist_(base, k);
+
+            if (new_dist < prev_dist) {
+              stop = false;
+            } else {
+              std::swap(base[l], base[k]);
+            }
+          }
+        }
+      }
+    }
+    energy_repair_->patch(solution, 101u);
+
+    return individual;
+  }
+
+ private:
+  std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
+  std::shared_ptr<cye::Instance> instance_;
+
+  [[nodiscard]] auto neighbor_dist_(std::span<size_t> base, size_t i) -> float {
+    auto d = 0.f;
+    if (i > 0) {
+      d += instance_->distance(base[i - 1], base[i]);
+    }
+    if (i < base.size() - 1) {
+      d += instance_->distance(base[i], base[i + 1]);
+    }
+
+    return d;
+  }
+};
 
 class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
  public:
@@ -64,9 +127,6 @@ class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
   std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
 };
 
-static std::mutex stats_mutex;
-static std::vector<double> global_best_costs;
-
 std::shared_ptr<cye::Instance> load_instance() {
   auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
   return std::make_shared<cye::Instance>(archive.root());
@@ -91,14 +151,11 @@ static void BM_GA_Optimization(benchmark::State &state) {
     auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
 
     meta::ga::GeneticAlgorithm<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
+                                                       std::make_unique<SwapSearch>(energy_repair, instance),
                                                        cye::EVRPStallHandler(), 1'000'000'000UZ, true);
 
-    ga.add_crossover_operator(std::make_unique<meta::ga::PMX<cye::EVRPIndividual>>());
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
-    ga.add_crossover_operator(std::make_unique<RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
-    ga.add_mutation_operator(std::make_unique<cye::NeighborSwap>(3));
-    ga.add_mutation_operator(std::make_unique<meta::ga::Swap<cye::EVRPIndividual>>());
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
@@ -139,4 +196,4 @@ static void BM_GA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
+BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(1);

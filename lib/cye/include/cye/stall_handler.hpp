@@ -1,10 +1,6 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
-#include <limits>
-#include <memory>
-#include <random>
 #include <utility>
 #include <vector>
 #include "cye/individual.hpp"

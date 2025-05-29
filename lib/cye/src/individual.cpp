@@ -7,14 +7,16 @@ cye::EVRPIndividual::EVRPIndividual(std::shared_ptr<cye::OptimalEnergyRepair> en
 }
 
 auto cye::EVRPIndividual::update_fitness() -> void {
-  solution_.clear_patches();
-  cye::patch_endpoint_depots(solution_);
-  if (trivial_) {
-    cye::patch_cargo_trivially(solution_);
-    cye::patch_energy_trivially(solution_);
-  } else {
-    cye::patch_cargo_optimally(solution_, static_cast<unsigned>(solution_.instance().cargo_capacity()) + 1u);
-    energy_repair_->patch(solution_, 101u);
+  if (!solution_.is_valid()) {
+    solution_.clear_patches();
+    cye::patch_endpoint_depots(solution_);
+    if (trivial_) {
+      cye::patch_cargo_trivially(solution_);
+      cye::patch_energy_trivially(solution_);
+    } else {
+      cye::patch_cargo_optimally(solution_, static_cast<unsigned>(solution_.instance().cargo_capacity()) + 1u);
+      energy_repair_->patch(solution_, 101u);
+    }
   }
 
   cost_ = 0.f;

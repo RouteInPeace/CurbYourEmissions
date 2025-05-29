@@ -6,6 +6,7 @@ set(PROJECT_HEADERS
     include/meta/ga/common.hpp
     include/meta/ga/mutation.hpp
     include/meta/ga/selection.hpp
+    include/meta/ga/local_search.hpp
 
     include/meta/sa/simulated_annealing.hpp
 
