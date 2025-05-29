@@ -1,9 +1,11 @@
 #include <benchmark/benchmark.h>
 #include <algorithm>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <numeric>
 #include <random>
+#include <thread>
 #include "cye/individual.hpp"
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
@@ -132,12 +134,14 @@ std::shared_ptr<cye::Instance> load_instance() {
   return std::make_shared<cye::Instance>(archive.root());
 }
 
+std::atomic<int> instance_counter(0);
+
 static void BM_GA_Optimization(benchmark::State &state) {
   auto instance = load_instance();
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
-  auto population_size = 1000UZ;
+  auto population_size = 500UZ;
 
   std::vector<double> local_best_costs;
 
@@ -145,10 +149,10 @@ static void BM_GA_Optimization(benchmark::State &state) {
     auto population = std::vector<cye::EVRPIndividual>();
     population.reserve(population_size);
     for (size_t i = 0; i < population_size; ++i) {
-      population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
+      population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 9));
     }
 
-    auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
+    auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(3);
 
     meta::ga::GeneticAlgorithm<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                        std::make_unique<SwapSearch>(energy_repair, instance),
@@ -176,7 +180,12 @@ static void BM_GA_Optimization(benchmark::State &state) {
     global_best_costs.insert(global_best_costs.end(), local_best_costs.begin(), local_best_costs.end());
   }
 
+  instance_counter++;
   if (state.thread_index() == 0) {
+    while(instance_counter < state.threads()) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
     if (!global_best_costs.empty()) {
       std::sort(global_best_costs.begin(), global_best_costs.end());
       double sum = std::accumulate(global_best_costs.begin(), global_best_costs.end(), 0.0);
