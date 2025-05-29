@@ -2,7 +2,7 @@ set(PROJECT_HEADERS
     include/meta/common.hpp
 
     include/meta/ga/crossover.hpp
-    include/meta/ga/ga.hpp
+    include/meta/ga/ssga.hpp
     include/meta/ga/common.hpp
     include/meta/ga/mutation.hpp
     include/meta/ga/selection.hpp

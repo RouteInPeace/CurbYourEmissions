@@ -6,7 +6,7 @@
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "meta/common.hpp"
-#include "meta/ga/ga.hpp"
+#include "meta/ga/ssga.hpp"
 #include "meta/ga/local_search.hpp"
 #include "serial/json_archive.hpp"
 
@@ -30,7 +30,7 @@ static void BM_GA(benchmark::State &state) {
   auto mutation_operator = std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>();
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
 
-  auto ga = meta::ga::GeneticAlgorithm<cye::EVRPIndividual>(
+  auto ga = meta::ga::SSGA<cye::EVRPIndividual>(
       std::move(population), std::move(selection_operator), std::make_unique<meta::ga::NoSearch<cye::EVRPIndividual>>(),
       [](meta::RandomEngine &, std::vector<cye::EVRPIndividual> &, float best) {
         return std::make_pair(100000000UZ, best);

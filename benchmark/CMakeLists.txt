@@ -15,6 +15,7 @@ add_executable(${PROJECT_NAME}_bench
   ga_bench.cpp
   patching_bench.cpp
   solver_bench.cpp
+  gen_solver_bench.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_bench PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

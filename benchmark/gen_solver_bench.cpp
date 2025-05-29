@@ -14,6 +14,7 @@
 #include "cye/solution.hpp"
 #include "cye/stall_handler.hpp"
 #include "meta/ga/crossover.hpp"
+#include "meta/ga/generational_ga.hpp"
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
 #include "meta/ga/ssga.hpp"
@@ -34,7 +35,7 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
     auto base = solution.base();
     solution.clear_patches();
     cye::patch_endpoint_depots(solution);
-    cye::patch_cargo_optimally(solution);
+    cye::patch_cargo_trivially(solution);
 
     const auto &cargo_patch = solution.get_patch(1);
 
@@ -60,7 +61,8 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
         }
       }
     }
-    energy_repair_->patch(solution, 101u);
+    // energy_repair_->patch(solution, 101u);
+    cye::patch_energy_trivially(solution);
 
     return individual;
   }
@@ -130,13 +132,13 @@ class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
   std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
 };
 
-static void BM_GA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n214-k11.json");
+static void BM_GenGA_Optimization(benchmark::State &state) {
+  auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
-  auto population_size = 1000UZ;
+  auto population_size = 200UZ;
 
   std::vector<double> local_best_costs;
 
@@ -147,14 +149,13 @@ static void BM_GA_Optimization(benchmark::State &state) {
       population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
     }
 
-    auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(3);
+    auto selection_operator = std::make_unique<meta::ga::RouletteWheelSelection<cye::EVRPIndividual>>();
 
-    meta::ga::SSGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
-                                           std::make_unique<SwapSearch>(energy_repair, instance),
-                                           cye::EVRPStallHandler(), 1'000'000'000UZ, true);
+    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
+                                                     std::make_unique<SwapSearch>(energy_repair, instance), 1,
+                                                     1'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
-    // ga.add_crossover_operator(std::make_unique<RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
 
     ga.optimize(gen);
@@ -201,4 +202,4 @@ static void BM_GA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(1);

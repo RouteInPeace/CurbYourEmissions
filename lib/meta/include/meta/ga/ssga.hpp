@@ -18,13 +18,12 @@
 namespace meta::ga {
 
 template <Individual I>
-class GeneticAlgorithm {
+class SSGA {
  public:
   using StallHandler = std::function<std::pair<size_t, float>(RandomEngine &, std::vector<I> &, float)>;
 
-  GeneticAlgorithm(std::vector<I> &&population, std::unique_ptr<SelectionOperator<I>> selection_operator,
-                   std::unique_ptr<LocalSearch<I>> local_search, StallHandler stall_handler, size_t max_iterations,
-                   bool verbose);
+  SSGA(std::vector<I> &&population, std::unique_ptr<SSGASelectionOperator<I>> selection_operator,
+       std::unique_ptr<LocalSearch<I>> local_search, StallHandler stall_handler, size_t max_iterations, bool verbose);
 
   auto optimize(RandomEngine &re) -> void;
 
@@ -45,7 +44,7 @@ class GeneticAlgorithm {
   std::unordered_set<size_t, decltype(cmp_)> exists_;
   std::vector<std::unique_ptr<CrossoverOperator<I>>> crossover_operators_;
   std::vector<std::unique_ptr<MutationOperator<I>>> mutation_operators_;
-  std::unique_ptr<SelectionOperator<I>> selection_operator_;
+  std::unique_ptr<SSGASelectionOperator<I>> selection_operator_;
   std::unique_ptr<LocalSearch<I>> local_search_;
   StallHandler stall_handler_;
   size_t last_improvement_;
@@ -54,10 +53,9 @@ class GeneticAlgorithm {
 };
 
 template <Individual I>
-GeneticAlgorithm<I>::GeneticAlgorithm(std::vector<I> &&population,
-                                      std::unique_ptr<SelectionOperator<I>> selection_operator,
-                                      std::unique_ptr<LocalSearch<I>> local_search, StallHandler stall_handler,
-                                      size_t max_iterations, bool verbose)
+SSGA<I>::SSGA(std::vector<I> &&population, std::unique_ptr<SSGASelectionOperator<I>> selection_operator,
+              std::unique_ptr<LocalSearch<I>> local_search, StallHandler stall_handler, size_t max_iterations,
+              bool verbose)
     : population_(std::move(population)),
       selection_operator_(std::move(selection_operator)),
       local_search_(std::move(local_search)),
@@ -67,7 +65,7 @@ GeneticAlgorithm<I>::GeneticAlgorithm(std::vector<I> &&population,
       verbose_(verbose) {}
 
 template <Individual I>
-auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
+auto SSGA<I>::optimize(RandomEngine &gen) -> void {
   if (crossover_operators_.empty()) {
     throw std::runtime_error("At least one crossover operator is required.");
   }
@@ -129,7 +127,7 @@ auto GeneticAlgorithm<I>::optimize(RandomEngine &gen) -> void {
 }
 
 template <Individual I>
-auto GeneticAlgorithm<I>::best_individual() const -> I const & {
+auto SSGA<I>::best_individual() const -> I const & {
   auto best = &population_[0];
 
   for (auto &individual : population_) {
