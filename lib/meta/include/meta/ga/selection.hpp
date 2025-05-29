@@ -102,5 +102,4 @@ class RouletteWheelSelection : public GenGASelectionOperator<I> {
  private:
   std::vector<double> dist_;
 };
-
 }  // namespace meta::ga

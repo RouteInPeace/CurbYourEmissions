@@ -76,9 +76,8 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
   auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
   auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
 
-  auto tmp_population = population_;
-  auto prev_population = &population_;
-  auto cur_population = &tmp_population;
+  auto cur_population = population_;
+  auto prev_population = std::move(population_);
 
   for (auto iter = 0UZ; iter < max_iterations_; ++iter) {
     // Fill the new population
@@ -87,43 +86,42 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
 
     // Elitizam
     for (auto i = 0UZ; i < n_elite_; ++i) {
-      (*cur_population)[i] = (*prev_population)[i];
-      exists_.insert((*prev_population)[i].hash());
+      // solution is already copied in
+      cur_population[i] = prev_population[i];
+      exists_.insert(prev_population[i].hash());
     }
 
     // The common folk
-    selection_operator_->prepare(*prev_population);
-    for (auto i = n_elite_; i < prev_population->size();) {
+    selection_operator_->prepare(prev_population);
+    for (auto i = n_elite_; i < prev_population.size();) {
       auto crossover_operator_ind = crossover_selection_dist(gen);
       auto mutation_operator_ind = mutation_selection_dist(gen);
 
       auto [p1, p2] = selection_operator_->select(gen);
       auto child =
-          crossover_operators_[crossover_operator_ind]->crossover(gen, (*prev_population)[p1], (*prev_population)[p2]);
+          crossover_operators_[crossover_operator_ind]->crossover(gen, prev_population[p1], prev_population[p2]);
       auto mutant = mutation_operators_[mutation_operator_ind]->mutate(gen, std::move(child));
       auto final = local_search_->search(gen, std::move(mutant));
       final.update_fitness();
 
       if (!exists_.contains(final.hash())) {
         exists_.insert(final.hash());
-        (*cur_population)[i] = std::move(final);
+        cur_population[i] = std::move(final);
         i++;
       }
     }
 
     // Sort
-    std::ranges::sort(*cur_population, [](I const &a, I const &b) { return a.fitness() < b.fitness(); });
+    std::ranges::sort(cur_population, [](I const &a, I const &b) { return a.fitness() < b.fitness(); });
 
     if (verbose_) {
-      std::println("Generation: {}, Best individual: {}", iter, (*cur_population)[0].fitness());
+      std::println("Generation: {}, Best individual: {}", iter, cur_population[0].fitness());
     }
 
     std::swap(cur_population, prev_population);
   }
 
-  if(cur_population != &population_) {
-    population_ = std::move(tmp_population);
-  }
+  population_ = std::move(prev_population);
 }
 
 template <Individual I>
