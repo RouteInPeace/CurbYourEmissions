@@ -22,7 +22,7 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n1001-k43.json");
+  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
@@ -38,18 +38,21 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
       population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
     }
 
-    auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.5);
+    auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
 
     meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
-                                                     std::make_unique<cye::SwapSearch>(instance), 30,
-                                                     10'000UZ, true);
+                                                      30,
+                                                     15'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<cye::DistributedCrossover>());
-    // ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
+    //ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
     // ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
     // ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
     ga.add_mutation_operator(std::make_unique<cye::HMM>(instance));
     ga.add_mutation_operator(std::make_unique<cye::HSM>(instance));
+    
+    ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
+    ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
@@ -94,4 +97,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(4)->Unit(benchmark::kMillisecond)->Threads(8);

@@ -1,4 +1,5 @@
 #include "cye/operators.hpp"
+#include <random>
 #include "cye/repair.hpp"
 
 auto cye::NeighborSwap::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
@@ -78,7 +79,7 @@ auto cye::RouteOX1::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const
   return child;
 }
 
-auto cye::TwoOptSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+auto cye::TwoOptSearch::search(meta::RandomEngine & gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
@@ -93,7 +94,7 @@ auto cye::TwoOptSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual
     auto stop = false;
     while (!stop) {
       stop = true;
-      for (auto l = route_begin; l < route_end - 1; l++) {
+      for (auto l = route_begin; l < route_end - 1; ++l) {
         for (auto k = l + 1; k < route_end; k++) {
           auto current_dist = 0.0;
           auto swapped_distance = 0.0;
@@ -124,7 +125,7 @@ auto cye::TwoOptSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual
   return individual;
 }
 
-auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+auto cye::SwapSearch::search(meta::RandomEngine & gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
@@ -260,8 +261,6 @@ cye::EVRPIndividual cye::DistributedCrossover::crossover(meta::RandomEngine &gen
 
   auto dist = std::uniform_int_distribution(0UZ, customers1.size() - 1);
   auto index = dist(gen);
-  // remove this
-  index = 4;
   auto random_customer = customers1[index];
 
   const auto &route1_cargo_patch = p1.solution().get_patch(0);
