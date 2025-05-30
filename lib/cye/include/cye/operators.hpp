@@ -31,10 +31,9 @@ class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
   std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
 };
 
-class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
+class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
-  SwapSearch(std::shared_ptr<cye::OptimalEnergyRepair> energy_repair, std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(energy_repair), instance_(instance) {}
+  TwoOptSearch(std::shared_ptr<cye::Instance> instance) : instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
       -> cye::EVRPIndividual override;
@@ -44,6 +43,44 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
   std::shared_ptr<cye::Instance> instance_;
 
   [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float;
+};
+
+class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
+ public:
+  SwapSearch(std::shared_ptr<cye::Instance> instance) : instance_(instance) {}
+
+  [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
+      -> cye::EVRPIndividual override;
+
+ private:
+  [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float;
+
+  std::shared_ptr<cye::Instance> instance_;
+};
+
+class HSM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
+ public:
+  HSM(std::shared_ptr<cye::Instance> instance) : instance_(std::move(instance)) {}
+
+  [[nodiscard]] auto mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
+  std::shared_ptr<cye::Instance> instance_;
+};
+
+class HMM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
+ public:
+  HMM(std::shared_ptr<cye::Instance> instance) : instance_(std::move(instance)) {}
+
+  [[nodiscard]] auto mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
+  std::shared_ptr<cye::Instance> instance_;
+};
+
+class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
+ public:
+  [[nodiscard]] cye::EVRPIndividual crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1,
+                                              cye::EVRPIndividual const &p2) override;
+  std::optional<cye::EVRPIndividual> other_;
+  std::unordered_set<size_t> customers1_set_;
+  std::unordered_set<size_t> customers2_set_;
 };
 
 }  // namespace cye

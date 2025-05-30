@@ -78,6 +78,52 @@ auto cye::RouteOX1::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const
   return child;
 }
 
+auto cye::TwoOptSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+  auto &solution = individual.solution();
+  auto &base = solution.base();
+  solution.clear_patches();
+  cye::patch_cargo_trivially(solution);
+
+  const auto &cargo_patch = solution.get_patch(0);
+
+  for (auto i = 1UZ; i < cargo_patch.size(); i++) {
+    auto route_begin = cargo_patch.changes()[i - 1].ind;
+    auto route_end = cargo_patch.changes()[i].ind;
+
+    auto stop = false;
+    while (!stop) {
+      stop = true;
+      for (auto l = route_begin; l < route_end - 1; l++) {
+        for (auto k = l + 1; k < route_end; k++) {
+          auto current_dist = 0.0;
+          auto swapped_distance = 0.0;
+
+          if (l > 0) {
+            current_dist += instance_->distance(base[l - 1], base[l]);
+            swapped_distance += instance_->distance(base[l - 1], base[k]);
+          }
+
+          if (k < base.size() - 1) {
+            current_dist += instance_->distance(base[k], base[k + 1]);
+            swapped_distance += instance_->distance(base[l], base[k + 1]);
+          }
+
+          if (current_dist > swapped_distance) {
+            stop = false;
+            for (auto x = 0UZ; x <= (k - l) / 2; ++x) {
+              std::swap(base[l + x], base[k - x]);
+            }
+          }
+        }
+      }
+    }
+  }
+  cye::patch_energy_trivially(solution);
+  individual.set_valid();
+
+  return individual;
+}
+
 auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
@@ -108,7 +154,6 @@ auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &
       }
     }
   }
-  // energy_repair_->patch(solution, 101u);
   cye::patch_energy_trivially(solution);
   individual.set_valid();
 
@@ -125,4 +170,147 @@ auto cye::SwapSearch::neighbor_dist_(std::vector<size_t> const &base, size_t i) 
   }
 
   return d;
+}
+
+namespace {
+static auto find_route(cye::Patch<size_t> const &patch, size_t index) -> std::pair<size_t, size_t> {
+  auto it = std::ranges::upper_bound(patch.changes(), index, std::less{}, [&](auto const &el) { return el.ind; });
+
+  auto route_end = it->ind;
+  auto route_begin = (--it)->ind;
+
+  return {route_begin, route_end};
+}
+}  // namespace
+
+auto cye::HSM::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+  auto &solution = individual.solution();
+
+  solution.clear_patches();
+  cye::patch_cargo_trivially(solution);
+
+  auto &customers = individual.genotype();
+  auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);
+  auto index = dist(gen);
+  auto customer = customers[index];
+
+  auto [route_begin, route_end] = find_route(solution.get_patch(0), index);
+
+  size_t best_id = 0;
+  double best_dist = std::numeric_limits<double>::infinity();
+  for (size_t i = 0; i < customers.size(); ++i) {
+    if (i >= route_begin && i < route_end) continue;
+
+    auto dist = instance_->distance(customer, customers[i]);
+    if (dist < best_dist) {
+      best_dist = dist;
+      best_id = i;
+    }
+  }
+  std::swap(customers[index], customers[best_id]);
+  return individual;
+}
+
+auto cye::HMM::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+  auto &solution = individual.solution();
+
+  solution.clear_patches();
+  cye::patch_cargo_trivially(solution);
+
+  auto &customers = individual.genotype();
+  auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);
+  auto index = dist(gen);
+  auto customer = customers[index];
+
+  auto [route_begin, route_end] = find_route(solution.get_patch(0), index);
+
+  size_t best_id = 0;
+  double best_dist = std::numeric_limits<double>::infinity();
+  for (size_t i = 0; i < customers.size(); ++i) {
+    if (i >= route_begin && i < route_end) continue;
+
+    auto dist = instance_->distance(customer, customers[i]);
+    if (dist < best_dist) {
+      best_dist = dist;
+      best_id = i;
+    }
+  }
+  customers.erase(customers.begin() + index);
+
+  if (best_id > index) {
+    --best_id;
+  }
+  customers.insert(customers.begin() + best_id, customer);
+  return individual;
+}
+
+cye::EVRPIndividual cye::DistributedCrossover::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1,
+                                                         cye::EVRPIndividual const &p2) {
+  if (other_) {
+    auto ret = std::move(*other_);
+    other_ = std::nullopt;
+    return ret;
+  }
+
+  customers1_set_.clear();
+  customers2_set_.clear();
+
+  auto const &customers1 = p1.genotype();
+  auto const &customers2 = p2.genotype();
+
+  auto dist = std::uniform_int_distribution(0UZ, customers1.size() - 1);
+  auto index = dist(gen);
+  // remove this
+  index = 4;
+  auto random_customer = customers1[index];
+
+  const auto &route1_cargo_patch = p1.solution().get_patch(0);
+  auto [route1_begin, route1_end] = find_route(route1_cargo_patch, index);
+
+  auto customer_location = std::ranges::find(customers2, random_customer) - customers2.begin();
+  const auto &route_2_cargo_patch = p2.solution().get_patch(0);
+  auto [route2_begin, route2_end] = find_route(route_2_cargo_patch, customer_location);
+
+  for (size_t i = route1_begin; i < route1_end; ++i) {
+    customers1_set_.insert(customers1[i]);
+  }
+  for (size_t i = route2_begin; i < route2_end; ++i) {
+    customers2_set_.insert(customers2[i]);
+  }
+
+  auto child1 = p1;
+  auto child2 = p2;
+
+  auto k = route1_begin;
+  auto l = route2_begin;
+  std::vector<size_t> insertions;
+  for (auto &id : child1.genotype()) {
+    auto contained = customers1_set_.contains(id) || customers2_set_.contains(id);
+    if (!contained) continue;
+
+    while (l < route2_end && customers1_set_.contains(customers2[l])) {
+      l++;
+    }
+
+    if (l < route2_end) {
+      id = customers2[l];
+      insertions.push_back(customers2[l]);
+      l++;
+    } else {
+      id = customers1[k];
+      insertions.push_back(customers1[k]);
+      k++;
+    }
+  }
+
+  auto it = insertions.rbegin();
+  for (auto &id : child2.genotype()) {
+    auto contained = customers1_set_.contains(id) || customers2_set_.contains(id);
+    if (!contained) continue;
+    id = *it;
+    ++it;
+  }
+  other_ = std::move(child2);
+
+  return child1;
 }
