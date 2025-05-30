@@ -21,32 +21,93 @@ static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
-/*
-namespace {
-  auto find_subroute_id(std::vector<size_t> const &route, int node_id) {
-    auto id = std::find(route.begin(), route.end(), node_id) - route.begin();
-
-  }
-}
+namespace {}  // namespace
 
 class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
  public:
   [[nodiscard]] cye::EVRPIndividual crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1,
-cye::EVRPIndividual const &p2) { if (other) { auto ret = std::move(*other); other = std::nullopt; return ret;
+                                              cye::EVRPIndividual const &p2) {
+    if (other_) {
+      auto ret = std::move(*other_);
+      other_ = std::nullopt;
+      return ret;
     }
 
-    auto const &routes1 = p1.genotype();
-    auto const &routes2 = p2.genotype();
+    customers1_set_.clear();
+    customers2_set_.clear();
 
-    std::uniform_int_distribution<size_t> dist(1, p1.solution().visited_node_cnt());
-    int chosen_id = dist(gen);
+    auto const &customers1 = p1.genotype();
+    auto const &customers2 = p2.genotype();
 
+    auto dist = std::uniform_int_distribution(0UZ, customers1.size() - 1);
+    auto index = dist(gen);
+    auto random_customer = customers1[index];
+
+    const auto &route1_cargo_patch = p1.solution().get_patch(0);
+    auto [route1_begin, route1_end] = find_route_(route1_cargo_patch, index);
+
+    auto customer_location = std::ranges::find(customers2, random_customer) - customers2.begin();
+    const auto &route_2_cargo_patch = p2.solution().get_patch(0);
+    auto [route2_begin, route2_end] = find_route_(route_2_cargo_patch, customer_location);
+
+    for (size_t i = route1_begin; i < route1_end; ++i) {
+      customers1_set_.insert(customers1[i]);
+    }
+    for (size_t i = route2_begin; i < route2_end; ++i) {
+      customers2_set_.insert(customers2[i]);
+    }
+
+    auto child1 = p1;
+    auto child2 = p2;
+
+    auto k = route1_begin;
+    auto l = route2_begin;
+    std::vector<size_t> insertions;
+    for (auto &id : child1.genotype()) {
+      auto contained = customers1_set_.contains(id) || customers2_set_.contains(id);
+      if (!contained) continue;
+
+      while (l < route2_end && customers1_set_.contains(customers2[l])) {
+        l++;
+      }
+
+      if (l < route2_end) {
+        id = customers2[l];
+        insertions.push_back(customers2[l]);
+        l++;
+      } else {
+        id = customers1[k];
+        insertions.push_back(customers1[k]);
+        k++;
+      }
+    }
+
+    auto it = insertions.rbegin();
+    for (auto &id : child2.genotype()) {
+      auto contained = customers1_set_.contains(id) || customers2_set_.contains(id);
+      if (!contained) continue;
+      id = *it;
+      ++it;
+    }
+    other_ = std::move(child2);
+
+    return child1;
   }
 
  private:
-  std::optional<cye::EVRPIndividual> other;
+  auto find_route_(cye::Patch<size_t> const &patch, size_t index) -> std::pair<size_t, size_t> {
+    auto it = std::ranges::lower_bound(patch.changes(), index, std::less{}, [&](auto const &el) { return el.ind; });
+
+    auto route_end = it->ind;
+    auto route_begin = (--it)->ind;
+
+    return {route_begin, route_end};
+  }
+
+  std::optional<cye::EVRPIndividual> other_;
+  std::unordered_set<size_t> customers1_set_;
+  std::unordered_set<size_t> customers2_set_;
 };
-*/
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
   auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
@@ -69,9 +130,10 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                      std::make_unique<cye::SwapSearch>(energy_repair, instance), 30,
-                                                     1'000UZ, true);
+                                                     10'000UZ, true);
 
-    ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
+    ga.add_crossover_operator(std::make_unique<DistributedCrossover>());
+    // ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
     // ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
 
