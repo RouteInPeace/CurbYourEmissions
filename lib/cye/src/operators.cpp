@@ -44,11 +44,11 @@ auto cye::RouteOX1::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const
   auto &&p2_genotype = p2.genotype();
   auto &&child_genotype = child.genotype();
 
-  auto &depot_patch = p1.solution().get_patch(1);
-  auto dist = std::uniform_int_distribution(0UZ, depot_patch.size());
+  auto &cargo_patch = p1.solution().get_patch(0);
+  auto dist = std::uniform_int_distribution(1UZ, cargo_patch.size() - 1);
   auto ind = dist(gen);
-  auto j = ind == depot_patch.size() ? p1_genotype.size() - 1 : depot_patch.changes()[ind].ind - 1;
-  auto i = ind == 0 ? 0 : depot_patch.changes()[ind - 1].ind;
+  auto i = cargo_patch.changes()[ind - 1].ind;
+  auto j = cargo_patch.changes()[ind].ind - 1;
 
   assert(p1_genotype.size() == p2_genotype.size());
 

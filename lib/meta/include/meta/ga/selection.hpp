@@ -5,6 +5,7 @@
 #include <random>
 #include <set>
 #include <span>
+#include <stdexcept>
 #include <tuple>
 #include <vector>
 #include "meta/common.hpp"
@@ -100,6 +101,42 @@ class RouletteWheelSelection : public GenGASelectionOperator<I> {
   }
 
  private:
+  std::vector<double> dist_;
+};
+
+template <typename I>
+class RankSelection : public GenGASelectionOperator<I> {
+ public:
+  RankSelection(double sp) : sp_(sp) {
+    if (sp < 1 || sp > 2) {
+      throw std::runtime_error("Selectio pressure has to be between 1 and 2.");
+    }
+  }
+
+  auto prepare(std::span<I> population) -> void override {
+    dist_.resize(population.size());
+
+    auto c = 2.0 * (sp_ - 1.0) / static_cast<double>(population.size() - 1);
+
+    for (auto i = 0UZ; i < population.size(); ++i) {
+      dist_[i] = i == 0 ? 0.0 : dist_[i - 1];
+      dist_[i] += 2.0 - sp_ + c * static_cast<double>(population.size() - i - 1);
+    }
+  }
+
+  [[nodiscard]] auto select(RandomEngine &gen) -> std::pair<size_t, size_t> override {
+    auto p_dist = std::uniform_real_distribution(0.0, dist_.back());
+    auto p1 = p_dist(gen);
+    auto p2 = p_dist(gen);
+
+    auto parent1 = std::ranges::lower_bound(dist_, p1) - dist_.begin();
+    auto parent2 = std::ranges::lower_bound(dist_, p2) - dist_.begin();
+
+    return {parent1, parent2};
+  }
+
+ private:
+  double sp_;
   std::vector<double> dist_;
 };
 }  // namespace meta::ga

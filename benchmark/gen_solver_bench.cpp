@@ -21,61 +21,13 @@ static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
-class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
- public:
-  auto crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1, cye::EVRPIndividual const &p2)
-      -> cye::EVRPIndividual {
-    auto child = p1;
-
-    auto &&p1_genotype = p1.genotype();
-    auto &&p2_genotype = p2.genotype();
-    auto &&child_genotype = child.genotype();
-
-    auto &depot_patch = p1.solution().get_patch(1);
-    auto dist = std::uniform_int_distribution(0UZ, depot_patch.size());
-    auto ind = dist(gen);
-    auto j = ind == depot_patch.size() ? p1_genotype.size() - 1 : depot_patch.changes()[ind].ind - 1;
-    auto i = ind == 0 ? 0 : depot_patch.changes()[ind - 1].ind;
-
-    assert(p1_genotype.size() == p2_genotype.size());
-
-    assert(i <= j);
-
-    used_.clear();
-    for (auto k = i; k <= j; ++k) {
-      used_.emplace(p1_genotype[k]);
-    }
-
-    auto l = 0UZ;
-    for (auto k = 0UZ; k < p1_genotype.size(); ++k) {
-      // Skip the copied section
-      if (k == i) {
-        k = j;
-        continue;
-      }
-
-      while (used_.contains(p2_genotype[l])) {
-        ++l;
-      }
-
-      child_genotype[k] = p2_genotype[l];
-      ++l;
-    }
-
-    return child;
-  }
-
- private:
-  std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
-};
-
 static void BM_GenGA_Optimization(benchmark::State &state) {
   auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
-  auto population_size = 200UZ;
+  auto population_size = 300UZ;
 
   std::vector<double> local_best_costs;
 
@@ -86,13 +38,14 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
       population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
     }
 
-    auto selection_operator = std::make_unique<meta::ga::RouletteWheelSelection<cye::EVRPIndividual>>();
+    auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.5);
 
     meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
-                                                     std::make_unique<cye::SwapSearch>(energy_repair, instance), 1,
-                                                     1'000UZ, true);
+                                                     std::make_unique<cye::SwapSearch>(energy_repair, instance), 30,
+                                                     20'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
+    ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
 
     ga.optimize(gen);
@@ -138,4 +91,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(1);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
