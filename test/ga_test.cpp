@@ -1,4 +1,4 @@
-#include "meta/ga/ga.hpp"
+#include "meta/ga/ssga.hpp"
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <array>

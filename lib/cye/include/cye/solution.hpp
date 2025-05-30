@@ -21,7 +21,8 @@ class Solution {
 
   inline auto clear_patches() { routes_.clear_patches(); }
 
-  inline auto pop_patch() { routes_.pop_patch(); }
+  inline auto pop_patch() { return routes_.pop_patch(); }
+  [[nodiscard]] inline auto &get_patch(size_t ind) const { return routes_.get_patch(ind); }
 
   [[nodiscard]] inline auto base() { return routes_.base(); }
   [[nodiscard]] inline auto base() const { return routes_.base(); }

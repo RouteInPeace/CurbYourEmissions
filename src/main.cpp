@@ -22,7 +22,8 @@
 #include "cye/stall_handler.hpp"
 #include "meta/common.hpp"
 #include "meta/ga/crossover.hpp"
-#include "meta/ga/ga.hpp"
+#include "meta/ga/ssga.hpp"
+#include "meta/ga/local_search.hpp"
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
@@ -48,8 +49,9 @@ auto main() -> int {
 
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
 
-  auto ga = meta::ga::GeneticAlgorithm<cye::EVRPIndividual>(std::move(population), std::move(selection_operator),
-                                                            cye::EVRPStallHandler(), max_iter, true);
+  auto ga = meta::ga::SSGA<cye::EVRPIndividual>(std::move(population), std::move(selection_operator),
+                                                std::make_unique<meta::ga::NoSearch<cye::EVRPIndividual>>(),
+                                                cye::EVRPStallHandler(), max_iter, true);
   ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
   // ga.add_crossover_operator(std::make_unique<meta::ga::PMX<EVRPIndividual>>());
   ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());

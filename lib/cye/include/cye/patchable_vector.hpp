@@ -34,6 +34,7 @@ class Patch {
 
   [[nodiscard]] inline auto back() const { return changes_.back(); }
   [[nodiscard]] inline auto empty() const { return changes_.empty(); }
+  [[nodiscard]] inline auto& changes() const { return changes_; }
 
   friend PatchableVector<T>;
 
@@ -61,7 +62,13 @@ class PatchableVector {
   }
 
   inline auto clear_patches() { patches_.clear(); }
-  inline auto pop_patch() { patches_.pop_back(); }
+  inline auto pop_patch() {
+    auto tmp = std::move(patches_.back());
+    patches_.pop_back();
+    return tmp;
+  }
+  [[nodiscard]] inline auto& get_patch(size_t ind) const { return patches_[ind]; }
+
   inline auto base() -> std::span<T> { return std::span(base_); }
   inline auto base() const -> std::span<const T> { return std::span(base_); }
   [[nodiscard]] auto size() const {

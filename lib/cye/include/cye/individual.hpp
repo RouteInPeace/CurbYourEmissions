@@ -13,6 +13,7 @@ class EVRPIndividual {
   [[nodiscard]] inline auto genotype() const { return solution_.base(); }
   [[nodiscard]] inline auto genotype() { return solution_.base(); }
   [[nodiscard]] inline auto &solution() const { return solution_; }
+  [[nodiscard]] inline auto &solution() { return solution_; }
   [[nodiscard]] inline auto is_trivial() const { return trivial_; }
   [[nodiscard]] inline auto hash() const -> size_t { return hash_; }
 
