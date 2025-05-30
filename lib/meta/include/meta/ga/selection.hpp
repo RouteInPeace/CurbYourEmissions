@@ -55,9 +55,9 @@ class KWayTournamentSelectionOperator : public SSGASelectionOperator<I> {
     set_.clear();
     while (set_.size() < k_) {
       auto ind = dist(re);
-      float fitness = population[ind].fitness();
+      float cost = population[ind].cost();
 
-      set_.insert({ind, fitness});
+      set_.insert({ind, cost});
     }
 
     return {set_.begin()->first, std::next(set_.begin())->first, std::prev(set_.end())->first};
@@ -84,7 +84,7 @@ class RouletteWheelSelection : public GenGASelectionOperator<I> {
 
     for (auto i = 0UZ; i < population.size(); ++i) {
       dist_[i] = i == 0 ? 0.0 : dist_[i - 1];
-      dist_[i] += population.back().fitness() - population[i].fitness();
+      dist_[i] += population.back().cost() - population[i].cost();
     }
   }
 

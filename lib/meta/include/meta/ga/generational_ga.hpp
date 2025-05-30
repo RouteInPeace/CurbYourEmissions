@@ -47,7 +47,8 @@ class GenerationalGA {
 template <Individual I>
 GenerationalGA<I>::GenerationalGA(std::vector<I> &&population,
                                   std::unique_ptr<GenGASelectionOperator<I>> selection_operator,
-                                  std::unique_ptr<LocalSearch<I>> local_search, double n_elite, size_t max_iterations, bool verbose)
+                                  std::unique_ptr<LocalSearch<I>> local_search, double n_elite, size_t max_iterations,
+                                  bool verbose)
     : population_(std::move(population)),
       selection_operator_(std::move(selection_operator)),
       local_search_(std::move(local_search)),
@@ -68,10 +69,10 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
   }
 
   for (auto &individual : population_) {
-    individual.update_fitness();
+    individual.update_cost();
   }
 
-  std::ranges::sort(population_, [](I const &a, I const &b) { return a.fitness() < b.fitness(); });
+  std::ranges::sort(population_, [](I const &a, I const &b) { return a.cost() < b.cost(); });
 
   auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
   auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
@@ -102,7 +103,7 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
           crossover_operators_[crossover_operator_ind]->crossover(gen, prev_population[p1], prev_population[p2]);
       auto mutant = mutation_operators_[mutation_operator_ind]->mutate(gen, std::move(child));
       auto final = local_search_->search(gen, std::move(mutant));
-      final.update_fitness();
+      final.update_cost();
 
       if (!exists_.contains(final.hash())) {
         exists_.insert(final.hash());
@@ -112,10 +113,10 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
     }
 
     // Sort
-    std::ranges::sort(cur_population, [](I const &a, I const &b) { return a.fitness() < b.fitness(); });
+    std::ranges::sort(cur_population, [](I const &a, I const &b) { return a.cost() < b.cost(); });
 
     if (verbose_) {
-      std::println("Generation: {}, Best individual: {}", iter, cur_population[0].fitness());
+      std::println("Generation: {}, Best individual: {}", iter, cur_population[0].cost());
     }
 
     std::swap(cur_population, prev_population);

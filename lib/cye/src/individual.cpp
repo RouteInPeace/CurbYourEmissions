@@ -3,13 +3,12 @@
 
 cye::EVRPIndividual::EVRPIndividual(std::shared_ptr<cye::OptimalEnergyRepair> energy_repair, cye::Solution &&solution)
     : energy_repair_(energy_repair), solution_(std::move(solution)) {
-  update_fitness();
+  update_cost();
 }
 
-auto cye::EVRPIndividual::update_fitness() -> void {
+auto cye::EVRPIndividual::update_cost() -> void {
   if (!solution_.is_valid()) {
     solution_.clear_patches();
-    cye::patch_endpoint_depots(solution_);
     if (trivial_) {
       cye::patch_cargo_trivially(solution_);
       cye::patch_energy_trivially(solution_);

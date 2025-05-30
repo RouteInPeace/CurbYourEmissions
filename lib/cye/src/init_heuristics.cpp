@@ -16,7 +16,6 @@ auto cye::random_customer_permutation(meta::RandomEngine &gen, std::shared_ptr<I
   std::ranges::shuffle(customers, gen);
 
   auto solution = Solution(instance, std::move(customers));
-  patch_endpoint_depots(solution);
   patch_cargo_trivially(solution);
   patch_energy_trivially(solution);
 
@@ -49,8 +48,7 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
 
   auto solution = Solution(instance, std::move(routes));
-  patch_endpoint_depots(solution);
-  patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+  patch_cargo_optimally(solution);
   optimal_energy_repair.patch(solution, 1001u);
 
   return solution;
@@ -88,7 +86,6 @@ auto cye::stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<I
   }
 
   auto solution = Solution(instance, std::move(routes));
-  patch_endpoint_depots(solution);
   patch_cargo_trivially(solution);
   patch_energy_trivially(solution);
 

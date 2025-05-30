@@ -24,7 +24,7 @@ template <Individual I>
 class NoSearch : public LocalSearch<I> {
  public:
   [[nodiscard]] auto search(RandomEngine & /*gen*/, I &&individual) -> I override {
-    individual.update_fitness();
+    individual.update_cost();
     return individual;
   }
 };

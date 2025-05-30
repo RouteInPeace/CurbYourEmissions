@@ -9,7 +9,7 @@
 #include "cye/individual.hpp"
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
-#include "cye/mutations.hpp"
+#include "cye/operators.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
 #include "cye/stall_handler.hpp"
@@ -22,113 +22,6 @@
 static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
-
-class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
- public:
-  SwapSearch(std::shared_ptr<cye::OptimalEnergyRepair> energy_repair, std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(energy_repair), instance_(instance) {}
-
-  [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
-      -> cye::EVRPIndividual override {
-    auto &solution = individual.solution();
-    auto base = solution.base();
-    solution.clear_patches();
-    cye::patch_endpoint_depots(solution);
-    cye::patch_cargo_optimally(solution);
-
-    const auto &cargo_patch = solution.get_patch(1);
-
-    for (auto i = 0UZ; i <= cargo_patch.size(); i++) {
-      auto route_begin = i == 0 ? 0 : cargo_patch.changes()[i - 1].ind;
-      auto route_end = i == cargo_patch.size() ? base.size() - 1 : cargo_patch.changes()[i].ind - 1;
-
-      auto stop = false;
-      while (!stop) {
-        stop = true;
-        for (auto l = route_begin; l < route_end; l++) {
-          for (auto k = l + 1; k <= route_end; k++) {
-            auto prev_dist = neighbor_dist_(base, l) + neighbor_dist_(base, k);
-            std::swap(base[l], base[k]);
-            auto new_dist = neighbor_dist_(base, l) + neighbor_dist_(base, k);
-
-            if (new_dist < prev_dist) {
-              stop = false;
-            } else {
-              std::swap(base[l], base[k]);
-            }
-          }
-        }
-      }
-    }
-    energy_repair_->patch(solution, 101u);
-
-    return individual;
-  }
-
- private:
-  std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
-  std::shared_ptr<cye::Instance> instance_;
-
-  [[nodiscard]] auto neighbor_dist_(std::span<size_t> base, size_t i) -> float {
-    auto d = 0.f;
-    if (i > 0) {
-      d += instance_->distance(base[i - 1], base[i]);
-    }
-    if (i < base.size() - 1) {
-      d += instance_->distance(base[i], base[i + 1]);
-    }
-
-    return d;
-  }
-};
-
-class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
- public:
-  auto crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1, cye::EVRPIndividual const &p2)
-      -> cye::EVRPIndividual {
-    auto child = p1;
-
-    auto &&p1_genotype = p1.genotype();
-    auto &&p2_genotype = p2.genotype();
-    auto &&child_genotype = child.genotype();
-
-    auto &depot_patch = p1.solution().get_patch(1);
-    auto dist = std::uniform_int_distribution(0UZ, depot_patch.size());
-    auto ind = dist(gen);
-    auto j = ind == depot_patch.size() ? p1_genotype.size() - 1 : depot_patch.changes()[ind].ind - 1;
-    auto i = ind == 0 ? 0 : depot_patch.changes()[ind - 1].ind;
-
-    assert(p1_genotype.size() == p2_genotype.size());
-
-    assert(i <= j);
-
-    used_.clear();
-    for (auto k = i; k <= j; ++k) {
-      used_.emplace(p1_genotype[k]);
-    }
-
-    auto l = 0UZ;
-    for (auto k = 0UZ; k < p1_genotype.size(); ++k) {
-      // Skip the copied section
-      if (k == i) {
-        k = j;
-        continue;
-      }
-
-      while (used_.contains(p2_genotype[l])) {
-        ++l;
-      }
-
-      child_genotype[k] = p2_genotype[l];
-      ++l;
-    }
-
-    return child;
-  }
-
- private:
-  std::unordered_set<meta::ga::GeneT<cye::EVRPIndividual>> used_;
-};
 
 static void BM_GA_Optimization(benchmark::State &state) {
   auto archive = serial::JSONArchive("dataset/json/X-n214-k11.json");
@@ -150,7 +43,7 @@ static void BM_GA_Optimization(benchmark::State &state) {
     auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(3);
 
     meta::ga::SSGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
-                                           std::make_unique<SwapSearch>(energy_repair, instance),
+                                           std::make_unique<cye::SwapSearch>(energy_repair, instance),
                                            cye::EVRPStallHandler(), 1'000'000'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
@@ -159,11 +52,10 @@ static void BM_GA_Optimization(benchmark::State &state) {
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
-    auto best_cost = best_individual.fitness();
+    auto best_cost = best_individual.cost();
 
     auto solution = best_individual.solution();
     solution.clear_patches();
-    cye::patch_endpoint_depots(solution);
     cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
     energy_repair->patch(solution, 100001);
 

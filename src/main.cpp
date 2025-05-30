@@ -16,16 +16,16 @@
 #include "cye/individual.hpp"
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
-#include "cye/mutations.hpp"
+#include "cye/operators.hpp"
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
 #include "cye/stall_handler.hpp"
 #include "meta/common.hpp"
 #include "meta/ga/crossover.hpp"
-#include "meta/ga/ssga.hpp"
 #include "meta/ga/local_search.hpp"
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
+#include "meta/ga/ssga.hpp"
 #include "serial/json_archive.hpp"
 
 auto main() -> int {

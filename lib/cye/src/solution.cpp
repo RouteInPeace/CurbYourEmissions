@@ -10,10 +10,6 @@ cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> 
 cye::Solution::Solution(std::shared_ptr<Instance> instance, PatchableVector<size_t> &&routes)
     : instance_(instance), routes_(routes) {}
 
-cye::Solution::Solution(std::shared_ptr<Instance> instance, std::vector<size_t> &&routes,
-                        std::vector<size_t> &&unassigned_customers)
-    : instance_(instance), routes_(std::move(routes)), unassigned_customers_(std::move(unassigned_customers)) {}
-
 auto cye::Solution::is_cargo_valid() const -> bool {
   auto cargo = instance_->cargo_capacity();
 

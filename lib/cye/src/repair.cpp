@@ -23,7 +23,7 @@ struct CargoDPCell {
 auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
   auto visited_node_cnt = solution.visited_node_cnt();
   auto &instance = solution.instance();
-  auto dp = std::vector(bin_cnt, std::vector(visited_node_cnt, CargoDPCell()));
+  auto dp = std::vector(bin_cnt, std::vector(visited_node_cnt + 2, CargoDPCell()));
 
   // Amount of cargo per bin
   auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
@@ -34,9 +34,10 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
   dp[bin_cnt - 1][0].dist = 0;
 
   // Iterate over nodes in routes
-  auto previous_node_id = *solution.routes().begin();
+  auto previous_node_id = instance.depot_id();
   auto j = 1UZ;
-  for (auto it = ++solution.routes().begin(); it != solution.routes().end(); ++it) {
+  solution.base().push_back(instance.depot_id());
+  for (auto it = solution.routes().begin(); it != solution.routes().end(); ++it) {
     auto current_node_id = *it;
 
     // The distance between the curent ad previous node
@@ -68,6 +69,7 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
     ++j;
     previous_node_id = current_node_id;
   }
+  solution.base().pop_back();
 
   // Backward pass
 
@@ -75,22 +77,23 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
   auto ind = 0u;
   auto min_cost = std::numeric_limits<float>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
-    if (dp[i][visited_node_cnt - 1].dist < min_cost) {
-      min_cost = dp[i][visited_node_cnt - 1].dist;
+    if (dp[i][visited_node_cnt + 1].dist < min_cost) {
+      min_cost = dp[i][visited_node_cnt + 1].dist;
       ind = i;
     }
   }
 
   // Trace back through the table
   auto patch = Patch<size_t>();
-  for (auto j = solution.visited_node_cnt() - 1; j >= 1; --j) {
+  patch.add_change(solution.visited_node_cnt(), instance.depot_id());
+  for (auto j = solution.visited_node_cnt() + 1; j >= 1; --j) {
     // Check if we detoured to the depot
     if (dp[ind][j].inserted) {
-      patch.add_change(j, instance.depot_id());
+      patch.add_change(j - 1, instance.depot_id());
     }
     ind = dp[ind][j].prev;
   }
-
+  patch.add_change(0, instance.depot_id());
   patch.reverse();
   solution.add_patch(std::move(patch));
 }
@@ -100,6 +103,8 @@ auto cye::patch_cargo_trivially(Solution &solution) -> void {
   auto cargo_capacity = instance.cargo_capacity();
 
   auto patch = Patch<size_t>();
+  patch.add_change(0, instance.depot_id());
+
   auto i = 0UZ;
   for (auto node_id : solution.routes()) {
     cargo_capacity -= instance.demand(node_id);
@@ -110,7 +115,7 @@ auto cye::patch_cargo_trivially(Solution &solution) -> void {
 
     ++i;
   }
-
+  patch.add_change(solution.visited_node_cnt(), instance.depot_id());
   solution.add_patch(std::move(patch));
 }
 
@@ -400,158 +405,5 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
   }
 
   patch.reverse();
-  solution.add_patch(std::move(patch));
-}
-
-namespace {
-
-auto reorder_solution(cye::Solution &solution) -> void {
-  cye::patch_endpoint_depots(solution);
-  cye::patch_cargo_trivially(solution);
-  cye::patch_energy_trivially(solution);
-}
-
-auto reorder_solution_optimally(cye::Solution &solution) -> void {
-  cye::patch_endpoint_depots(solution);
-  cye::patch_cargo_optimally(solution, static_cast<unsigned>(solution.instance().cargo_capacity()) + 1U);
-  cye::patch_energy_trivially(solution);
-}
-
-auto insert_customer(cye::Solution &solution, size_t insertion_ind, size_t customer_id) -> void {
-  auto patch = cye::Patch<size_t>{};
-  patch.add_change(insertion_ind, customer_id);
-  solution.add_patch(std::move(patch));
-  solution.squash();
-}
-
-auto find_best_insertion(cye::Solution &solution, size_t unassigned_id) -> std::pair<size_t, float> {
-  auto best_cost = std::numeric_limits<double>::max();
-  auto best_ind = 0U;
-
-  for (size_t j = 1; j < solution.routes().size(); ++j) {
-    auto patch = cye::Patch<size_t>{};
-    patch.add_change(j, unassigned_id);
-    solution.add_patch(std::move(patch));
-    reorder_solution(solution);
-
-    auto cost = solution.cost();
-    if (cost < best_cost) {
-      best_cost = cost;
-      best_ind = j;
-    }
-
-    solution.clear_patches();
-  }
-
-  return {best_ind, best_cost};
-}
-
-struct Insertion {
-  size_t ind;
-  size_t customer_id;
-  double cost = std::numeric_limits<double>::max();
-
-  friend bool operator<(Insertion const &x, Insertion const &y) { return x.cost < y.cost; }
-};
-
-auto find_all_insertions(cye::Solution &solution, size_t unassigned_id) -> std::vector<Insertion> {
-  std::vector<Insertion> insertions;
-
-  for (size_t j = 1; j < solution.routes().size(); ++j) {
-    auto patch = cye::Patch<size_t>{};
-    patch.add_change(j, unassigned_id);
-    solution.add_patch(std::move(patch));
-    reorder_solution(solution);
-
-    auto cost = solution.cost();
-    insertions.emplace_back(j, unassigned_id, cost);
-    solution.clear_patches();
-  }
-
-  return insertions;
-}
-
-}  // namespace
-
-cye::Solution cye::greedy_repair(Solution &&solution, meta::RandomEngine &gen) {
-  auto &unassigned_ids = solution.unassigned_customers();
-  std::ranges::shuffle(unassigned_ids, gen);
-
-  for (auto unassigned_id : unassigned_ids) {
-    auto best_id = find_best_insertion(solution, unassigned_id).first;
-    assert(best_id != 0U);
-    insert_customer(solution, best_id, unassigned_id);
-  }
-
-  solution.clear_unassigned_customers();
-  reorder_solution(solution);
-  return solution;
-}
-
-cye::Solution cye::greedy_repair_best_first(cye::Solution &&solution, meta::RandomEngine & /* gen */) {
-  std::unordered_set<size_t> unassigned_ids{solution.unassigned_customers().begin(),
-                                            solution.unassigned_customers().end()};
-
-  while (!unassigned_ids.empty()) {
-    auto best_cost = std::numeric_limits<double>::max();
-    size_t best_unassigned_id = 0;
-    size_t best_of_the_best_ind = 0;
-
-    for (auto unassigned_id : unassigned_ids) {
-      auto [best_ind, cost] = find_best_insertion(solution, unassigned_id);
-      if (cost < best_cost) {
-        best_cost = cost;
-        best_unassigned_id = unassigned_id;
-        best_of_the_best_ind = best_ind;
-      }
-    }
-    unassigned_ids.erase(best_unassigned_id);
-    insert_customer(solution, best_of_the_best_ind, best_unassigned_id);
-  }
-  solution.clear_unassigned_customers();
-  reorder_solution(solution);
-  return solution;
-}
-
-cye::Solution cye::regret_repair(cye::Solution &&solution, meta::RandomEngine &gen, size_t k) {
-  assert(k >= 2);
-  std::uniform_int_distribution dist(2UZ, k);
-  auto k_regret = dist(gen);
-
-  std::unordered_set<size_t> unassigned_ids{solution.unassigned_customers().begin(),
-                                            solution.unassigned_customers().end()};
-
-  while (!unassigned_ids.empty()) {
-    std::vector<std::vector<Insertion>> insertions;
-    insertions.reserve(unassigned_ids.size());
-    for (auto unassigned_id : unassigned_ids) {
-      insertions.push_back(find_all_insertions(solution, unassigned_id));
-      std::sort(insertions.back().begin(), insertions.back().end());
-    }
-
-    Insertion best_insertion{};
-    for (size_t i = 0; i < unassigned_ids.size(); ++i) {
-      if (insertions[i].size() >= k_regret) {
-        Insertion new_insert = Insertion{insertions[i][0].ind, insertions[i][0].customer_id,
-                                         insertions[i][0].cost - insertions[i][k_regret - 1].cost};
-        best_insertion = std::min(best_insertion, new_insert);
-      } else if (insertions[i].size() > 0) {
-        best_insertion = std::min(best_insertion, insertions[i][0]);
-      }
-    }
-
-    unassigned_ids.erase(best_insertion.customer_id);
-    insert_customer(solution, best_insertion.ind, best_insertion.customer_id);
-  }
-  solution.clear_unassigned_customers();
-  reorder_solution(solution);
-  return solution;
-}
-
-auto cye::patch_endpoint_depots(Solution &solution) -> void {
-  auto patch = Patch<size_t>();
-  patch.add_change(0, solution.instance().depot_id());
-  patch.add_change(solution.routes().size(), solution.instance().depot_id());
-
   solution.add_patch(std::move(patch));
 }
