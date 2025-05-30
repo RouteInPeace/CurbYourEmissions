@@ -21,7 +21,93 @@ static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
-namespace {}  // namespace
+namespace {
+  static auto find_route_(cye::Patch<size_t> const &patch, size_t index) -> std::pair<size_t, size_t> {
+    auto it = std::ranges::upper_bound(patch.changes(), index, std::less{}, [&](auto const &el) { return el.ind; });
+
+    auto route_end = it->ind;
+    auto route_begin = (--it)->ind;
+
+    return {route_begin, route_end};
+  }
+}
+
+class HSM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
+ public:
+  HSM(std::shared_ptr<cye::Instance> instance)
+      : instance_(std::move(instance)) {}
+
+  [[nodiscard]] auto mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override {
+    
+    auto &solution = individual.solution();
+
+    solution.clear_patches();
+    cye::patch_cargo_trivially(solution);
+
+    auto &customers = individual.genotype();
+    auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);
+    auto index = dist(gen);
+    auto customer = customers[index];
+
+    auto [route_begin, route_end] = find_route_(solution.get_patch(0), index);
+
+    size_t best_id = 0;
+    double best_dist = std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < customers.size(); ++i) {
+      if (i >= route_begin && i < route_end) continue;
+
+      auto dist = instance_->distance(customer, customers[i]);
+      if (dist < best_dist) {
+        best_dist = dist;
+        best_id = i;
+      }
+    }
+    std::swap(customers[index], customers[best_id]);
+    return individual;
+  }
+  std::shared_ptr<cye::Instance> instance_;
+};
+
+class HMM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
+ public:
+  HMM(std::shared_ptr<cye::Instance> instance)
+      : instance_(std::move(instance)) {}
+
+  [[nodiscard]] auto mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override {
+    
+    auto &solution = individual.solution();
+
+    solution.clear_patches();
+    cye::patch_cargo_trivially(solution);
+
+    auto &customers = individual.genotype();
+    auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);
+    auto index = dist(gen);
+    auto customer = customers[index];
+
+    auto [route_begin, route_end] = find_route_(solution.get_patch(0), index);
+
+    size_t best_id = 0;
+    double best_dist = std::numeric_limits<double>::infinity();
+    for (size_t i = 0; i < customers.size(); ++i) {
+      if (i >= route_begin && i < route_end) continue;
+
+      auto dist = instance_->distance(customer, customers[i]);
+      if (dist < best_dist) {
+        best_dist = dist;
+        best_id = i;
+      }
+    }
+    customers.erase(customers.begin() + index);
+
+    if (best_id > index) {
+      --best_id;
+    }
+    customers.insert(customers.begin() + best_id, customer);
+    return individual;
+  }
+  std::shared_ptr<cye::Instance> instance_;
+};
 
 class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
  public:
@@ -41,6 +127,8 @@ class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndivid
 
     auto dist = std::uniform_int_distribution(0UZ, customers1.size() - 1);
     auto index = dist(gen);
+    // remove this
+    index = 4;
     auto random_customer = customers1[index];
 
     const auto &route1_cargo_patch = p1.solution().get_patch(0);
@@ -94,28 +182,18 @@ class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndivid
     return child1;
   }
 
- private:
-  auto find_route_(cye::Patch<size_t> const &patch, size_t index) -> std::pair<size_t, size_t> {
-    auto it = std::ranges::lower_bound(patch.changes(), index, std::less{}, [&](auto const &el) { return el.ind; });
-
-    auto route_end = it->ind;
-    auto route_begin = (--it)->ind;
-
-    return {route_begin, route_end};
-  }
-
   std::optional<cye::EVRPIndividual> other_;
   std::unordered_set<size_t> customers1_set_;
   std::unordered_set<size_t> customers2_set_;
 };
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
-  auto population_size = 300UZ;
+  auto population_size = 200UZ;
 
   std::vector<double> local_best_costs;
 
@@ -130,12 +208,14 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                      std::make_unique<cye::SwapSearch>(energy_repair, instance), 30,
-                                                     10'000UZ, true);
+                                                     30'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<DistributedCrossover>());
     // ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
     // ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
-    ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
+    //ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
+    ga.add_mutation_operator(std::make_unique<HMM>(instance));
+    ga.add_mutation_operator(std::make_unique<HSM>(instance));
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
@@ -180,4 +260,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(1);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(4);
