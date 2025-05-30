@@ -7,6 +7,7 @@
 #include "rapidjson/writer.h"
 #include "serial/utils.hpp"
 #include <fstream>
+#include <sstream>
 
 serial::JSONArchive::JSONArchive() : document_(rapidjson::kObjectType) {}
 
