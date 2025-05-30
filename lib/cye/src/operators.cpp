@@ -110,6 +110,7 @@ auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &
   }
   // energy_repair_->patch(solution, 101u);
   cye::patch_energy_trivially(solution);
+  individual.set_valid();
 
   return individual;
 }

@@ -21,6 +21,33 @@ static std::mutex stats_mutex;
 static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
+/*
+namespace {
+  auto find_subroute_id(std::vector<size_t> const &route, int node_id) {
+    auto id = std::find(route.begin(), route.end(), node_id) - route.begin();
+
+  }
+}
+
+class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
+ public:
+  [[nodiscard]] cye::EVRPIndividual crossover(meta::RandomEngine &gen, cye::EVRPIndividual const &p1,
+cye::EVRPIndividual const &p2) { if (other) { auto ret = std::move(*other); other = std::nullopt; return ret;
+    }
+
+    auto const &routes1 = p1.genotype();
+    auto const &routes2 = p2.genotype();
+
+    std::uniform_int_distribution<size_t> dist(1, p1.solution().visited_node_cnt());
+    int chosen_id = dist(gen);
+
+  }
+
+ private:
+  std::optional<cye::EVRPIndividual> other;
+};
+*/
+
 static void BM_GenGA_Optimization(benchmark::State &state) {
   auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
@@ -42,10 +69,10 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                      std::make_unique<cye::SwapSearch>(energy_repair, instance), 30,
-                                                     20'000UZ, true);
+                                                     1'000UZ, true);
 
     ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
-    ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
+    // ga.add_crossover_operator(std::make_unique<cye::RouteOX1>());
     ga.add_mutation_operator(std::make_unique<meta::ga::TwoOpt<cye::EVRPIndividual>>());
 
     ga.optimize(gen);
@@ -91,4 +118,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(1);
