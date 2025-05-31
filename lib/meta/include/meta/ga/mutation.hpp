@@ -34,6 +34,12 @@ class GaussianMutation : public MutationOperator<I> {
 };
 
 template <Individual I>
+class NoMutation : public MutationOperator<I> {
+ public:
+  [[nodiscard]] inline auto mutate(RandomEngine & /*gen*/, I &&individual) -> I override { return individual; }
+};
+
+template <Individual I>
 class TwoOpt : public MutationOperator<I> {
  public:
   [[nodiscard]] auto mutate(RandomEngine &gen, I &&individual) -> I override;

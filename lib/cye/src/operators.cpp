@@ -1,6 +1,12 @@
 #include "cye/operators.hpp"
+#include <iostream>
 #include <random>
+#include <stdexcept>
+#include <utility>
+#include "cye/individual.hpp"
 #include "cye/repair.hpp"
+#include "cye/solution.hpp"
+#include "meta/sa/simulated_annealing.hpp"
 
 auto cye::NeighborSwap::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   candidates_.clear();
@@ -79,7 +85,7 @@ auto cye::RouteOX1::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const
   return child;
 }
 
-auto cye::TwoOptSearch::search(meta::RandomEngine & gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
@@ -125,7 +131,61 @@ auto cye::TwoOptSearch::search(meta::RandomEngine & gen, cye::EVRPIndividual &&i
   return individual;
 }
 
-auto cye::SwapSearch::search(meta::RandomEngine & gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+  auto &solution = individual.solution();
+  auto &base = solution.base();
+  solution.clear_patches();
+  cye::patch_cargo_trivially(solution);
+  auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
+  auto temp_schedule = meta::sa::create_geometric_schedule(10, 1e-8, 0.99);
+  auto iter = 0;
+
+  const auto &cargo_patch = solution.get_patch(0);
+
+  for (auto i = 1UZ; i < cargo_patch.size(); i++) {
+    auto route_begin = cargo_patch.changes()[i - 1].ind;
+    auto route_end = cargo_patch.changes()[i].ind;
+
+    auto stop = false;
+    while (!stop) {
+      stop = true;
+      for (auto l = route_begin; l < route_end - 1; ++l) {
+        for (auto k = l + 1; k < route_end; k++) {
+          auto current_dist = 0.0;
+          auto swapped_distance = 0.0;
+
+          if (l > 0) {
+            current_dist += instance_->distance(base[l - 1], base[l]);
+            swapped_distance += instance_->distance(base[l - 1], base[k]);
+          }
+
+          if (k < base.size() - 1) {
+            current_dist += instance_->distance(base[k], base[k + 1]);
+            swapped_distance += instance_->distance(base[l], base[k + 1]);
+          }
+
+          double cost_diff = swapped_distance - current_dist;
+          auto temp = temp_schedule(iter++);
+          if(!temp) temp = {1e-8};
+
+          if (cost_diff < 0 || dist(gen) < exp(-cost_diff / *temp)) {
+            stop = false;
+            for (auto x = 0UZ; x <= (k - l) / 2; ++x) {
+              std::swap(base[l + x], base[k - x]);
+            }
+          }
+        }
+      }
+    }
+    std::cout << *temp_schedule(0) << '\n';
+  }
+  cye::patch_energy_trivially(solution);
+  individual.set_valid();
+
+  return individual;
+}
+
+auto cye::SwapSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
@@ -312,4 +372,43 @@ cye::EVRPIndividual cye::DistributedCrossover::crossover(meta::RandomEngine &gen
   other_ = std::move(child2);
 
   return child1;
+}
+
+cye::CrossRouteScramble::CrossRouteScramble(double mutation_rate) : mutation_rate_(mutation_rate) {
+  if (mutation_rate < 0.0 || mutation_rate > 1.0) {
+    throw std::runtime_error("Mutation rate has to be between 0 and 1.");
+  }
+}
+
+auto cye::CrossRouteScramble::mutate(meta::RandomEngine &gen, EVRPIndividual &&individual) -> EVRPIndividual {
+  auto &solution = individual.solution();
+
+  solution.clear_patches();
+  cye::patch_cargo_trivially(solution);
+  auto &cargo_patch = solution.get_patch(0);
+
+  auto route_dist = std::uniform_int_distribution(0UZ, cargo_patch.changes().size() - 2);
+
+  auto r1_ind = route_dist(gen);
+  auto r2_ind = route_dist(gen);
+
+  while (r1_ind == r2_ind) {
+    r2_ind = route_dist(gen);
+  }
+
+  auto route1_begin = cargo_patch.changes()[r1_ind].ind;
+  auto route1_end = cargo_patch.changes()[r1_ind + 1].ind;
+
+  auto route2_begin = cargo_patch.changes()[r2_ind].ind;
+  auto route2_end = cargo_patch.changes()[r2_ind + 1].ind;
+
+  auto route1_dist = std::uniform_int_distribution(route1_begin, route1_end - 1);
+  auto route2_dist = std::uniform_int_distribution(route2_begin, route2_end - 1);
+
+  auto n = static_cast<size_t>(mutation_rate_ * static_cast<double>(solution.base().size()));
+  for (auto i = 0UZ; i < n; i++) {
+    std::swap(solution.base()[route1_dist(gen)], solution.base()[route2_dist(gen)]);
+  }
+
+  return individual;
 }

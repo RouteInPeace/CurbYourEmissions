@@ -6,6 +6,7 @@
 #include <memory>
 #include <print>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 #include "meta/ga/common.hpp"
 #include "meta/ga/crossover.hpp"
@@ -69,15 +70,20 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
     throw std::runtime_error("Number of elites is larger that the population size.");
   }
 
+  auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
+  auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
+  auto local_search_selection_dist = std::uniform_int_distribution(0UZ, local_search_.size() - 1);
+
   for (auto &individual : population_) {
-    individual.update_cost();
+    auto local_search_ind = local_search_selection_dist(gen);
+    auto final = local_search_[local_search_ind]->search(gen, std::move(individual));
+    final.update_cost();
+    individual = std::move(final);
   }
 
   std::ranges::sort(population_, [](I const &a, I const &b) { return a.cost() < b.cost(); });
 
-  auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
-  auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
-  auto local_search_selection_dist = std::uniform_int_distribution(0UZ, local_search_.size() - 1);
+ 
 
   auto cur_population = population_;
   auto prev_population = std::move(population_);

@@ -41,8 +41,6 @@ class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  private:
   std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
   std::shared_ptr<cye::Instance> instance_;
-
-  [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float;
 };
 
 class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
@@ -57,6 +55,19 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
 
   std::shared_ptr<cye::Instance> instance_;
 };
+
+class SATwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
+ public:
+  SATwoOptSearch(std::shared_ptr<cye::Instance> instance) : instance_(instance) {}
+
+  [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
+      -> cye::EVRPIndividual override;
+
+ private:
+  std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
+  std::shared_ptr<cye::Instance> instance_;
+};
+
 
 class HSM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
  public:
@@ -81,6 +92,16 @@ class DistributedCrossover : public meta::ga::CrossoverOperator<cye::EVRPIndivid
   std::optional<cye::EVRPIndividual> other_;
   std::unordered_set<size_t> customers1_set_;
   std::unordered_set<size_t> customers2_set_;
+};
+
+class CrossRouteScramble : public meta::ga::MutationOperator<EVRPIndividual> {
+ public:
+  CrossRouteScramble(double mutation_rate);
+
+  [[nodiscard]] auto mutate(meta::RandomEngine &gen, EVRPIndividual &&individual) -> EVRPIndividual override;
+
+ private:
+  double mutation_rate_;
 };
 
 }  // namespace cye
