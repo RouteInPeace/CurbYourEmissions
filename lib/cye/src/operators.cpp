@@ -137,18 +137,21 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
   solution.clear_patches();
   cye::patch_cargo_trivially(solution);
   auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
-  auto temp_schedule = meta::sa::create_geometric_schedule(10, 1e-8, 0.99);
-  auto iter = 0;
 
   const auto &cargo_patch = solution.get_patch(0);
+  auto min_temp = 1e-8;
 
   for (auto i = 1UZ; i < cargo_patch.size(); i++) {
     auto route_begin = cargo_patch.changes()[i - 1].ind;
     auto route_end = cargo_patch.changes()[i].ind;
 
     auto stop = false;
+    auto temp = 1e-3;
+    
     while (!stop) {
       stop = true;
+      temp *= 0.1;
+
       for (auto l = route_begin; l < route_end - 1; ++l) {
         for (auto k = l + 1; k < route_end; k++) {
           auto current_dist = 0.0;
@@ -165,10 +168,8 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
           }
 
           double cost_diff = swapped_distance - current_dist;
-          auto temp = temp_schedule(iter++);
-          if(!temp) temp = {1e-8};
 
-          if (cost_diff < 0 || dist(gen) < exp(-cost_diff / *temp)) {
+          if (cost_diff < 0 || (temp > min_temp && dist(gen) < exp(-cost_diff / temp))) {
             stop = false;
             for (auto x = 0UZ; x <= (k - l) / 2; ++x) {
               std::swap(base[l + x], base[k - x]);
@@ -177,7 +178,6 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
         }
       }
     }
-    std::cout << *temp_schedule(0) << '\n';
   }
   cye::patch_energy_trivially(solution);
   individual.set_valid();
@@ -185,7 +185,7 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
   return individual;
 }
 
-auto cye::SwapSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
+auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual {
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
