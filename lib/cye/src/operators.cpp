@@ -89,7 +89,8 @@ auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&in
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+
+  cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance_->cargo_capacity()) + 1u);
 
   const auto &cargo_patch = solution.get_patch(0);
 
@@ -125,7 +126,8 @@ auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&in
       }
     }
   }
-  cye::patch_energy_trivially(solution);
+  energy_repair_->patch(solution, 301U);
+  //cye::patch_energy_trivially(solution);
   individual.set_valid();
 
   return individual;
@@ -146,11 +148,11 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
     auto route_end = cargo_patch.changes()[i].ind;
 
     auto stop = false;
-    auto temp = 1e-3;
+    auto temp = 10.0;
     
     while (!stop) {
       stop = true;
-      temp *= 0.1;
+      temp *= 0.25;
 
       for (auto l = route_begin; l < route_end - 1; ++l) {
         for (auto k = l + 1; k < route_end; k++) {

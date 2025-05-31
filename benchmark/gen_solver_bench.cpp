@@ -40,7 +40,7 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
 
-    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 30, 10'000UZ,
+    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 30, 2'000UZ,
                                                      true);
 
     ga.add_crossover_operator(std::make_unique<cye::DistributedCrossover>());
@@ -50,9 +50,9 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     ga.add_mutation_operator(std::make_unique<cye::HMM>(instance));
     ga.add_mutation_operator(std::make_unique<cye::HSM>(instance));
 
-    ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
-    // ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
-    // ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
+    //ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
+    ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
+    //ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
@@ -97,4 +97,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(2)->Unit(benchmark::kMillisecond)->Threads(16);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
