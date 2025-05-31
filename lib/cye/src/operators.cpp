@@ -139,15 +139,15 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
   auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
 
   const auto &cargo_patch = solution.get_patch(0);
-  auto min_temp = 1e-8;
+  auto min_temp = 1e-2;
 
   for (auto i = 1UZ; i < cargo_patch.size(); i++) {
     auto route_begin = cargo_patch.changes()[i - 1].ind;
     auto route_end = cargo_patch.changes()[i].ind;
 
     auto stop = false;
-    auto temp = 1e-3;
-    
+    auto temp = 100.0;
+
     while (!stop) {
       stop = true;
       temp *= 0.1;

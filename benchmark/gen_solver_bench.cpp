@@ -35,7 +35,7 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     auto population = std::vector<cye::EVRPIndividual>();
     population.reserve(population_size);
     for (size_t i = 0; i < population_size; ++i) {
-      population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
+      population.emplace_back(energy_repair, cye::stochastic_rank_nearest_neighbor(gen, instance, 3));
     }
 
     auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
@@ -50,8 +50,8 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     ga.add_mutation_operator(std::make_unique<cye::HMM>(instance));
     ga.add_mutation_operator(std::make_unique<cye::HSM>(instance));
 
-    ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
-    // ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
+    // ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
+    ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
     // ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
 
     ga.optimize(gen);

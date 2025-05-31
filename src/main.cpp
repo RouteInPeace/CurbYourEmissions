@@ -44,7 +44,7 @@ auto main() -> int {
 
   for (auto i = 0UZ; i < population_size; ++i) {
     // population.emplace_back(energy_repair, cye::random_customer_permutation(gen, instance));
-    population.emplace_back(energy_repair, cye::stochastic_nearest_neighbor(gen, instance, 3));
+    population.emplace_back(energy_repair, cye::stochastic_rank_nearest_neighbor(gen, instance, 3));
   }
 
   auto selection_operator = std::make_unique<meta::ga::KWayTournamentSelectionOperator<cye::EVRPIndividual>>(5);
