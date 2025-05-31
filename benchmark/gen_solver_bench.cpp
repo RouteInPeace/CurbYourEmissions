@@ -1,5 +1,6 @@
 #include <benchmark/benchmark.h>
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -24,13 +25,13 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n214-k11.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
   auto population_size = 200UZ;
-  auto generation_cnt = 2'000UZ;
+  auto generation_cnt = 2'0UZ;
 
   auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
   auto evaluations = population_size * generation_cnt;
@@ -100,13 +101,19 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
                                                               2
                                                         : global_best_costs[global_best_costs.size() / 2];
 
+      auto variance = 0.0;
+      for (auto cost : global_best_costs) {
+        variance += (cost - average) * (cost - average);
+      }
+      variance /= static_cast<double>(global_best_costs.size());
       state.counters["average"] = average;
       state.counters["min"] = min;
       state.counters["max"] = max;
       state.counters["median"] = median;
+      state.counters["std"] = std::sqrt(variance);
     }
 
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(8);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(2)->Unit(benchmark::kMillisecond)->Threads(10);
