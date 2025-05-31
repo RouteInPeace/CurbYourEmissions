@@ -1,4 +1,5 @@
 #include "cye/init_heuristics.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <limits>
@@ -45,7 +46,7 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   return solution;
 }
 
-auto cye::stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<Instance> instance, size_t k)
+auto cye::stochastic_rank_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<Instance> instance, size_t k)
     -> Solution {
   auto remaining_customer_ids = std::ranges::to<std::unordered_set<size_t>>(instance->customer_ids());
   auto routes = std::vector<size_t>();
@@ -74,6 +75,39 @@ auto cye::stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<I
     routes.push_back(it->second);
     remaining_customer_ids.erase(it->second);
     candidates.clear();
+  }
+
+  auto solution = Solution(instance, std::move(routes));
+
+  return solution;
+}
+
+auto cye::stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<Instance> instance) -> Solution {
+  auto remaining_customer_ids = std::ranges::to<std::unordered_set<size_t>>(instance->customer_ids());
+  auto routes = std::vector<size_t>();
+
+  auto distribution = std::vector<std::pair<double, size_t>>();
+
+  while (!remaining_customer_ids.empty()) {
+    distribution.resize(remaining_customer_ids.size());
+    auto i = 0UZ;
+    auto previous_node_id = routes.empty() ? instance->depot_id() : routes.back();
+    for (const auto customer_id : remaining_customer_ids) {
+      auto distance = instance->distance(previous_node_id, customer_id);
+
+      auto s = i == 0 ? 0.0 : distribution[i - 1].first;
+      distribution[i] = {s + 1.0 / distance, customer_id};
+      i++;
+    }
+
+    auto dist = std::uniform_real_distribution(0.0, distribution.back().first);
+    auto p = dist(gen);
+
+    auto next_customer =
+        std::ranges::lower_bound(distribution, p, std::less{}, [](const auto &a) { return a.first; })->second;
+
+    routes.push_back(next_customer);
+    remaining_customer_ids.erase(next_customer);
   }
 
   auto solution = Solution(instance, std::move(routes));
