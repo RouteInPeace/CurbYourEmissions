@@ -1,4 +1,3 @@
-#include "meta/ga/ssga.hpp"
 #include <gtest/gtest.h>
 #include <algorithm>
 #include <array>
@@ -13,20 +12,21 @@
 #include "meta/ga/crossover.hpp"
 #include "meta/ga/mutation.hpp"
 #include "meta/ga/selection.hpp"
+#include "meta/ga/ssga.hpp"
 
 class Dummy {
  public:
-  Dummy(float fitness) : fitness_(fitness) {}
+  Dummy(float cost) : cost_(cost) {}
 
-  auto fitness() const -> float { return fitness_; };
+  auto cost() const -> float { return cost_; };
   auto genotype() const -> std::span<const float> { return genotype_; }
   auto genotype() -> std::span<float> { return genotype_; }
-  auto update_fitness() -> void {}
+  auto update_cost() -> void {}
   auto hash() const { return 0UZ; }
 
  private:
   std::array<float, 5> genotype_;
-  float fitness_;
+  float cost_;
 };
 
 TEST(GA, KWayTournamentSelection) {
@@ -44,8 +44,8 @@ TEST(GA, KWayTournamentSelection) {
   for (auto i = 0UZ; i < 100000UZ; i++) {
     auto [p1, p2, r] = selection_operator.select(re, population);
 
-    EXPECT_LE(population[p1].fitness(), population[p2].fitness());
-    EXPECT_LE(population[p2].fitness(), population[r].fitness());
+    EXPECT_LE(population[p1].cost(), population[p2].cost());
+    EXPECT_LE(population[p2].cost(), population[r].cost());
   }
 }
 
@@ -55,8 +55,8 @@ class StringIndividual {
 
   [[nodiscard]] inline auto &genotype() const { return genotype_; }
   [[nodiscard]] inline auto &genotype() { return genotype_; }
-  [[nodiscard]] inline auto fitness() { return 0.f; }
-  [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] inline auto cost() { return 0.f; }
+  [[nodiscard]] inline auto update_cost() {}
   [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:
@@ -69,8 +69,8 @@ class IntIndividual {
 
   [[nodiscard]] inline auto &genotype() const { return genotype_; }
   [[nodiscard]] inline auto &genotype() { return genotype_; }
-  [[nodiscard]] inline auto fitness() { return 0.f; }
-  [[nodiscard]] inline auto update_fitness() {}
+  [[nodiscard]] inline auto cost() { return 0.f; }
+  [[nodiscard]] inline auto update_cost() {}
   [[nodiscard]] auto hash() const { return 0UZ; }
 
  private:

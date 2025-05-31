@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <type_traits>
 #include <vector>
 #include "archive.hpp"
 #include "rapidjson/document.h"
@@ -52,14 +53,22 @@ class JSONArchive {
           x.write(Value(&obj, allocator_));
           array.PushBack(std::move(obj), allocator_);
         } else {
-          array.PushBack(x, allocator_);
+          if constexpr (std::is_same_v<value_type, size_t>) {
+            if constexpr (sizeof(size_t) == sizeof(uint64_t)) {
+              array.PushBack(static_cast<uint64_t>(x), allocator_);
+            } else {
+              array.PushBack(static_cast<uint32_t>(x), allocator_);
+            }
+          } else {
+            array.PushBack(x, allocator_);
+          }
         }
       }
 
       value_->AddMember(rj_name, std::move(array), allocator_);
     }
 
-    template<StringLike T>
+    template <StringLike T>
     constexpr auto emplace(std::string_view name, T &&str) -> void {
       auto rj_name = rapidjson::Value();
       rj_name.SetString(name.data(), name.length());
@@ -77,12 +86,21 @@ class JSONArchive {
     constexpr auto emplace(std::string_view name, T &&v) -> void {
       auto rj_name = rapidjson::Value();
       rj_name.SetString(name.data(), name.length());
-      value_->AddMember(rj_name, std::forward<T>(v), allocator_);
+
+      if constexpr (std::is_same_v<std::remove_cvref_t<T>, size_t>) {
+        if constexpr (sizeof(size_t) == sizeof(uint64_t)) {
+          value_->AddMember(rj_name, static_cast<uint64_t>(v), allocator_);
+        } else {
+          value_->AddMember(rj_name, static_cast<uint32_t>(v), allocator_);
+        }
+      } else {
+        value_->AddMember(rj_name, std::forward<T>(v), allocator_);
+      }
     }
 
     template <typename T>
       requires(HasWriteFunction<JSONArchive::Value, T>)
-    constexpr auto emplace(std::string_view name, T&& t) -> void {
+    constexpr auto emplace(std::string_view name, T &&t) -> void {
       auto rj_name = rapidjson::Value();
       rj_name.SetString(name.data(), name.length());
       auto obj = rapidjson::Value(rapidjson::kObjectType);

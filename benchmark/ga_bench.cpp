@@ -6,8 +6,8 @@
 #include "cye/init_heuristics.hpp"
 #include "cye/instance.hpp"
 #include "meta/common.hpp"
-#include "meta/ga/ssga.hpp"
 #include "meta/ga/local_search.hpp"
+#include "meta/ga/ssga.hpp"
 #include "serial/json_archive.hpp"
 
 static void BM_GA(benchmark::State &state) {

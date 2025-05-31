@@ -73,8 +73,8 @@ Instance::Instance(V &&value)
       customer_cnt_(value["customerCnt"].template get<size_t>()),
       charging_station_cnt_(value["chargingStationCnt"].template get<size_t>()),
       nodes_(value["nodes"].template get<std::vector<Node>>()) {
-  std::ranges::sort(nodes_,
-                    [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
+  std::ranges::stable_sort(
+      nodes_, [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
   update_distance_cache_();
 }
 

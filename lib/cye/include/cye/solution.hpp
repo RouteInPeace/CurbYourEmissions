@@ -24,22 +24,19 @@ class Solution {
   inline auto pop_patch() { return routes_.pop_patch(); }
   [[nodiscard]] inline auto &get_patch(size_t ind) const { return routes_.get_patch(ind); }
 
-  [[nodiscard]] inline auto base() { return routes_.base(); }
-  [[nodiscard]] inline auto base() const { return routes_.base(); }
+  [[nodiscard]] inline auto &base() { return routes_.base(); }
+  [[nodiscard]] inline auto &base() const { return routes_.base(); }
 
   [[nodiscard]] inline auto &instance() const { return *instance_; }
   [[nodiscard]] inline auto instance_ptr() const { return instance_; }
 
   [[nodiscard]] inline auto &routes() const { return routes_; }
-  [[nodiscard]] inline auto &unassigned_customers() { return unassigned_customers_; }
   [[nodiscard]] inline auto visited_node_cnt() const { return routes_.size(); }
 
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
   [[nodiscard]] auto cost() const -> float;
-
-  inline auto clear_unassigned_customers() -> void { unassigned_customers_.clear(); }
 
   template <serial::Value V>
   auto write(V v) const -> void {
@@ -50,7 +47,6 @@ class Solution {
  private:
   std::shared_ptr<Instance> instance_;
   PatchableVector<size_t> routes_;
-  std::vector<size_t> unassigned_customers_;
 };
 
 }  // namespace cye

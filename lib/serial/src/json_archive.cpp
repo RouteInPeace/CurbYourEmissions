@@ -1,12 +1,13 @@
 #include "serial/json_archive.hpp"
 
 #include <format>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include "rapidjson/ostreamwrapper.h"
 #include "rapidjson/rapidjson.h"
 #include "rapidjson/writer.h"
 #include "serial/utils.hpp"
-#include <fstream>
 
 serial::JSONArchive::JSONArchive() : document_(rapidjson::kObjectType) {}
 

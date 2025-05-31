@@ -10,6 +10,7 @@ DIRECTORIES=(
     "lib"
     "src"
     "test"
+    "benchmark"
 )
 
 # Loop through each directory provided

@@ -73,16 +73,16 @@ auto SSGA<I>::optimize(RandomEngine &gen) -> void {
     throw std::runtime_error("At least one mutation operator is required.");
   }
 
-  auto best_fitness = std::numeric_limits<float>::infinity();
+  auto best_cost = std::numeric_limits<float>::infinity();
   for (const auto &individual : population_) {
     exists_.insert(individual.hash());
-    if (individual.fitness() < best_fitness) {
-      best_fitness = individual.fitness();
+    if (individual.cost() < best_cost) {
+      best_cost = individual.cost();
     }
   }
 
   last_improvement_ = 0;
-  auto [stall_threshold, _] = stall_handler_(gen, population_, best_fitness);
+  auto [stall_threshold, _] = stall_handler_(gen, population_, best_cost);
 
   auto crossover_selection_dist = std::uniform_int_distribution(0UZ, crossover_operators_.size() - 1);
   auto mutation_selection_dist = std::uniform_int_distribution(0UZ, mutation_operators_.size() - 1);
@@ -95,10 +95,10 @@ auto SSGA<I>::optimize(RandomEngine &gen) -> void {
     auto child = crossover_operators_[crossover_operator_ind]->crossover(gen, population_[p1], population_[p2]);
     auto mutant = mutation_operators_[mutation_operator_ind]->mutate(gen, std::move(child));
     auto final = local_search_->search(gen, std::move(mutant));
-    final.update_fitness();
+    final.update_cost();
 
-    if (final.fitness() < best_fitness) {
-      best_fitness = final.fitness();
+    if (final.cost() < best_cost) {
+      best_cost = final.cost();
       last_improvement_ = iter;
     }
 
@@ -109,9 +109,9 @@ auto SSGA<I>::optimize(RandomEngine &gen) -> void {
     }
 
     if (iter - last_improvement_ == stall_threshold) {
-      auto ret = stall_handler_(gen, population_, best_fitness);
+      auto ret = stall_handler_(gen, population_, best_cost);
       stall_threshold = ret.first;
-      best_fitness = ret.second;
+      best_cost = ret.second;
       last_improvement_ = iter;
 
       if (stall_threshold == 0) {
@@ -121,7 +121,7 @@ auto SSGA<I>::optimize(RandomEngine &gen) -> void {
     }
 
     if (verbose_ && iter % 1000 == 0) {
-      std::println("Iteration: {}, Best individual: {}", iter, best_fitness);
+      std::println("Iteration: {}, Best individual: {}", iter, best_cost);
     }
   }
 }
@@ -131,7 +131,7 @@ auto SSGA<I>::best_individual() const -> I const & {
   auto best = &population_[0];
 
   for (auto &individual : population_) {
-    if (individual.fitness() < best->fitness()) {
+    if (individual.cost() < best->cost()) {
       best = &individual;
     }
   }

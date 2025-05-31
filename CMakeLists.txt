@@ -20,8 +20,6 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-omit-frame-pointer")
 
-find_package(Eigen3 REQUIRED NO_MODULE)
-
 add_subdirectory("src")
 add_subdirectory("lib/cye")
 add_subdirectory("lib/serial")
