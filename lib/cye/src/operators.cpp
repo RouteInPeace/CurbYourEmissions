@@ -90,7 +90,7 @@ auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&in
   auto &base = solution.base();
   solution.clear_patches();
 
-  cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance_->cargo_capacity()) + 1u);
+  cye::patch_cargo_optimally(solution);
 
   const auto &cargo_patch = solution.get_patch(0);
 
@@ -126,7 +126,7 @@ auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&in
       }
     }
   }
-  energy_repair_->patch(solution, 301U);
+  energy_repair_->patch(solution, 101U);
   //cye::patch_energy_trivially(solution);
   individual.set_valid();
 

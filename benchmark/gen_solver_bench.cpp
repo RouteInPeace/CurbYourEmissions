@@ -3,7 +3,9 @@
 #include <memory>
 #include <mutex>
 #include <numeric>
+#include <print>
 #include <random>
+#include <stdexcept>
 #include <thread>
 #include "cye/individual.hpp"
 #include "cye/init_heuristics.hpp"
@@ -22,12 +24,22 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/X-n214-k11.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
   auto population_size = 200UZ;
+  auto generation_cnt = 2'000UZ;
+
+  auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
+  auto evaluations = population_size * generation_cnt;
+
+  std::println("{}/{} evaluations", evaluations, max_evaluations_allowed);
+
+  if (evaluations > max_evaluations_allowed) {
+    throw std::runtime_error("You are not allowed to do that many evaluations.");
+  }
 
   std::vector<double> local_best_costs;
 
@@ -40,8 +52,8 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
 
-    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 30, 2'000UZ,
-                                                     true);
+    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 30,
+                                                     generation_cnt, true);
 
     ga.add_crossover_operator(std::make_unique<cye::DistributedCrossover>());
     // ga.add_crossover_operator(std::make_unique<meta::ga::OX1<cye::EVRPIndividual>>());
@@ -50,9 +62,9 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     ga.add_mutation_operator(std::make_unique<cye::HMM>(instance));
     ga.add_mutation_operator(std::make_unique<cye::HSM>(instance));
 
-    //ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
+    // ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
     ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
-    //ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
+    // ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();
