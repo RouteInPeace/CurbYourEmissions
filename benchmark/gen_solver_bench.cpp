@@ -25,13 +25,13 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/E-n22-k4.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n51-k5.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
   auto population_size = 200UZ;
-  auto generation_cnt = 2'0UZ;
+  auto generation_cnt = 1000;
 
   auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
   auto evaluations = population_size * generation_cnt;
@@ -65,7 +65,7 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     // ga.add_local_search(std::make_unique<cye::SATwoOptSearch>(instance));
     ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
-    // ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
+    ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
 
     ga.optimize(gen);
     auto best_individual = ga.best_individual();

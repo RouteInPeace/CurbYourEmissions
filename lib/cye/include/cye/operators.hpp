@@ -34,7 +34,8 @@ class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
 
 class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
-  TwoOptSearch(std::shared_ptr<cye::Instance> instance) : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
+  TwoOptSearch(std::shared_ptr<cye::Instance> instance)
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
       -> cye::EVRPIndividual override;
@@ -46,7 +47,8 @@ class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
 
 class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
-  SwapSearch(std::shared_ptr<cye::Instance> instance) : instance_(instance) {}
+  SwapSearch(std::shared_ptr<cye::Instance> instance)
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
       -> cye::EVRPIndividual override;
@@ -54,6 +56,7 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  private:
   [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float;
 
+  std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
   std::shared_ptr<cye::Instance> instance_;
 };
 
@@ -68,7 +71,6 @@ class SATwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
   std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
   std::shared_ptr<cye::Instance> instance_;
 };
-
 
 class HSM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
  public:

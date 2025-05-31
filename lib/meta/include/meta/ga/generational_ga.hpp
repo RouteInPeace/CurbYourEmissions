@@ -83,8 +83,6 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
 
   std::ranges::sort(population_, [](I const &a, I const &b) { return a.cost() < b.cost(); });
 
- 
-
   auto cur_population = population_;
   auto prev_population = std::move(population_);
 

@@ -127,7 +127,7 @@ auto cye::TwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&in
     }
   }
   energy_repair_->patch(solution, 101U);
-  //cye::patch_energy_trivially(solution);
+  // cye::patch_energy_trivially(solution);
   individual.set_valid();
 
   return individual;
@@ -191,7 +191,8 @@ auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+  cye::patch_cargo_optimally(solution, static_cast<unsigned>(instance_->cargo_capacity()) + 1U);
+  // energy_repair_->patch(solution, 101U);
 
   const auto &cargo_patch = solution.get_patch(0);
 
@@ -217,7 +218,8 @@ auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &
       }
     }
   }
-  cye::patch_energy_trivially(solution);
+  // cye::patch_energy_trivially(solution);
+  energy_repair_->patch(solution, 101U);
   individual.set_valid();
 
   return individual;
