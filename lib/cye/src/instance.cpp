@@ -23,3 +23,24 @@ auto cye::Instance::update_distance_cache_() -> void {
     }
   }
 }
+
+auto cye::Instance::update_closest_charging_station_() -> void {
+  closest_charging_station_.resize(nodes_.size(), depot_id());
+  auto charging_station_ids = this->charging_station_ids();
+
+  for (auto node_id = 0UZ; node_id < nodes_.size(); ++node_id) {
+    if (is_charging_station(node_id)) {
+      closest_charging_station_[node_id] = node_id;
+      continue;
+    }
+
+    auto min_distance = distance(node_id, depot_id());
+    for (const auto cs_id : charging_station_ids) {
+      auto dist = distance(node_id, cs_id);
+      if (dist < min_distance) {
+        min_distance = dist;
+        closest_charging_station_[node_id] = cs_id;
+      }
+    }
+  }
+}

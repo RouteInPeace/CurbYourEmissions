@@ -33,6 +33,7 @@ class GenerationalGA {
     local_search_.push_back(std::move(local_search));
   }
   [[nodiscard]] auto best_individual() const -> I const &;
+  [[nodiscard]] auto best_individuals(size_t k) const -> std::vector<I>;
 
  private:
   static constexpr auto cmp_ = [](size_t x) { return x; };
@@ -135,6 +136,11 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
 template <Individual I>
 auto GenerationalGA<I>::best_individual() const -> I const & {
   return population_[0];
+}
+
+template <Individual I>
+auto GenerationalGA<I>::best_individuals(size_t k) const -> std::vector<I> {
+  return std::vector<I>{population_.begin(), population_.begin() + std::min(k, population_.size())};
 }
 
 }  // namespace meta::ga

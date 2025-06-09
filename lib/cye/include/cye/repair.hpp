@@ -18,6 +18,10 @@ inline auto patch_cargo_optimally(Solution &solution) -> void {
 auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 
+auto patch_energy_removal_heuristic(Solution &solution) -> void;
+auto patch_energy_optimal_heuristic(Solution &solution) -> void;
+
+
 struct DPCell {
   DPCell()
       : dist(std::numeric_limits<float>::infinity()),

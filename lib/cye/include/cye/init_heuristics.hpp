@@ -13,4 +13,7 @@ namespace cye {
                                                     size_t k) -> Solution;
 [[nodiscard]] auto stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<Instance> instance) -> Solution;
 
+[[nodiscard]] auto clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> instance, size_t k) -> Solution;
+
+
 }  // namespace cye

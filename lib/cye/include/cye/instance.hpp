@@ -25,6 +25,7 @@ class Instance {
   [[nodiscard]] constexpr inline auto depot_id() const -> size_t { return 0UZ; }
   [[nodiscard]] inline auto cargo_capacity() const { return cargo_capacity_; }
   [[nodiscard]] inline auto battery_capacity() const { return battery_capacity_; }
+  [[nodiscard]] inline auto closest_charging_station(size_t node_id) const -> size_t { return closest_charging_station_[node_id]; }
   [[nodiscard]] inline auto distance(size_t node1_id, size_t node2_id) const -> float {
     if (node1_id == node2_id) [[unlikely]] {
       return 0.f;
@@ -48,6 +49,7 @@ class Instance {
 
  private:
   auto update_distance_cache_() -> void;
+  auto update_closest_charging_station_() -> void;
 
   std::string name_;
   float optimal_value_;
@@ -60,6 +62,7 @@ class Instance {
 
   std::vector<Node> nodes_;
   std::vector<float> distance_cache_;
+  std::vector<size_t> closest_charging_station_;
 };
 
 template <serial::Value V>
@@ -76,6 +79,7 @@ Instance::Instance(V &&value)
   std::ranges::stable_sort(
       nodes_, [](auto &n1, auto &n2) { return static_cast<uint8_t>(n1.type) < static_cast<uint8_t>(n2.type); });
   update_distance_cache_();
+  update_closest_charging_station_();
 }
 
 template <serial::Value V>
