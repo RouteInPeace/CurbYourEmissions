@@ -35,7 +35,7 @@ class RouteOX1 : public meta::ga::CrossoverOperator<cye::EVRPIndividual> {
 class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
   TwoOptSearch(std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance)), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
       -> cye::EVRPIndividual override;
@@ -48,7 +48,7 @@ class TwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
 class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
   SwapSearch(std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance)), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &&individual)
       -> cye::EVRPIndividual override;
@@ -75,7 +75,7 @@ class SATwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
 class VNSSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
   VNSSearch(std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance)), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
 
@@ -87,7 +87,7 @@ class VNSSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
 class SOTASearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
  public:
   SOTASearch(std::shared_ptr<cye::Instance> instance)
-      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance), ), instance_(instance) {}
+      : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance)), instance_(instance) {}
 
   [[nodiscard]] auto search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
 

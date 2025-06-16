@@ -221,7 +221,7 @@ std::vector<size_t> generate_shuffled_indices(size_t size, meta::RandomEngine &g
   return v;
 }
 
-void DoFullSwapSearch(cye::EVRPIndividual &individual, cye::Instance const *instance) {
+void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   std::vector<size_t> route;
   for (auto it : solution.routes()) {
@@ -266,7 +266,7 @@ void DoFullSwapSearch(cye::EVRPIndividual &individual, cye::Instance const *inst
         if (new_dist < prev_dist) {
           if (!check_load(route, instance, l) || !check_load(route, instance, k)) {
             auto new_sol = convert_to_solution(route);
-            cye::patch_cargo_optimally(new_sol);
+            cye::patch_cargo_trivially(new_sol);
             auto new_cost = new_sol.cost();
             if (new_cost < cost) {
               solution = std::move(new_sol);
@@ -350,7 +350,7 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
           // Check if the new route is feasible
           if (!check_load(route, instance, i) || !check_load(route, instance, j)) {
             auto new_sol = convert_to_solution(route);
-            cye::patch_cargo_optimally(new_sol);
+            cye::patch_cargo_trivially(new_sol);
             auto new_cost = new_sol.cost();
             if (new_cost < cost) {
               solution = std::move(new_sol);
@@ -385,7 +385,7 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
   cye::patch_cargo_optimally(solution);
 }
 
-void DoFullMoveSearch(cye::EVRPIndividual &individual, cye::Instance const *instance) {
+void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   std::vector<size_t> route;
   for (auto it : solution.routes()) {
@@ -434,7 +434,7 @@ void DoFullMoveSearch(cye::EVRPIndividual &individual, cye::Instance const *inst
           temp_route.insert(temp_route.begin() + (to > from ? to - 1 : to), original);
           if (!check_load(temp_route, instance, to)) {
             auto new_sol = convert_to_solution(temp_route);
-            cye::patch_cargo_optimally(new_sol);
+            cye::patch_cargo_trivially(new_sol);
             auto new_cost = new_sol.cost();
             if (new_cost < cost) {
               solution = std::move(new_sol);
@@ -551,7 +551,7 @@ auto cye::VNSSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&indiv
   cye::patch_cargo_optimally(solution);
 
   DoTwoOptFull(individual, instance_.get());
-  DoFullSwapSearch(individual, instance_.get());
+  DoFullSwapSearch(gen, individual, instance_.get());
   DoMoveSearchFull(individual, instance_.get());
 
   energy_repair_->patch(solution, 151U);
@@ -576,7 +576,9 @@ auto cye::SOTASearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&indi
   DoFullTwoOptSearch(gen, individual, instance_.get());
   DoFullSwapSearch(gen, individual, instance_.get());
 
-  energy_repair_->patch(solution, 151U);
+  solution.clear_patches();
+  cye::patch_cargo_optimally(solution);
+  energy_repair_->patch(solution, 1001U);
   // cye::patch_energy_optimal_heuristic(solution);
   individual.set_valid();
 
@@ -678,7 +680,7 @@ auto cye::HSM::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual)
   auto &solution = individual.solution();
 
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+  cye::patch_cargo_optimally(solution);
 
   auto &customers = individual.genotype();
   auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);
@@ -706,7 +708,7 @@ auto cye::HMM::mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual)
   auto &solution = individual.solution();
 
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+  cye::patch_cargo_optimally(solution);
 
   auto &customers = individual.genotype();
   auto dist = std::uniform_int_distribution<size_t>(0, customers.size() - 1);

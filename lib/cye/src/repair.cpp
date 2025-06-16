@@ -524,7 +524,8 @@ auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> 
         }
 
         for (auto l = 0UZ; l < cs_cnt; ++l) {
-          auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
+        //for (auto l = k; l == k; ++l) {
+        auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
 
           // Not really necessary, but it cleans up the table
           if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
