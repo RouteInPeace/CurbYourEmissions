@@ -25,13 +25,13 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
   auto population_size = 20UZ;
-  auto generation_cnt = 300UZ;
+  auto generation_cnt = 100UZ;
 
   auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
   auto evaluations = population_size * generation_cnt;
@@ -57,7 +57,7 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
 
     auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.6);
 
-    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 1,
+    meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator), 2,
                                                      generation_cnt, true);
 
     ga.add_crossover_operator(std::make_unique<cye::DistributedCrossover>());
@@ -128,4 +128,4 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(5);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(10);

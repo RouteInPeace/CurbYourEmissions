@@ -89,6 +89,16 @@ auto cye::RouteOX1::crossover(meta::RandomEngine &gen, cye::EVRPIndividual const
 }
 
 namespace {
+
+std::vector<size_t> convert_to_vector(cye::Solution const &sol) {
+    std::vector<size_t> v;
+    v.reserve(sol.visited_node_cnt() + 2);
+    for (auto it : sol.routes()) {
+      v.emplace_back(it);
+    }
+    return v;
+};
+
 void DoTwoOpt(cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   auto &base = solution.base();
@@ -221,7 +231,7 @@ std::vector<size_t> generate_shuffled_indices(size_t size, meta::RandomEngine &g
   return v;
 }
 
-void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
+bool DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   std::vector<size_t> route;
   for (auto it : solution.routes()) {
@@ -229,6 +239,7 @@ void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
   }
 
   bool stop = false;
+  bool found_improvement = false;
   auto cost = solution.cost();
 
   auto convert_to_solution = [&](std::vector<size_t> const &v) {
@@ -241,16 +252,6 @@ void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
     }
     return cye::Solution(solution.instance_ptr(), std::move(new_base));
   };
-
-  auto convert_to_vector = [&](cye::Solution const &sol) {
-    std::vector<size_t> v;
-    v.reserve(sol.visited_node_cnt() + 2);
-    for (auto it : sol.routes()) {
-      v.emplace_back(it);
-    }
-    return v;
-  };
-
   //auto indices = generate_shuffled_indices(route.size(), gen);
 
   while (!stop) {
@@ -279,6 +280,7 @@ void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
           }
 
           cost += new_dist - prev_dist;
+          found_improvement = true;
           stop = false;
         } else {
           std::swap(route[l], route[k]);
@@ -296,9 +298,10 @@ void DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
   solution = cye::Solution(solution.instance_ptr(), std::move(new_base));
   solution.clear_patches();
   cye::patch_cargo_optimally(solution);
+  return found_improvement;
 }
 
-void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
+bool DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   std::vector<size_t> route;
   for (auto it : solution.routes()) {
@@ -319,16 +322,8 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
     return cye::Solution(solution.instance_ptr(), std::move(new_base));
   };
 
-  auto convert_to_vector = [&](cye::Solution const &sol) {
-    std::vector<size_t> v;
-    v.reserve(sol.visited_node_cnt() + 2);
-    for (auto it : sol.routes()) {
-      v.emplace_back(it);
-    }
-    return v;
-  };
-
   auto indices = generate_shuffled_indices(route.size(), gen);
+  bool found_improvement = false;
 
   while (!stop) {
     stop = true;
@@ -357,6 +352,7 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
               cost = new_cost;
               route = convert_to_vector(solution);
               stop = false;
+              found_improvement = true;
               continue;
             }
             // Revert if not better
@@ -365,6 +361,7 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
           } else {
             cost += new_dist - current_dist;
             stop = false;
+            found_improvement = true;
           }
         }
       }
@@ -383,9 +380,10 @@ void DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
   solution = cye::Solution(solution.instance_ptr(), std::move(new_base));
   solution.clear_patches();
   cye::patch_cargo_optimally(solution);
+  return found_improvement;
 }
 
-void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
+bool DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, cye::Instance const *instance) {
   auto &solution = individual.solution();
   std::vector<size_t> route;
   for (auto it : solution.routes()) {
@@ -393,6 +391,7 @@ void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
   }
 
   bool stop = false;
+  bool found_improvement = false;
   auto cost = solution.cost();
 
   auto convert_to_solution = [&](std::vector<size_t> const &v) {
@@ -406,29 +405,20 @@ void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
     return cye::Solution(solution.instance_ptr(), std::move(new_base));
   };
 
-  auto convert_to_vector = [&](cye::Solution const &sol) {
-    std::vector<size_t> v;
-    v.reserve(sol.visited_node_cnt() + 2);
-    for (auto it : sol.routes()) {
-      v.emplace_back(it);
-    }
-    return v;
-  };
-
   while (!stop) {
     stop = true;
     for (size_t from = 1; from < route.size() - 1; ++from) {
       if (route[from] == instance->depot_id()) continue;
 
       for (size_t to = 1; to < route.size() - 1; ++to) {
-        if (route[to] == instance->depot_id() || std::abs((int)from - (int)to) < 3) continue;
+        if (route[to] == instance->depot_id() || route[from] == instance->depot_id() || std::abs((int)from - (int)to) < 2) continue;
 
         auto original = route[from];
         auto prev_dist = neighbor_dist(route, from, instance) + neighbor_dist(route, to, instance);
         auto new_dist = instance->distance(route[from], route[to - 1]) + instance->distance(route[from], route[to]) +
                         instance->distance(route[to], route[to + 1]) + instance->distance(route[from - 1], route[from + 1]);
 
-        if (new_dist < prev_dist) {
+        if (new_dist + 1e-5 < prev_dist) {
           std::vector<size_t> temp_route = route;
           temp_route.erase(temp_route.begin() + from);
           temp_route.insert(temp_route.begin() + (to > from ? to - 1 : to), original);
@@ -441,6 +431,7 @@ void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
               cost = new_cost;
               route = convert_to_vector(solution);
               stop = false;
+              found_improvement = true;
               break;
             }
             continue;
@@ -449,7 +440,7 @@ void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
           route = std::move(temp_route);
           cost += new_dist - prev_dist;
           stop = false;
-          break;  // restart inner loop
+          found_improvement = true;
         }
       }
     }
@@ -465,6 +456,8 @@ void DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
   solution = cye::Solution(solution.instance_ptr(), std::move(new_base));
   solution.clear_patches();
   cye::patch_cargo_optimally(solution);
+
+  return found_improvement;
 }
 
 void DoMoveSearch(cye::EVRPIndividual &individual, cye::Instance const *instance) {
@@ -569,12 +562,11 @@ auto cye::SOTASearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&indi
 
   //DoTwoOpt(individual, instance_.get());
   //DoMoveSearch(individual, instance_.get());
-  DoFullTwoOptSearch(gen, individual, instance_.get());
-  DoFullSwapSearch(gen, individual, instance_.get());
-  //DoMoveSearch(individual, instance_.get());
-  DoFullMoveSearch(gen, individual, instance_.get());
-  DoFullTwoOptSearch(gen, individual, instance_.get());
-  DoFullSwapSearch(gen, individual, instance_.get());
+  while (DoFullTwoOptSearch(gen, individual, instance_.get()) ||
+         DoFullSwapSearch(gen, individual, instance_.get()) ||
+         DoFullMoveSearch(gen, individual, instance_.get())) {
+    // Continue until no more improvements can be made
+  }
 
   solution.clear_patches();
   cye::patch_cargo_optimally(solution);
