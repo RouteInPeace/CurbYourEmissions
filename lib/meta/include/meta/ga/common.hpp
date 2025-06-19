@@ -8,7 +8,7 @@ namespace meta::ga {
 template <typename I>
 concept Individual = requires(I individual) {
   requires std::ranges::range<decltype(individual.genotype())>;
-  { individual.cost() } -> std::convertible_to<float>;
+  { individual.cost() } -> std::convertible_to<double>;
   { individual.update_cost() } -> std::same_as<void>;
   { individual.hash() } -> std::same_as<size_t>;
 };

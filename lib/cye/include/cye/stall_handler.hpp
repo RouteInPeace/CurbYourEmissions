@@ -9,8 +9,8 @@ namespace cye {
 
 class EVRPStallHandler {
  public:
-  auto operator()(meta::RandomEngine & /*gen*/, std::vector<cye::EVRPIndividual> & /*population*/, float best_fitness)
-      -> std::pair<size_t, float> {
+  auto operator()(meta::RandomEngine & /*gen*/, std::vector<cye::EVRPIndividual> & /*population*/, double best_fitness)
+      -> std::pair<size_t, double> {
     if (!started_) {
       started_ = true;
       return std::make_pair(1'000'000UZ, best_fitness);

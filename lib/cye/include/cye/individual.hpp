@@ -49,7 +49,7 @@ class EVRPIndividual {
   std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
   cye::Solution solution_;
   bool trivial_{false};
-  float cost_;
+  double cost_;
   size_t hash_;
   bool valid_;
 };

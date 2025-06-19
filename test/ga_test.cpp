@@ -16,24 +16,24 @@
 
 class Dummy {
  public:
-  Dummy(float cost) : cost_(cost) {}
+  Dummy(double cost) : cost_(cost) {}
 
-  auto cost() const -> float { return cost_; };
-  auto genotype() const -> std::span<const float> { return genotype_; }
-  auto genotype() -> std::span<float> { return genotype_; }
+  auto cost() const -> double { return cost_; };
+  auto genotype() const -> std::span<const double> { return genotype_; }
+  auto genotype() -> std::span<double> { return genotype_; }
   auto update_cost() -> void {}
   auto hash() const { return 0UZ; }
 
  private:
-  std::array<float, 5> genotype_;
-  float cost_;
+  std::array<double, 5> genotype_;
+  double cost_;
 };
 
 TEST(GA, KWayTournamentSelection) {
   auto rd = std::random_device();
   auto re = std::mt19937(rd());
 
-  auto dist = std::uniform_real_distribution<float>(-10.f, 10.f);
+  auto dist = std::uniform_real_distribution<double>(-10.f, 10.f);
   auto selection_operator = meta::ga::KWayTournamentSelectionOperator<Dummy>(3);
 
   auto population = std::vector<Dummy>();

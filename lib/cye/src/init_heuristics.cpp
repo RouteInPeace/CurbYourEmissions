@@ -26,7 +26,7 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   // Nearest neighbor
   while (!remaining_customer_ids.empty()) {
     auto best_customer_id = 0UZ;
-    auto min_distance = std::numeric_limits<float>::infinity();
+    auto min_distance = std::numeric_limits<double>::infinity();
 
     for (const auto customer_id : remaining_customer_ids) {
       auto previous_node_id = routes.empty() ? instance->depot_id() : routes.back();
@@ -50,7 +50,7 @@ auto cye::stochastic_rank_nearest_neighbor(meta::RandomEngine &gen, std::shared_
     -> Solution {
   auto remaining_customer_ids = std::ranges::to<std::unordered_set<size_t>>(instance->customer_ids());
   auto routes = std::vector<size_t>();
-  auto candidates = std::set<std::pair<float, size_t>>();
+  auto candidates = std::set<std::pair<double, size_t>>();
 
   auto dist = std::uniform_int_distribution(0UZ, k - 1);
 
@@ -118,14 +118,14 @@ auto cye::stochastic_nearest_neighbor(meta::RandomEngine &gen, std::shared_ptr<I
 auto cye::clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> instance, size_t k) -> Solution {
     const auto& customers = instance->customer_ids();
     const size_t depot_id = instance->depot_id();
-    const float cargo_capacity = instance->cargo_capacity();
+    const double cargo_capacity = instance->cargo_capacity();
 
-    float skip_probability = 0.02f;
+    double skip_probability = 0.02f;
 
     // Step 1: Initialize routes as Depot -> Customer -> Depot for each customer
     struct Route {
         std::vector<size_t> path;
-        float total_demand; // Track cumulative demand for cargo feasibility
+        double total_demand; // Track cumulative demand for cargo feasibility
     };
     std::vector<Route> routes;
     for (const auto customer_id : customers) {
@@ -137,7 +137,7 @@ auto cye::clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> i
 
     // Step 2: Compute savings for all pairs (i,j)
     struct SavingsPair {
-        float savings;
+        double savings;
         size_t i;
         size_t j;
     };
@@ -147,10 +147,10 @@ auto cye::clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> i
         for (size_t idx_j = idx_i + 1; idx_j < customers.size(); ++idx_j) {
             const size_t i = customers[idx_i];
             const size_t j = customers[idx_j];
-            const float cost_i_depot = instance->distance(i, depot_id);
-            const float cost_depot_j = instance->distance(depot_id, j);
-            const float cost_i_j = instance->distance(i, j);
-            const float savings = cost_i_depot + cost_depot_j - cost_i_j;
+            const double cost_i_depot = instance->distance(i, depot_id);
+            const double cost_depot_j = instance->distance(depot_id, j);
+            const double cost_i_j = instance->distance(i, j);
+            const double savings = cost_i_depot + cost_depot_j - cost_i_j;
             savings_list.push_back({savings, i, j});
         }
     }
@@ -161,7 +161,7 @@ auto cye::clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> i
     });
 
     // Step 4: Merge routes based on highest savings (if feasible)
-    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+    std::uniform_real_distribution<double> dist(0.0f, 1.0f);
     //std::uniform_int_distribution<size_t> dist(1, k);
     k = dist(gen);
     size_t iter = 0;
@@ -190,7 +190,7 @@ auto cye::clarke_and_wright(meta::RandomEngine &gen, std::shared_ptr<Instance> i
             continue;
         }
 
-        const float merged_demand = route_i_it->total_demand + route_j_it->total_demand;
+        const double merged_demand = route_i_it->total_demand + route_j_it->total_demand;
         if (merged_demand > cargo_capacity) {
             continue; // Skip if cargo constraint violated
         }

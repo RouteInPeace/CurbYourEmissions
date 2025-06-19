@@ -22,15 +22,15 @@ class MutationOperator {
 };
 
 template <Individual I>
-  requires GeneType<I, float>
+  requires GeneType<I, double>
 class GaussianMutation : public MutationOperator<I> {
  public:
-  inline GaussianMutation(float sigma) : sigma_(sigma) {}
+  inline GaussianMutation(double sigma) : sigma_(sigma) {}
 
   [[nodiscard]] auto mutate(RandomEngine &re, I &&individual) -> I override;
 
  private:
-  float sigma_;
+  double sigma_;
 };
 
 template <Individual I>
@@ -54,9 +54,9 @@ class Swap : public MutationOperator<I> {
 /* ------------------------------------- Implementation ------------------------------------- */
 
 template <Individual I>
-  requires GeneType<I, float>
+  requires GeneType<I, double>
 [[nodiscard]] auto GaussianMutation<I>::mutate(RandomEngine &re, I &&individual) -> I {
-  auto dist = std::normal_distribution<float>(0.0, sigma_);
+  auto dist = std::normal_distribution<double>(0.0, sigma_);
 
   for (auto &g : individual.genotype()) {
     g += dist(re);

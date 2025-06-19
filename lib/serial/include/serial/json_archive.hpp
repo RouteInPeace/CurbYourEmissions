@@ -142,6 +142,12 @@ constexpr auto serial::JSONArchive::Value::get<float>() const -> float {
 }
 
 template <>
+constexpr auto serial::JSONArchive::Value::get<double>() const -> double {
+  if (value_ == nullptr || !value_->IsDouble()) throw std::runtime_error("Value is not a double.");
+  return value_->GetDouble();
+}
+
+template <>
 constexpr auto serial::JSONArchive::Value::get<std::string_view>() const -> std::string_view {
   if (value_ == nullptr || !value_->IsString()) throw std::runtime_error("Value is not a string.");
   return std::string_view(value_->GetString(), value_->GetStringLength());
@@ -167,6 +173,12 @@ template <>
 constexpr auto serial::JSONArchive::Value::get_or<float>(float v) const noexcept -> float {
   return value_ != nullptr && value_->IsFloat() ? value_->GetFloat() : v;
 }
+
+template <>
+constexpr auto serial::JSONArchive::Value::get_or<double>(double v) const noexcept -> double {
+  return value_ != nullptr && value_->IsDouble() ? value_->GetDouble() : v;
+}
+
 
 template <>
 constexpr auto serial::JSONArchive::Value::get_or<std::string_view>(std::string_view v) const noexcept

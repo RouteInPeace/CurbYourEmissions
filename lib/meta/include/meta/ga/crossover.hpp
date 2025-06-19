@@ -26,15 +26,15 @@ class CrossoverOperator {
 };
 
 template <Individual I>
-  requires GeneType<I, float>
+  requires GeneType<I, double>
 class BLXAlpha : public CrossoverOperator<I> {
  public:
-  inline BLXAlpha(float alpha) : alpha_(alpha) {}
+  inline BLXAlpha(double alpha) : alpha_(alpha) {}
 
   [[nodiscard]] auto crossover(RandomEngine &re, I const &p1, I const &p2) -> I override;
 
  private:
-  float alpha_;
+  double alpha_;
 };
 
 template <Individual I>
@@ -58,9 +58,9 @@ class OX1 : public CrossoverOperator<I> {
 /* ------------------------------------- Implementation ------------------------------------- */
 
 template <Individual I>
-  requires GeneType<I, float>
+  requires GeneType<I, double>
 [[nodiscard]] auto BLXAlpha<I>::crossover(RandomEngine &re, I const &p1, I const &p2) -> I {
-  auto dist = std::uniform_real_distribution<float>(-alpha_, 1.0 + alpha_);
+  auto dist = std::uniform_real_distribution<double>(-alpha_, 1.0 + alpha_);
   auto child = p1;
 
   auto &&p1_genotype = p1.genotype();

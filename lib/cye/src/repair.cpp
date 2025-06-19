@@ -15,9 +15,9 @@
 #include "cye/solution.hpp"
 
 struct CargoDPCell {
-  CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
+  CargoDPCell() : dist(std::numeric_limits<double>::infinity()), prev(0), inserted(false) {}
 
-  float dist;
+  double dist;
   unsigned prev;
   bool inserted;
 };
@@ -28,7 +28,7 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
   auto dp = std::vector(bin_cnt, std::vector(visited_node_cnt + 2, CargoDPCell()));
 
   // Amount of cargo per bin
-  auto cargo_quant = instance.cargo_capacity() / static_cast<float>(bin_cnt - 1);
+  auto cargo_quant = instance.cargo_capacity() / static_cast<double>(bin_cnt - 1);
 
   // Forward pass
 
@@ -77,7 +77,7 @@ auto cye::patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void {
 
   // Find the smallest cost in the last column
   auto ind = 0u;
-  auto min_cost = std::numeric_limits<float>::infinity();
+  auto min_cost = std::numeric_limits<double>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
     if (dp[i][visited_node_cnt + 1].dist < min_cost) {
       min_cost = dp[i][visited_node_cnt + 1].dist;
@@ -121,10 +121,10 @@ auto cye::patch_cargo_trivially(Solution &solution) -> void {
   solution.add_patch(std::move(patch));
 }
 
-auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, float remaining_battery)
-    -> std::optional<std::pair<size_t, float>> {
+auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, double remaining_battery)
+    -> std::optional<std::pair<size_t, double>> {
   auto best_station_id = std::optional<size_t>{};
-  auto min_distance = std::numeric_limits<float>::infinity();
+  auto min_distance = std::numeric_limits<double>::infinity();
 
   if (node1_id != instance.depot_id() && node2_id != instance.depot_id() &&
       remaining_battery >= instance.energy_required(node1_id, instance.depot_id())) {
@@ -143,7 +143,7 @@ auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_
     }
   }
 
-  return std::pair<size_t, float>(*best_station_id, min_distance);
+  return std::pair<size_t, double>(*best_station_id, min_distance);
 }
 
 auto cye::patch_energy_trivially(Solution &solution) -> void {
@@ -228,7 +228,7 @@ auto cye::patch_energy_removal_heuristic(cye::Solution &solution) -> void {
   auto &instance = solution.instance();
 
   struct ChargingStation_ {
-    float dist;
+    double dist;
     size_t ind;
     size_t cs_id;
 
@@ -408,10 +408,10 @@ cye::OptimalEnergyRepair::OptimalEnergyRepair(std::shared_ptr<Instance> instance
 
 auto cye::OptimalEnergyRepair::compute_cs_dist_mat_() -> void {
   auto cs_cnt = instance_->charging_station_cnt() + 1;
-  cs_dist_mat_ = std::vector(cs_cnt, std::vector(cs_cnt, std::numeric_limits<float>::infinity()));
+  cs_dist_mat_ = std::vector(cs_cnt, std::vector(cs_cnt, std::numeric_limits<double>::infinity()));
 
   for (auto i = 0UZ; i < cs_cnt; ++i) {
-    cs_dist_mat_[i][i] = 0.f;
+    cs_dist_mat_[i][i] = 0.0;
     auto start_node_id = i == 0 ? instance_->depot_id() : instance_->charging_station_ids()[i - 1];
     for (auto j = i + 1; j < cs_cnt; ++j) {
       auto goal_node_id = j == 0 ? instance_->depot_id() : instance_->charging_station_ids()[j - 1];
@@ -432,10 +432,10 @@ auto cye::OptimalEnergyRepair::reset_() -> void {
 }
 
 auto cye::OptimalEnergyRepair::find_between_(size_t start_node_id, size_t goal_node_id)
-    -> std::optional<std::pair<std::vector<size_t>, float>> {
+    -> std::optional<std::pair<std::vector<size_t>, double>> {
   reset_();
 
-  unvisited_queue_.emplace(start_node_id, start_node_id, 0.f, instance_->distance(start_node_id, goal_node_id));
+  unvisited_queue_.emplace(start_node_id, start_node_id, 0.0, instance_->distance(start_node_id, goal_node_id));
 
   while (!unvisited_queue_.empty()) {
     auto unvisited_node = unvisited_queue_.top();
@@ -492,13 +492,13 @@ auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> 
   auto dp = std::vector(bin_cnt, std::vector(visited_node_cnt, DPCell()));
 
   // Energy per bin
-  auto energy_per_bin = instance.battery_capacity() / static_cast<float>(bin_cnt - 1);
+  auto energy_per_bin = instance.battery_capacity() / static_cast<double>(bin_cnt - 1);
   auto cs_cnt = instance_->charging_station_cnt() + 1;
 
   // Forward pass
 
   // We always start at the depot with a full battery
-  dp[bin_cnt - 1][0].dist = 0.f;
+  dp[bin_cnt - 1][0].dist = 0.0;
 
   // Iterate over nodes in routes
   auto previous_node_id = *solution.routes().begin();
@@ -517,7 +517,7 @@ auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> 
 
         auto distance_to_entry_cs = instance_->distance(previous_node_id, entry_node_id);
         auto energy_to_entry_cs = distance_to_entry_cs * instance.energy_consumption();
-        auto remaining_battery = static_cast<float>(i) * energy_per_bin;
+        auto remaining_battery = static_cast<double>(i) * energy_per_bin;
 
         if (energy_to_entry_cs > remaining_battery) {
           continue;
@@ -578,7 +578,7 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
 
   // Find the smallest cost in the last column
   auto ind = 0u;
-  auto min_cost = std::numeric_limits<float>::infinity();
+  auto min_cost = std::numeric_limits<double>::infinity();
   for (auto i = 0u; i < bin_cnt; ++i) {
     if (dp[i][visited_node_cnt - 1].dist < min_cost) {
       min_cost = dp[i][visited_node_cnt - 1].dist;
@@ -586,7 +586,7 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
     }
   }
 
-  if (min_cost == std::numeric_limits<float>::infinity()) {
+  if (min_cost == std::numeric_limits<double>::infinity()) {
     throw std::runtime_error("Solution not found");
   }
 

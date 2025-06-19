@@ -153,14 +153,14 @@ TEST(Repair, DPSparsity) {
   auto bin_cnt = 10001u;
   auto dp = energy_repair.fill_dp(solution, bin_cnt);
 
-  auto heuristic_bound = std::vector<std::pair<unsigned, float>>();
+  auto heuristic_bound = std::vector<std::pair<unsigned, double>>();
   heuristic_bound.emplace_back(bin_cnt - 1u, 0.f);
   {
     auto copy = solution;
     cye::patch_energy_trivially(copy);
     auto dist = 0.f;
     auto energy = instance->battery_capacity();
-    auto energy_per_bin = instance->battery_capacity() / static_cast<float>(bin_cnt - 1);
+    auto energy_per_bin = instance->battery_capacity() / static_cast<double>(bin_cnt - 1);
     auto previous_node_id = *copy.routes().begin();
     auto original_it = ++solution.routes().begin();
 
@@ -197,7 +197,7 @@ TEST(Repair, DPSparsity) {
   // }
 
   // std::cout << "\n\n\n\n";
-  auto inf = std::numeric_limits<float>::infinity();
+  auto inf = std::numeric_limits<double>::infinity();
   for (auto j = 0UZ; j < solution.visited_node_cnt(); ++j) {
     for (auto i = 0UZ; i < bin_cnt; ++i) {
       if (dp[i][j].dist != inf) {

@@ -20,17 +20,17 @@ struct Node {
   auto write(V value) const -> void;
 
   NodeType type;
-  float x;
-  float y;
-  float demand;
+  double x;
+  double y;
+  double demand;
 };
 
 template <serial::Value V>
 Node::Node(V &&value)
     : type(value["type"].template get<NodeType>()),
-      x(value["x"].template get<float>()),
-      y(value["y"].template get<float>()),
-      demand(value["demand"].template get_or<float>(0.f)) {}
+      x(value["x"].template get<double>()),
+      y(value["y"].template get<double>()),
+      demand(value["demand"].template get_or<double>(0.0)) {}
 
 template <serial::Value V>
 auto Node::write(V v) const -> void {
