@@ -329,78 +329,6 @@ auto cye::patch_energy_removal_heuristic(cye::Solution &solution) -> void {
 //   solution.add_patch(std::move(patch));
 // }
 
-auto cye::patch_energy_optimal_heuristic(Solution &solution) -> void {
-  auto &instance = solution.instance();
-
-  auto energy = instance.battery_capacity();
-  auto previous_node_id = *solution.routes().begin();
-  auto patch = Patch<size_t>();
-  auto i = 1UZ;
-
-  auto closest_charging_station = [&](size_t node_id, double energy_remaining) -> std::optional<size_t> {
-    auto cs_id = instance.closest_charging_station(node_id);
-    if (energy_remaining >= instance.energy_required(node_id, cs_id)) {
-      return cs_id;
-    }
-    return std::nullopt;
-  };
-
-  auto previous_depot_it = solution.routes().begin();
-  auto previous_cs_id = 0UZ;
-  for (auto it = ++solution.routes().begin(); it != solution.routes().end();) {
-    auto current_node_id = *it;
-
-    if (energy < instance.energy_required(previous_node_id, current_node_id)) {
-      std::pair<size_t, size_t> best_cs;
-      double best_cost = std::numeric_limits<double>::infinity();
-
-      while (it != previous_depot_it && previous_cs_id+1 < i) {
-        auto cs = closest_charging_station(current_node_id != instance.depot_id() ? current_node_id : previous_cs_id,
-                                           energy);
-        if (cs.has_value()) {
-          auto distance_added = instance.distance(previous_node_id, *cs) + instance.distance(*cs, current_node_id) -
-                                instance.distance(previous_node_id, current_node_id);
-          if (distance_added < best_cost) {
-            best_cost = distance_added;
-            best_cs = std::make_pair(i, *cs);
-          }
-        }
-        --i;
-        --it;
-        current_node_id = previous_node_id;
-        previous_node_id = *it;
-        energy += instance.energy_required(previous_node_id, current_node_id);
-      }
-      if(best_cost == std::numeric_limits<double>::infinity()) {
-        cye::OptimalEnergyRepair repair(solution.instance_ptr());
-        repair.patch(solution, 151U);
-        return;
-      }
-
-      patch.add_change(best_cs.first, best_cs.second);
-      previous_cs_id = best_cs.first;
-      energy = instance.battery_capacity();
-      previous_node_id = best_cs.second;
-      while (i < best_cs.first) {
-        ++i;
-        ++it;
-      }
-    } else {
-      if (current_node_id == instance.depot_id()) {
-        energy = instance.battery_capacity();
-        previous_depot_it = it;
-      } else {
-        energy -= instance.energy_required(previous_node_id, current_node_id);
-      }
-      ++i;
-      ++it;
-      previous_node_id = current_node_id;
-    }
-  }
-  //std::cout << "Sucess\n";
-  solution.add_patch(std::move(patch));
-}
-
 cye::OptimalEnergyRepair::OptimalEnergyRepair(std::shared_ptr<Instance> instance)
     : instance_(instance), unvisited_queue_(cmp_) {
   compute_cs_dist_mat_();
@@ -524,26 +452,25 @@ auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> 
         }
 
         // for (auto l = 0UZ; l < cs_cnt; ++l) {
-        for (auto l = k; l == k; ++l) {
+        auto l = k;
         auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
 
-          // Not really necessary, but it cleans up the table
-          if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
-            continue;
-          }
+        // Not really necessary, but it cleans up the table
+        if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
+          continue;
+        }
 
-          auto distance_from_exit_cs = instance_->distance(exit_node_id, current_node_id);
-          auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
-          auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
-          auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
+        auto distance_from_exit_cs = instance_->distance(exit_node_id, current_node_id);
+        auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
+        auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
+        auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
 
-          if (energy_from_exit_cs_quant < bin_cnt &&
-              dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist > dp[i][j - 1].dist + total_distance) {
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist = dp[i][j - 1].dist + total_distance;
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].prev = i;
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].entry_ind = k;
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].exit_ind = l;
-          }
+        if (energy_from_exit_cs_quant < bin_cnt &&
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist > dp[i][j - 1].dist + total_distance) {
+          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist = dp[i][j - 1].dist + total_distance;
+          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].prev = i;
+          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].entry_ind = k;
+          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].exit_ind = l;
         }
       }
 

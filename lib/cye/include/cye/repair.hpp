@@ -19,7 +19,6 @@ auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 
 auto patch_energy_removal_heuristic(Solution &solution) -> void;
-auto patch_energy_optimal_heuristic(Solution &solution) -> void;
 
 
 struct DPCell {

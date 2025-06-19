@@ -25,7 +25,7 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/E-n76-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
