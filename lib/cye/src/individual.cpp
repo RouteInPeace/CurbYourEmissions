@@ -17,7 +17,7 @@ auto cye::EVRPIndividual::update_cost() -> void {
     } else {
       cye::patch_cargo_optimally(solution_, static_cast<unsigned>(solution_.instance().cargo_capacity()) + 1u);
       //cye::patch_energy_optimal_heuristic(solution_);
-      energy_repair_->patch(solution_, 1001U);
+      energy_repair_->patch(solution_, 151U);
     }
     valid_ = true;
   }

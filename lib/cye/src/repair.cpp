@@ -451,26 +451,27 @@ auto cye::OptimalEnergyRepair::fill_dp(Solution &solution, unsigned bin_cnt) -> 
           continue;
         }
 
-        // for (auto l = 0UZ; l < cs_cnt; ++l) {
-        auto l = k;
-        auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
+        for (auto l = 0UZ; l < cs_cnt; ++l) {
+          // auto l = k;
+          auto exit_node_id = l == 0 ? instance_->depot_id() : instance_->charging_station_ids()[l - 1];
 
-        // Not really necessary, but it cleans up the table
-        if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
-          continue;
-        }
+          // Not really necessary, but it cleans up the table
+          if (instance.is_charging_station(current_node_id) && exit_node_id != current_node_id) {
+            continue;
+          }
 
-        auto distance_from_exit_cs = instance_->distance(exit_node_id, current_node_id);
-        auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
-        auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
-        auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
+          auto distance_from_exit_cs = instance_->distance(exit_node_id, current_node_id);
+          auto energy_from_exit_cs = distance_from_exit_cs * instance_->energy_consumption();
+          auto energy_from_exit_cs_quant = static_cast<unsigned>(std::ceil(energy_from_exit_cs / energy_per_bin));
+          auto total_distance = distance_to_entry_cs + cs_dist_mat_[k][l] + distance_from_exit_cs;
 
-        if (energy_from_exit_cs_quant < bin_cnt &&
-            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist > dp[i][j - 1].dist + total_distance) {
-          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist = dp[i][j - 1].dist + total_distance;
-          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].prev = i;
-          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].entry_ind = k;
-          dp[bin_cnt - energy_from_exit_cs_quant - 1][j].exit_ind = l;
+          if (energy_from_exit_cs_quant < bin_cnt &&
+              dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist > dp[i][j - 1].dist + total_distance) {
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].dist = dp[i][j - 1].dist + total_distance;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].prev = i;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].entry_ind = k;
+            dp[bin_cnt - energy_from_exit_cs_quant - 1][j].exit_ind = l;
+          }
         }
       }
 

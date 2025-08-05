@@ -49,6 +49,11 @@ class GenerationalGA {
   bool verbose_;
 };
 
+struct BestSolution {
+  size_t generation;
+  double cost;
+};
+
 template <Individual I>
 GenerationalGA<I>::GenerationalGA(std::vector<I> &&population,
                                   std::unique_ptr<GenGASelectionOperator<I>> selection_operator, double n_elite,
@@ -86,6 +91,7 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
 
   auto cur_population = population_;
   auto prev_population = std::move(population_);
+  BestSolution best_solution{0, std::numeric_limits<double>::infinity()};
 
   for (auto iter = 0UZ; iter < max_iterations_; ++iter) {
     // Fill the new population
@@ -125,6 +131,19 @@ auto GenerationalGA<I>::optimize(RandomEngine &gen) -> void {
 
     if (verbose_) {
       std::println("Generation: {}, Best individual: {}", iter, cur_population[0].cost());
+    }
+    if (cur_population[0].cost() + 1e-5 < best_solution.cost) {
+      best_solution.generation = iter;
+      best_solution.cost = cur_population[0].cost();
+      if (verbose_) {
+        std::println("New best solution found at generation {}: cost = {}", iter, best_solution.cost);
+      }
+    } else if (iter - best_solution.generation > 50) {
+      if (verbose_) {
+        std::println("No improvement for 50 generations, stopping at generation {}.", iter);
+        
+      }
+      break;
     }
 
     std::swap(cur_population, prev_population);

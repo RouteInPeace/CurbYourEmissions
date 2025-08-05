@@ -568,7 +568,7 @@ auto cye::SOTASearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&indi
 
   solution.clear_patches();
   cye::patch_cargo_optimally(solution);
-  energy_repair_->patch(solution, 1001U);
+  energy_repair_->patch(solution, 151U);
   // cye::patch_energy_optimal_heuristic(solution);
   individual.set_valid();
 

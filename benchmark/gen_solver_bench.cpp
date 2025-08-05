@@ -1,6 +1,7 @@
 #include <benchmark/benchmark.h>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <memory>
 #include <mutex>
 #include <numeric>
@@ -25,13 +26,13 @@ static std::vector<double> global_best_costs;
 static std::atomic<int> instance_counter(0);
 
 static void BM_GenGA_Optimization(benchmark::State &state) {
-  auto archive = serial::JSONArchive("dataset/json/X-n143-k7.json");
+  auto archive = serial::JSONArchive("dataset/json/X-n1001-k43.json");
   auto instance = std::make_shared<cye::Instance>(archive.root());
   auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
   std::random_device rd;
   std::mt19937 gen(rd());
-  auto population_size = 20UZ;
-  auto generation_cnt = 100UZ;
+  auto population_size = 10UZ;
+  auto generation_cnt = 300UZ;
 
   auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
   auto evaluations = population_size * generation_cnt;
@@ -123,9 +124,12 @@ static void BM_GenGA_Optimization(benchmark::State &state) {
       state.counters["max"] = max;
       state.counters["median"] = median;
       state.counters["std"] = std::sqrt(variance);
+      std::cout << std::fixed << std::setprecision(2) << min << std::endl << "\n";
+      std::cout <<  std::fixed << std::setprecision(2) << average << std::endl << "\n";
+      std::cout << std::fixed << std::setprecision(2) << std::sqrt(variance) << std::endl << "\n";
     }
 
     global_best_costs.clear();
   }
 }
-BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(10);
+BENCHMARK(BM_GenGA_Optimization)->Iterations(1)->Unit(benchmark::kMillisecond)->Threads(5);
