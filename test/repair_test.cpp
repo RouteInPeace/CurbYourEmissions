@@ -38,6 +38,27 @@ TEST(Repair, PatchCargoTrivially) {
   }
 }
 
+TEST(Repair, LinearSplit) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  auto path = "dataset/json/E-n22-k4.json";
+  auto archive = serial::JSONArchive(path);
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto routes = std::vector<size_t>();
+  for (auto c : instance->customer_ids()) {
+    routes.push_back(c);
+  }
+
+  std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
+  auto copy = routes;
+
+  auto solution = cye::Solution(instance, std::move(copy));
+  cye::linear_split(solution);
+  EXPECT_TRUE(solution.is_cargo_valid());
+}
+
 TEST(Repair, PatchCargoOptimally) {
   std::random_device rd;
   std::mt19937 gen(rd());

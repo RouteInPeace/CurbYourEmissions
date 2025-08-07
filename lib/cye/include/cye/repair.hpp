@@ -14,6 +14,7 @@ auto patch_cargo_optimally(Solution &solution, unsigned bin_cnt) -> void;
 inline auto patch_cargo_optimally(Solution &solution) -> void {
   patch_cargo_optimally(solution, static_cast<unsigned>(solution.instance().cargo_capacity()) + 1u);
 }
+auto linear_split(Solution &solution) -> void;
 
 auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;

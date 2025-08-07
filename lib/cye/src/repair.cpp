@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <cstddef>
+#include <deque>
 #include <limits>
 #include <queue>
 #include <random>
@@ -11,6 +12,7 @@
 #include <vector>
 #include "cye/patchable_vector.hpp"
 #include "cye/solution.hpp"
+#include <print>
 
 struct CargoDPCell {
   CargoDPCell() : dist(std::numeric_limits<float>::infinity()), prev(0), inserted(false) {}
@@ -406,4 +408,76 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
 
   patch.reverse();
   solution.add_patch(std::move(patch));
+}
+
+auto cye::linear_split(Solution &solution) -> void {
+  const auto &instance = solution.instance();
+  assert(solution.visited_node_cnt() == instance.customer_cnt());
+  auto &tour = solution.base();
+
+  auto lambda = std::deque<size_t>();
+
+  auto d = std::vector(instance.customer_cnt(), 0.0);
+  auto q = std::vector(instance.customer_cnt(), 0.0);
+  d[0] = instance.distance(tour[0], tour[1]);
+  q[0] = instance.demand(tour[0]);
+
+  for (auto i = 1UZ; i < instance.customer_cnt(); ++i) {
+    if (i < instance.customer_cnt() - 1) {
+      d[i] = d[i - 1] + instance.distance(tour[i], tour[i + 1]);
+    }
+    q[i] = q[i - 1] + instance.demand(tour[i]);
+  }
+
+  auto p = std::vector(instance.customer_cnt(), std::numeric_limits<double>::infinity());
+  auto pred = std::vector(instance.customer_cnt(), 0UZ);
+
+  p[0] = instance.distance(instance.depot_id(), tour[0]) + instance.distance(tour[0], instance.depot_id());
+
+  auto dominates = [&](size_t i, size_t j) {
+    if (i <= j && q[i] == q[j] &&
+        p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
+            p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
+      return true;
+    }
+    if (i > j && p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
+                     p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
+      return true;
+    }
+
+    return false;
+  };
+
+  for (auto t = 0UZ; t < instance.customer_cnt() - 1; ++t) {
+    if (lambda.empty()) {
+      lambda.push_back(t);
+    } else if (!dominates(lambda.back(), t)) {
+      while (!lambda.empty() && dominates(t, lambda.back())) {
+        lambda.pop_back();
+      }
+      lambda.push_back(t);
+    }
+
+    while (q[t + 1] > instance.cargo_capacity() + q[lambda.front()]) {
+      lambda.pop_front();
+    }
+
+    if (q[t + 1] - q[lambda.front()] <= instance.cargo_capacity()) {
+      p[t + 1] = p[lambda.front()] + instance.distance(instance.depot_id(), tour[lambda.front() + 1]) + d[t + 1] -
+                 d[lambda.front() + 1] + instance.distance(tour[t + 1], instance.depot_id());
+      pred[t + 1] = lambda.front();
+    }
+  }
+
+  for(const auto& x : p) {
+    std::print("{:8.2f}", x);
+  }
+
+  std::println();
+
+  for(const auto& x : pred) {
+    std::print("{:8}", x);
+  }
+
+  std::println();
 }
