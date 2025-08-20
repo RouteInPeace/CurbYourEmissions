@@ -38,11 +38,11 @@ TEST(Repair, PatchCargoTrivially) {
   }
 }
 
-TEST(Repair, LinearSplit) {
+TEST(Repair, LinearSplitSimple) {
   std::random_device rd;
   std::mt19937 gen(rd());
 
-  auto path = "dataset/json/E-n22-k4.json";
+  auto path = "dataset/json/linear-split.json";
   auto archive = serial::JSONArchive(path);
   auto instance = std::make_shared<cye::Instance>(archive.root());
 
@@ -51,12 +51,41 @@ TEST(Repair, LinearSplit) {
     routes.push_back(c);
   }
 
-  std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
-  auto copy = routes;
-
-  auto solution = cye::Solution(instance, std::move(copy));
+  auto solution = cye::Solution(instance, std::move(routes));
   cye::linear_split(solution);
   EXPECT_TRUE(solution.is_cargo_valid());
+}
+
+TEST(Repair, LinearSplit) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  for (const auto &path : std::filesystem::directory_iterator("dataset/json")) {
+    auto archive = serial::JSONArchive(path);
+    auto instance = std::make_shared<cye::Instance>(archive.root());
+
+    auto routes = std::vector<size_t>();
+    for (auto c : instance->customer_ids()) {
+      routes.push_back(c);
+    }
+
+    for (auto i = 0UZ; i < 100UZ; i++) {
+      std::shuffle(routes.begin() + 1, routes.end() - 1, gen);
+
+      auto copy = routes;
+      auto copy2 = routes;
+
+      auto solution_opt = cye::Solution(instance, std::move(copy));
+      auto solution_ls = cye::Solution(instance, std::move(copy2));
+      cye::patch_cargo_optimally(solution_opt, static_cast<unsigned>(instance->cargo_capacity()) + 1u);
+      cye::linear_split(solution_ls);
+
+      EXPECT_TRUE(solution_opt.is_cargo_valid());
+      EXPECT_TRUE(solution_ls.is_cargo_valid());
+
+      EXPECT_LE(solution_opt.cost() - solution_ls.cost(), 1e-6);
+    }
+  }
 }
 
 TEST(Repair, PatchCargoOptimally) {

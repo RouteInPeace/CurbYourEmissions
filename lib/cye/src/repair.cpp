@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include "cye/instance.hpp"
 #include "cye/patchable_vector.hpp"
 #include "cye/solution.hpp"
 
@@ -410,12 +411,119 @@ auto cye::OptimalEnergyRepair::patch(Solution &solution, unsigned bin_cnt) -> vo
   solution.add_patch(std::move(patch));
 }
 
+// auto cye::linear_split(Solution &solution) -> void {
+//   const auto &instance = solution.instance();
+//   assert(solution.visited_node_cnt() == instance.customer_cnt());
+//   auto &tour = solution.base();
+
+//   auto lambda = std::deque<size_t>();
+
+//   auto d = std::vector(instance.customer_cnt(), 0.0);
+//   auto q = std::vector(instance.customer_cnt(), 0.0);
+//   q[0] = instance.demand(tour[0]);
+
+//   for (auto i = 1UZ; i < instance.customer_cnt(); ++i) {
+//     d[i] = d[i - 1] + instance.distance(tour[i - 1], tour[i]);
+//     q[i] = q[i - 1] + instance.demand(tour[i]);
+//   }
+
+//   auto p = std::vector(instance.customer_cnt(), std::numeric_limits<double>::infinity());
+//   auto pred = std::vector(instance.customer_cnt(), 0UZ);
+
+//   p[0] = instance.distance(instance.depot_id(), tour[0]) + instance.distance(tour[0], instance.depot_id());
+
+//   auto dominates = [&](size_t i, size_t j) {
+//     if (i <= j && q[i] == q[j] &&
+//         p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
+//             p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
+//       return true;
+//     }
+//     if (i > j && p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
+//                      p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
+//       return true;
+//     }
+
+//     return false;
+//   };
+
+//   lambda.push_back(0UZ);
+
+//   for (auto t = 0UZ; t < instance.customer_cnt() - 1; ++t) {
+//     if (!dominates(lambda.back(), t)) {
+//       while (!lambda.empty() && dominates(t, lambda.back())) {
+//         lambda.pop_back();
+//       }
+//       lambda.push_back(t);
+//     }
+
+//     while (q[t + 1] > instance.cargo_capacity() + q[lambda.front()]) {
+//       lambda.pop_front();
+//     }
+
+//     if (q[t + 1] - q[lambda.front()] <= instance.cargo_capacity()) {
+//       p[t + 1] = p[lambda.front()] + instance.distance(instance.depot_id(), tour[lambda.front() + 1]) + d[t + 1] -
+//                  d[lambda.front() + 1] + instance.distance(tour[t + 1], instance.depot_id());
+//       pred[t + 1] = lambda.front();
+//     }
+//   }
+
+//   auto patch = Patch<size_t>();
+//   patch.add_change(instance.customer_cnt(), instance.depot_id());
+//   auto i = pred.back();
+//   while (pred[i] != 0) {
+//     patch.add_change(i, instance.depot_id());
+//     i = pred[i];
+//   }
+//   patch.add_change(0, instance.depot_id());
+//   patch.reverse();
+//   solution.add_patch(std::move(patch));
+
+//   for (const auto &x : solution.routes()) {
+//     std::print("{:8}", x);
+//   }
+
+//   std::println();
+
+//   auto cargo = 0.0;
+//   for (const auto &x : solution.routes()) {
+//     cargo += instance.demand(x);
+//     if (x == instance.depot_id()) {
+//       cargo = 0;
+//     }
+//     std::print("{:8}", cargo);
+//   }
+
+//   std::println();
+
+//   for (const auto &x : p) {
+//     std::print("{:8.2f}", x);
+//   }
+
+//   std::println();
+
+//   for (const auto &x : pred) {
+//     std::print("{:8}", x);
+//   }
+
+//   std::println();
+
+//   solution.clear_patches();
+//   patch_cargo_optimally(solution);
+
+//   for (const auto &x : solution.routes()) {
+//     std::print("{:8}", x);
+//   }
+
+//   std::println();
+// }
+
 auto cye::linear_split(Solution &solution) -> void {
   const auto &instance = solution.instance();
   assert(solution.visited_node_cnt() == instance.customer_cnt());
   auto &tour = solution.base();
 
   auto lambda = std::deque<size_t>();
+  lambda.push_back(0UZ);
 
   auto d = std::vector(instance.customer_cnt(), 0.0);
   auto q = std::vector(instance.customer_cnt(), 0.0);
@@ -426,50 +534,49 @@ auto cye::linear_split(Solution &solution) -> void {
     q[i] = q[i - 1] + instance.demand(tour[i]);
   }
 
-  auto p = std::vector(instance.customer_cnt(), std::numeric_limits<double>::infinity());
-  auto pred = std::vector(instance.customer_cnt(), 0UZ);
+  auto p = std::vector(instance.customer_cnt() + 1, std::numeric_limits<double>::infinity());
+  auto pred = std::vector(instance.customer_cnt() + 1, 0UZ);
+  p[0] = 0;
 
-  p[0] = instance.distance(instance.depot_id(), tour[0]) + instance.distance(tour[0], instance.depot_id());
+  auto cost = [&](size_t i, size_t j) {
+    auto ret = instance.distance(instance.depot_id(), tour[i]);
+    ret += d[j - 1] - d[i];
+    if (j != 0) {
+      ret += instance.distance(tour[j - 1], instance.depot_id());
+    }
+    return ret;
+  };
 
   auto dominates = [&](size_t i, size_t j) {
-    if (i <= j && q[i] == q[j] &&
-        p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
-            p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
-      return true;
+    if (p[i] + instance.distance(instance.depot_id(), tour[i]) - d[i] <=
+        p[j] + instance.distance(instance.depot_id(), tour[j]) - d[j]) {
+      if ((i <= j && q[i] == q[j]) || i > j) return true;
     }
-    if (i > j && p[i] + instance.distance(instance.depot_id(), tour[i + 1]) - d[i + 1] <=
-                     p[j] + instance.distance(instance.depot_id(), tour[j + 1]) - d[j + 1]) {
-      return true;
-    }
-
     return false;
   };
 
-  lambda.push_back(0UZ);
+  for (auto t = 1UZ; t <= instance.customer_cnt(); ++t) {
+    p[t] = p[lambda.front()] + cost(lambda.front(), t);
+    pred[t] = lambda.front();
 
-  for (auto t = 0UZ; t < instance.customer_cnt() - 1; ++t) {
-    if (!dominates(lambda.back(), t)) {
-      while (!lambda.empty() && dominates(t, lambda.back())) {
-        lambda.pop_back();
+    if (t < instance.customer_cnt()) {
+      if (!dominates(lambda.back(), t)) {
+        while (!lambda.empty() && dominates(t, lambda.back())) {
+          lambda.pop_back();
+        }
+        lambda.push_back(t);
       }
-      lambda.push_back(t);
-    }
 
-    while (q[t + 1] > instance.cargo_capacity() + q[lambda.front()]) {
-      lambda.pop_front();
-    }
-
-    if (q[t + 1] - q[lambda.front()] <= instance.cargo_capacity()) {
-      p[t + 1] = p[lambda.front()] + instance.distance(instance.depot_id(), tour[lambda.front() + 1]) + d[t + 1] -
-                 d[lambda.front() + 1] + instance.distance(tour[t + 1], instance.depot_id());
-      pred[t + 1] = lambda.front();
+      while (q[t] > instance.cargo_capacity() + (lambda.front() == 0 ? 0.0 : q[lambda.front() - 1])) {
+        lambda.pop_front();
+      }
     }
   }
 
   auto patch = Patch<size_t>();
   patch.add_change(instance.customer_cnt(), instance.depot_id());
   auto i = pred.back();
-  while (pred[i] != 0) {
+  while (i != 0) {
     patch.add_change(i, instance.depot_id());
     i = pred[i];
   }
@@ -477,21 +584,32 @@ auto cye::linear_split(Solution &solution) -> void {
   patch.reverse();
   solution.add_patch(std::move(patch));
 
-  for (const auto &x : solution.routes()) {
-    std::print("{:4}", x);
-  }
+  // for (const auto &x : solution.routes()) {
+  //   std::print("{:8}", x);
+  // }
 
-  std::println();
+  // std::println();
 
-  for (const auto &x : p) {
-    std::print("{:8.2f}", x);
-  }
+  // auto cargo = 0.0;
+  // for (const auto &x : solution.routes()) {
+  //   cargo += instance.demand(x);
+  //   if (x == instance.depot_id()) {
+  //     cargo = 0;
+  //   }
+  //   std::print("{:8}", cargo);
+  // }
 
-  std::println();
+  // std::println();
 
-  for (const auto &x : pred) {
-    std::print("{:8}", x);
-  }
+  // for (const auto &x : p) {
+  //   std::print("{:8.2f}", x);
+  // }
 
-  std::println();
+  // std::println();
+
+  // for (const auto &x : pred) {
+  //   std::print("{:8}", x);
+  // }
+
+  // std::println();
 }
