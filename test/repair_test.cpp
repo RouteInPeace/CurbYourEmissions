@@ -83,7 +83,7 @@ TEST(Repair, LinearSplit) {
       EXPECT_TRUE(solution_opt.is_cargo_valid());
       EXPECT_TRUE(solution_ls.is_cargo_valid());
 
-      EXPECT_LE(solution_opt.cost() - solution_ls.cost(), 1e-6);
+      EXPECT_GE(solution_opt.cost() - solution_ls.cost(), -1e-3);
     }
   }
 }

@@ -50,11 +50,11 @@ class Instance {
   auto update_distance_cache_() -> void;
 
   std::string name_;
-  float optimal_value_;
+  double optimal_value_;
   size_t minimum_route_cnt_;
-  float cargo_capacity_;
-  float battery_capacity_;
-  float energy_consumption_;
+  double cargo_capacity_;
+  double battery_capacity_;
+  double energy_consumption_;
   size_t customer_cnt_;
   size_t charging_station_cnt_;
 
@@ -65,11 +65,11 @@ class Instance {
 template <serial::Value V>
 Instance::Instance(V &&value)
     : name_(value["name"].template get<std::string_view>()),
-      optimal_value_(value["optimalValue"].template get<float>()),
+      optimal_value_(value["optimalValue"].template get<double>()),
       minimum_route_cnt_(value["minimumRouteCnt"].template get<size_t>()),
-      cargo_capacity_(value["cargoCapacity"].template get<float>()),
-      battery_capacity_(value["batteryCapacity"].template get<float>()),
-      energy_consumption_(value["energyConsumption"].template get<float>()),
+      cargo_capacity_(value["cargoCapacity"].template get<double>()),
+      battery_capacity_(value["batteryCapacity"].template get<double>()),
+      energy_consumption_(value["energyConsumption"].template get<double>()),
       customer_cnt_(value["customerCnt"].template get<size_t>()),
       charging_station_cnt_(value["chargingStationCnt"].template get<size_t>()),
       nodes_(value["nodes"].template get<std::vector<Node>>()) {
