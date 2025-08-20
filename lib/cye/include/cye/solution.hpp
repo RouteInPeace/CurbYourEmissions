@@ -36,7 +36,7 @@ class Solution {
   [[nodiscard]] auto is_cargo_valid() const -> bool;
   [[nodiscard]] auto is_energy_and_cargo_valid() const -> bool;
   [[nodiscard]] auto is_valid() const -> bool;
-  [[nodiscard]] auto cost() const -> float;
+  [[nodiscard]] auto cost() const -> double;
 
   template <serial::Value V>
   auto write(V v) const -> void {

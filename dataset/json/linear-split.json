@@ -1,0 +1,103 @@
+{
+    "name": "Linear split",
+    "optimalValue": 0.0,
+    "minimumRouteCnt": 0,
+    "customerCnt": 12,
+    "chargingStationCnt": 0,
+    "cargoCapacity": 30.0,
+    "batteryCapacity": 98.0,
+    "energyConsumption": 1.2,
+    "nodes": [
+        {
+            "x": 0.0,
+            "y": 0.0,
+            "demand": 0.0,
+            "type": "depot",
+            "id": "0"
+        },
+        {
+            "x": 4.0,
+            "y": 0.0,
+            "demand": 11.0,
+            "type": "customer",
+            "id": "1"
+        },
+        {
+            "x": 4.0,
+            "y": 3.0,
+            "demand": 3.0,
+            "type": "customer",
+            "id": "2"
+        },
+        {
+            "x": 2.18,
+            "y": 9.759,
+            "demand": 6.0,
+            "type": "customer",
+            "id": "3"
+        },
+        {
+            "x": 0.333,
+            "y": 8.994,
+            "demand": 5.0,
+            "type": "customer",
+            "id": "4"
+        },
+        {
+            "x": -5.49,
+            "y": 12.878,
+            "demand": 7.0,
+            "type": "customer",
+            "id": "5"
+        },
+        {
+            "x": -6.533,
+            "y": 10.066,
+            "demand": 8.0,
+            "type": "customer",
+            "id": "6"
+        },
+        {
+            "x": -14.119,
+            "y": 7.526,
+            "demand": 1.0,
+            "type": "customer",
+            "id": "7"
+        },
+        {
+            "x": -10.687,
+            "y": 2.605,
+            "demand": 7.0,
+            "type": "customer",
+            "id": "8"
+        },
+        {
+            "x": -4.41,
+            "y": -2.355,
+            "demand": 3.0,
+            "type": "customer",
+            "id": "9"
+        },
+        {
+            "x": -0.457,
+            "y": -2.965,
+            "demand": 7.0,
+            "type": "customer",
+            "id": "10"
+        },
+        {
+            "x": 2.097,
+            "y": -4.539,
+            "demand": 3.0,
+            "type": "customer",
+            "id": "11"
+        },
+        {
+            "x": 4.898,
+            "y": -3.466,
+            "demand": 6.0,
+            "type": "customer",
+            "id": "12"
+        }
+    ]
+}
