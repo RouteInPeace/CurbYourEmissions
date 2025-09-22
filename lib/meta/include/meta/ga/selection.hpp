@@ -56,7 +56,7 @@ class KWayTournamentSelectionOperator : public SSGASelectionOperator<I> {
     set_.clear();
     while (set_.size() < k_) {
       auto ind = dist(re);
-      float cost = population[ind].cost();
+      double cost = population[ind].cost();
 
       set_.insert({ind, cost});
     }
@@ -65,14 +65,14 @@ class KWayTournamentSelectionOperator : public SSGASelectionOperator<I> {
   }
 
  private:
-  constexpr static auto cmp_ = [](std::pair<size_t, float> const &a, std::pair<size_t, float> const &b) {
+  constexpr static auto cmp_ = [](std::pair<size_t, double> const &a, std::pair<size_t, double> const &b) {
     if (a.second == b.second) {
       return a.first < b.first;
     }
 
     return a.second < b.second;
   };
-  std::set<std::pair<size_t, float>, decltype(cmp_)> set_;
+  std::set<std::pair<size_t, double>, decltype(cmp_)> set_;
 
   size_t k_;
 };

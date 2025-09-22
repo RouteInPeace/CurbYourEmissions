@@ -21,12 +21,12 @@ auto patch_energy_trivially(Solution &solution) -> void;
 
 struct DPCell {
   DPCell()
-      : dist(std::numeric_limits<float>::infinity()),
+      : dist(std::numeric_limits<double>::infinity()),
         prev(0),
         entry_ind(std::numeric_limits<uint16_t>::max()),
         exit_ind(std::numeric_limits<uint16_t>::max()) {}
 
-  float dist;
+  double dist;
   unsigned prev;
   uint16_t entry_ind;
   uint16_t exit_ind;
@@ -40,22 +40,22 @@ class OptimalEnergyRepair {
 
  private:
   auto compute_cs_dist_mat_() -> void;
-  auto find_between_(size_t start_node_id, size_t goal_node_id) -> std::optional<std::pair<std::vector<size_t>, float>>;
+  auto find_between_(size_t start_node_id, size_t goal_node_id) -> std::optional<std::pair<std::vector<size_t>, double>>;
   auto reset_() -> void;
 
   std::shared_ptr<Instance> instance_;
-  std::vector<std::vector<float>> cs_dist_mat_;
+  std::vector<std::vector<double>> cs_dist_mat_;
 
   struct VisitedNode_ {
-    float g;
+    double g;
     size_t parent;
   };
 
   struct UnvisitedNode_ {
     size_t node_id;
     size_t parent;
-    float g;
-    float h;
+    double g;
+    double h;
   };
 
   constexpr static auto cmp_ = [](UnvisitedNode_ const &a, UnvisitedNode_ const &b) {

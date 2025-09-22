@@ -20,7 +20,7 @@ namespace meta::ga {
 template <Individual I>
 class SSGA {
  public:
-  using StallHandler = std::function<std::pair<size_t, float>(RandomEngine &, std::vector<I> &, float)>;
+  using StallHandler = std::function<std::pair<size_t, double>(RandomEngine &, std::vector<I> &, double)>;
 
   SSGA(std::vector<I> &&population, std::unique_ptr<SSGASelectionOperator<I>> selection_operator,
        std::unique_ptr<LocalSearch<I>> local_search, StallHandler stall_handler, size_t max_iterations, bool verbose);
@@ -73,7 +73,7 @@ auto SSGA<I>::optimize(RandomEngine &gen) -> void {
     throw std::runtime_error("At least one mutation operator is required.");
   }
 
-  auto best_cost = std::numeric_limits<float>::infinity();
+  auto best_cost = std::numeric_limits<double>::infinity();
   for (const auto &individual : population_) {
     exists_.insert(individual.hash());
     if (individual.cost() < best_cost) {

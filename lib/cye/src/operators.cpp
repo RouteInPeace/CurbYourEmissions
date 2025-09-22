@@ -534,7 +534,7 @@ auto cye::SwapSearch::search(meta::RandomEngine & /*gen*/, cye::EVRPIndividual &
   return individual;
 }
 
-auto cye::SwapSearch::neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float {
+auto cye::SwapSearch::neighbor_dist_(std::vector<size_t> const &base, size_t i) -> double {
   auto d = 0.0;
   if (i > 0) {
     d += instance_->distance(base[i - 1], base[i]);

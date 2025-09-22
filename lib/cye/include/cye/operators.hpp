@@ -19,7 +19,7 @@ class NeighborSwap : public meta::ga::MutationOperator<cye::EVRPIndividual> {
   [[nodiscard]] auto mutate(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
 
  private:
-  std::set<std::pair<float, size_t>> candidates_;
+  std::set<std::pair<double, size_t>> candidates_;
   size_t k_;
 };
 
@@ -54,7 +54,7 @@ class SwapSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
       -> cye::EVRPIndividual override;
 
  private:
-  [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> float;
+  [[nodiscard]] auto neighbor_dist_(std::vector<size_t> const &base, size_t i) -> double;
 
   std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
   std::shared_ptr<cye::Instance> instance_;
