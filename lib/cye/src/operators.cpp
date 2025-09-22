@@ -237,7 +237,7 @@ bool DoFullSwapSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
         if (is_better(prev_dist, new_dist)) {
           if (!check_load(route, instance, l) || !check_load(route, instance, k)) {
             auto new_sol = convert_to_solution(route);
-            cye::patch_cargo_trivially(new_sol);
+            cye::linear_split(new_sol);
             auto new_cost = new_sol.cost();
             if (is_better(cost, new_cost)) {
               solution = std::move(new_sol);
@@ -311,7 +311,7 @@ bool DoFullTwoOptSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual
           // Check if the new route is feasible
           if (!check_load(route, instance, i) || !check_load(route, instance, j)) {
             auto new_sol = convert_to_solution(route);
-            cye::patch_cargo_trivially(new_sol);
+            cye::linear_split(new_sol);
             auto new_cost = new_sol.cost();
             if (is_better(cost, new_cost)) {
               solution = std::move(new_sol);
@@ -388,7 +388,7 @@ bool DoFullMoveSearch(meta::RandomEngine &gen, cye::EVRPIndividual &individual, 
           temp_route.insert(temp_route.begin() + (to > from ? to - 1 : to), original);
           if (!check_load(temp_route, instance, to)) {
             auto new_sol = convert_to_solution(temp_route);
-            cye::patch_cargo_trivially(new_sol);
+            cye::linear_split(new_sol);
             auto new_cost = new_sol.cost();
             if (is_better(cost, new_cost)) {
               solution = std::move(new_sol);
@@ -470,7 +470,7 @@ auto cye::SATwoOptSearch::search(meta::RandomEngine &gen, cye::EVRPIndividual &&
   auto &solution = individual.solution();
   auto &base = solution.base();
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+  cye::linear_split(solution);
   auto dist = std::uniform_real_distribution<double>(0.0, 1.0);
 
   const auto &cargo_patch = solution.get_patch(0);
@@ -697,7 +697,7 @@ auto cye::CrossRouteScramble::mutate(meta::RandomEngine &gen, EVRPIndividual &&i
   auto &solution = individual.solution();
 
   solution.clear_patches();
-  cye::patch_cargo_trivially(solution);
+  cye::linear_split(solution);
   auto &cargo_patch = solution.get_patch(0);
 
   auto route_dist = std::uniform_int_distribution(0UZ, cargo_patch.changes().size() - 2);
