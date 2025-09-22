@@ -29,22 +29,16 @@ class Caliper {
   size_t current_task_;
   std::mutex task_mutex_;
 
-  bool measurement_done_;
-
   std::vector<std::thread> threads_;
   std::function<Result(Config const &)> measurement_function_;
 };
 
 template <typename Config, typename Result>
 Caliper<Config, Result>::Caliper(std::function<Result(Config)> measurement_function)
-    : current_task_(0), measurement_done_(false), measurement_function_(measurement_function) {}
+    : current_task_(0), measurement_function_(measurement_function) {}
 
 template <typename Config, typename Result>
 auto Caliper<Config, Result>::add_measurement(size_t sample_size, Config config) -> void {
-  if (measurement_done_) {
-    throw std::runtime_error("Measured again without reseting");
-  }
-
   tasks_.emplace_back(std::move(config), sample_size, std::vector<Result>{});
 }
 
@@ -78,7 +72,9 @@ auto Caliper<Config, Result>::run(size_t num_threads) -> std::vector<Task> {
   }
 
   for (auto &th : threads_) th.join();
-  measurement_done_ = true;
+
+  current_task_ = 0;
+  threads_.clear();
 
   return std::move(tasks_);
 }
