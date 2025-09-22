@@ -72,6 +72,19 @@ class SATwoOptSearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
   std::shared_ptr<cye::Instance> instance_;
 };
 
+
+class SOTASearch : public meta::ga::LocalSearch<cye::EVRPIndividual> {
+  public:
+   SOTASearch(std::shared_ptr<cye::Instance> instance)
+       : energy_repair_(std::make_shared<cye::OptimalEnergyRepair>(instance)), instance_(instance) {}
+ 
+   [[nodiscard]] auto search(meta::RandomEngine &gen, cye::EVRPIndividual &&individual) -> cye::EVRPIndividual override;
+ 
+  private:
+   std::shared_ptr<cye::OptimalEnergyRepair> energy_repair_;
+   std::shared_ptr<cye::Instance> instance_;
+ };
+
 class HSM : public meta::ga::MutationOperator<cye::EVRPIndividual> {
  public:
   HSM(std::shared_ptr<cye::Instance> instance) : instance_(std::move(instance)) {}
