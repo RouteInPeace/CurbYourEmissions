@@ -1,0 +1,4 @@
+**/__pycache__/**
+cye_module.*
+uv.lock
+.python-version
