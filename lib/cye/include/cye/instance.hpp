@@ -25,7 +25,7 @@ class Instance {
   [[nodiscard]] constexpr inline auto depot_id() const -> size_t { return 0UZ; }
   [[nodiscard]] inline auto cargo_capacity() const { return cargo_capacity_; }
   [[nodiscard]] inline auto battery_capacity() const { return battery_capacity_; }
-  [[nodiscard]] inline auto distance(size_t node1_id, size_t node2_id) const -> float {
+  [[nodiscard]] inline auto distance(size_t node1_id, size_t node2_id) const -> double {
     if (node1_id == node2_id) [[unlikely]] {
       return 0.f;
     }
@@ -59,7 +59,7 @@ class Instance {
   size_t charging_station_cnt_;
 
   std::vector<Node> nodes_;
-  std::vector<float> distance_cache_;
+  std::vector<double> distance_cache_;
 };
 
 template <serial::Value V>

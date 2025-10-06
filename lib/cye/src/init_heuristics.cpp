@@ -26,7 +26,7 @@ auto cye::nearest_neighbor(std::shared_ptr<Instance> instance) -> Solution {
   // Nearest neighbor
   while (!remaining_customer_ids.empty()) {
     auto best_customer_id = 0UZ;
-    auto min_distance = std::numeric_limits<float>::infinity();
+    auto min_distance = std::numeric_limits<double>::infinity();
 
     for (const auto customer_id : remaining_customer_ids) {
       auto previous_node_id = routes.empty() ? instance->depot_id() : routes.back();
@@ -50,7 +50,7 @@ auto cye::stochastic_rank_nearest_neighbor(meta::RandomEngine &gen, std::shared_
     -> Solution {
   auto remaining_customer_ids = std::ranges::to<std::unordered_set<size_t>>(instance->customer_ids());
   auto routes = std::vector<size_t>();
-  auto candidates = std::set<std::pair<float, size_t>>();
+  auto candidates = std::set<std::pair<double, size_t>>();
 
   auto dist = std::uniform_int_distribution(0UZ, k - 1);
 
