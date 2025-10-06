@@ -25,6 +25,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -fno-omit-
 
 
 add_subdirectory("src")
+add_subdirectory("lib/caliper")
 add_subdirectory("lib/cye")
 add_subdirectory("lib/serial")
 add_subdirectory("lib/meta")

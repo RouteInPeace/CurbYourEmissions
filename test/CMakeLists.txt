@@ -20,10 +20,11 @@ add_executable(${PROJECT_NAME}_test
   repair_test.cpp
   patchable_vector_test.cpp
   instance_test.cpp
+  caliper_test.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -Wall -Wextra -Wpedantic -std=c++23)
-target_link_libraries(${PROJECT_NAME}_test PRIVATE ${PROJECT_NAME}_lib GTest::gtest_main serial_lib meta_lib)
+target_link_libraries(${PROJECT_NAME}_test PRIVATE ${PROJECT_NAME}_lib GTest::gtest_main serial_lib meta_lib caliper_lib)
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME}_test)

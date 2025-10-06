@@ -18,9 +18,20 @@
 #include "cye/repair.hpp"
 #include "cye/solution.hpp"
 #include "meta/ga/generational_ga.hpp"
+#include "meta/ga/generational_ga.hpp"
 #include "meta/ga/selection.hpp"
 #include "serial/json_archive.hpp"
 
+struct Config {
+  std::filesystem::path instance_path = "dataset/json/E-n22-k4.json";
+  size_t population_size = 200;
+  size_t generation_cnt = 1000;
+  size_t elite_cnt = 30;
+  size_t energy_repair_bins = 100001;
+};
+
+auto measurement(Config const &config) -> double {
+  auto archive = serial::JSONArchive(config.instance_path);
 struct Config {
   std::filesystem::path instance_path = "dataset/json/E-n22-k4.json";
   size_t population_size = 200;
@@ -44,15 +55,39 @@ auto measurement(Config const &config) -> double {
   if (evaluations > max_evaluations_allowed) {
     throw std::runtime_error("You are not allowed to do that many evaluations.");
   }
+  auto energy_repair = std::make_shared<cye::OptimalEnergyRepair>(instance);
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  auto max_evaluations_allowed = 25'000 * (1 + instance->customer_cnt() + instance->charging_station_cnt());
+  auto evaluations = config.population_size * config.generation_cnt;
+
+  std::println("{}/{} evaluations", evaluations, max_evaluations_allowed);
+
+  if (evaluations > max_evaluations_allowed) {
+    throw std::runtime_error("You are not allowed to do that many evaluations.");
+  }
 
   auto population = std::vector<cye::EVRPIndividual>();
+  population.reserve(config.population_size);
+  for (size_t i = 0; i < config.population_size; ++i) {
   population.reserve(config.population_size);
   for (size_t i = 0; i < config.population_size; ++i) {
     population.emplace_back(energy_repair, cye::stochastic_rank_nearest_neighbor(gen, instance, 3));
   }
 
   auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
+  auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);
 
+  meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
+                                                   config.elite_cnt, config.generation_cnt, true);
+
+  ga.add_crossover_operator(std::make_unique<cye::DistributedCrossover>());
+  ga.add_mutation_operator(std::make_unique<cye::HMM>(instance));
+  ga.add_mutation_operator(std::make_unique<cye::HSM>(instance));
+
+  ga.add_local_search(std::make_unique<cye::TwoOptSearch>(instance));
+  ga.add_local_search(std::make_unique<cye::SwapSearch>(instance));
   meta::ga::GenerationalGA<cye::EVRPIndividual> ga(std::move(population), std::move(selection_operator),
                                                    config.elite_cnt, config.generation_cnt, true);
 
