@@ -7,7 +7,9 @@ authors = [
     { name = "leon3428", email = "leon.stjepan@gmail.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "optuna>=4.5.0",
+]
 
 [project.scripts]
 hyperopt = "hyperopt:main"
