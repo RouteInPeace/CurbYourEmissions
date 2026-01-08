@@ -10,10 +10,10 @@ auto cye::EVRPIndividual::update_cost() -> void {
   if (!valid_) {
     solution_.clear_patches();
     if (trivial_) {
-      cye::patch_cargo_trivially(solution_);
+      cye::linear_split(solution_);
       cye::patch_energy_trivially(solution_);
     } else {
-      cye::patch_cargo_optimally(solution_, static_cast<unsigned>(solution_.instance().cargo_capacity()) + 1u);
+      cye::linear_split(solution_);
       energy_repair_->patch(solution_, 101u);
     }
     valid_ = true;

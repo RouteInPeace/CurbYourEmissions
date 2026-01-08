@@ -21,6 +21,7 @@ add_executable(${PROJECT_NAME}_test
   patchable_vector_test.cpp
   instance_test.cpp
   caliper_test.cpp
+  repair_opt_test.cpp
 )
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -Wall -Wextra -Wpedantic -std=c++23)

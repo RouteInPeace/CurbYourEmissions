@@ -12,7 +12,8 @@ dependencies = [
 ]
 
 [project.scripts]
-hyperopt = "hyperopt:main"
+hyperopt = "hyperopt:hyperopt"
+stat = "hyperopt:stat"
 
 [build-system]
 requires = ["uv_build>=0.8.20,<0.9.0"]

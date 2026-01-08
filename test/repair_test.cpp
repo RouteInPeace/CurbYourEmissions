@@ -286,3 +286,118 @@ TEST(Repair, DPSparsity) {
   std::cout << full_cnt << ' ' << total_cnt << ' '
             << static_cast<double>(full_cnt) / static_cast<double>(total_cnt) * 100.0 << "%\n";
 }
+
+struct Solution {
+  double distance;
+  double battery_used;
+  double cargo_used;
+};
+
+struct Front {
+  std::vector<Solution> front;
+
+  auto insert(Solution proposition) -> void {
+    bool dominated = false;
+
+    for (auto it = front.begin(); it != front.end();) {
+      if (it->distance <= proposition.distance && it->battery_used <= proposition.battery_used &&
+          it->cargo_used <= proposition.battery_used) {
+        dominated = true;
+      }
+
+      if (proposition.distance <= it->distance && proposition.battery_used <= it->battery_used &&
+          proposition.cargo_used <= it->cargo_used) {
+        it = front.erase(it);  // erase returns next valid iterator
+      } else {
+        ++it;
+      }
+    }
+
+    for (auto &sol : front) {
+      if (sol.distance <= proposition.distance && sol.battery_used <= proposition.battery_used &&
+          sol.cargo_used <= proposition.battery_used) {
+        dominated = true;
+      }
+    }
+
+    if (!dominated) {
+      front.push_back(proposition);
+    }
+  }
+};
+
+TEST(Repair, Optimal) {
+  auto archive = serial::JSONArchive("dataset/json/X-n916-k207.json");
+  auto instance = std::make_shared<cye::Instance>(archive.root());
+
+  auto solution = cye::nearest_neighbor(instance);
+  auto perm = solution.routes().base();
+
+  auto optimal_energy_repair = cye::OptimalEnergyRepair(instance);
+  cye::linear_split(solution);
+  optimal_energy_repair.patch(solution, 1001u);
+  auto bound = solution.cost();
+
+  auto front1 = Front();
+  auto front2 = Front();
+
+  auto old_front = &front1;
+  auto new_front = &front2;
+
+  old_front->insert(Solution(0.0, 0.0, 0.0));
+
+  for (auto i = 0UZ; i <= perm.size(); ++i) {
+    auto prev_node = (i == 0) ? instance->depot_id() : perm[i - 1];
+    auto curr_node = (i == perm.size()) ? instance->depot_id() : perm[i];
+
+    for (auto &solution : old_front->front) {
+      // Option 1) Direct rute
+      {
+        auto prop = solution;
+        prop.distance += instance->distance(prev_node, curr_node);
+        prop.cargo_used += instance->demand(curr_node);
+        prop.battery_used += instance->energy_required(prev_node, curr_node);
+
+        if (prop.cargo_used <= instance->cargo_capacity() && prop.battery_used <= instance->battery_capacity() &&
+            prop.distance <= bound) {
+          new_front->insert(prop);
+        }
+      }
+      
+      // Option 2) Depo detour
+      {
+        auto prop = solution;
+        prop.distance += instance->distance(prev_node, instance->depot_id());
+        prop.distance += instance->distance(instance->depot_id(), curr_node);
+        prop.cargo_used = instance->demand(curr_node);
+        prop.battery_used = instance->energy_required(instance->depot_id(), curr_node);
+
+        if (prop.cargo_used <= instance->cargo_capacity() && prop.battery_used <= instance->battery_capacity() &&
+            prop.distance <= bound) {
+          new_front->insert(prop);
+        }
+      }
+
+      // Option 3) Charging station detour
+      {
+        if (auto cs_ind = cye::find_charging_station(*instance, prev_node, curr_node,
+                                                     instance->battery_capacity() - solution.battery_used)) {
+          auto prop = solution;
+          prop.distance += instance->distance(prev_node, *cs_ind);
+          prop.distance += instance->distance(*cs_ind, curr_node);
+          prop.cargo_used = instance->demand(curr_node);
+          prop.battery_used = instance->energy_required(*cs_ind, curr_node);
+
+          if (prop.cargo_used <= instance->cargo_capacity() && prop.battery_used <= instance->battery_capacity() &&
+              prop.distance <= bound) {
+            new_front->insert(prop);
+          }
+        }
+      }
+    }
+
+    std::println("{}", new_front->front.size());
+    std::swap(old_front, new_front);
+    new_front->front.clear();
+  }
+}

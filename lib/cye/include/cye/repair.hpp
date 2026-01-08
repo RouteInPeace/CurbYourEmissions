@@ -19,6 +19,8 @@ auto linear_split(Solution &solution) -> void;
 auto patch_cargo_trivially(Solution &solution) -> void;
 auto patch_energy_trivially(Solution &solution) -> void;
 
+auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, double remaining_battery) -> std::optional<size_t>;
+
 struct DPCell {
   DPCell()
       : dist(std::numeric_limits<double>::infinity()),
