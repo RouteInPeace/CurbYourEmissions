@@ -49,8 +49,11 @@ auto measurement(Config const &config) -> double {
   auto population = std::vector<cye::EVRPIndividual>();
   population.reserve(config.population_size);
   population.emplace_back(energy_repair, cye::nearest_neighbor(instance));
+  population.back().switch_to_optimal();
   for (size_t i = 1; i < config.population_size; ++i) {
     population.emplace_back(energy_repair, cye::stochastic_rank_nearest_neighbor(gen, instance, 2));
+    population.back().switch_to_optimal();
+
   }
 
   auto selection_operator = std::make_unique<meta::ga::RankSelection<cye::EVRPIndividual>>(1.60);

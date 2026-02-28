@@ -122,7 +122,7 @@ auto cye::patch_cargo_trivially(Solution &solution) -> void {
   solution.add_patch(std::move(patch));
 }
 
-auto find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, double remaining_battery)
+auto cye::find_charging_station(const cye::Instance &instance, size_t node1_id, size_t node2_id, double remaining_battery)
     -> std::optional<size_t> {
   auto best_station_id = std::optional<size_t>{};
   auto min_distance = std::numeric_limits<double>::infinity();

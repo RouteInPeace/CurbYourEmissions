@@ -18,7 +18,17 @@ def objective(trial):
     
     return cye_module.stat_measurement(config, 16).min
 
-def main() -> None:
+def hyperopt() -> None:
     study = optuna.create_study(direction="minimize")
     study.optimize(objective, n_trials=10, n_jobs=1)
     print("Best params:", study.best_params)
+
+def stat() -> None:
+    config = cye_module.Config()
+    config.instance_path = "../dataset/json/E-n101-k8.json"
+
+    result = cye_module.stat_measurement(config, 16)
+    print("Min:", result.min)
+    print("Avg:", result.mean)
+    print("Max:", result.max)
+    print("StdDev:", result.std)

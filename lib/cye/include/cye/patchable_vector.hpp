@@ -30,6 +30,8 @@ class Patch {
 
   inline auto sort() { std::ranges::stable_sort(changes_); }
 
+  inline auto pop_back() { changes_.pop_back(); }
+
   [[nodiscard]] inline auto size() const { return changes_.size(); }
 
   [[nodiscard]] inline auto back() const { return changes_.back(); }

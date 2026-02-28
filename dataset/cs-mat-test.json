@@ -1,0 +1,43 @@
+{
+  "name": "CsMatrix Hard Distance Test Instance",
+  "optimalValue": 0.0,
+  "minimumRouteCnt": 0,
+  "customerCnt": 0,
+  "chargingStationCnt": 4,
+  "cargoCapacity": 1000.0,
+  "batteryCapacity": 55.0,
+  "energyConsumption": 1.0,
+  "nodes": [
+    {
+      "x": 0.0,
+      "y": 0.0,
+      "demand": 0.0,
+      "type": "depot",
+      "id": "D"
+    },
+    {
+      "x": 30.0,
+      "y": 0.0,
+      "type": "chargingStation",
+      "id": "CS1"
+    },
+    {
+      "x": 60.0,
+      "y": 0.0,
+      "type": "chargingStation",
+      "id": "CS2"
+    },
+    {
+      "x": 90.0,
+      "y": 0.0,
+      "type": "chargingStation",
+      "id": "CS3"
+    },
+    {
+      "x": 120.0,
+      "y": 0.0,
+      "type": "chargingStation",
+      "id": "CS4"
+    }
+  ]
+}

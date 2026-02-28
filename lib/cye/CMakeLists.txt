@@ -9,6 +9,7 @@ set(PROJECT_HEADERS
     include/cye/individual.hpp
     include/cye/operators.hpp
     include/cye/stall_handler.hpp
+    include/cye/repair_opt.hpp
 )
 
 set(PROJECT_SOURCES 
@@ -19,6 +20,7 @@ set(PROJECT_SOURCES
     src/repair.cpp
     src/destroy.cpp
     src/individual.cpp
+    src/repair_opt.cpp
 )
 
 
